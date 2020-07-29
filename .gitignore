@@ -1,0 +1,4 @@
+/build*/
+/*.user
+compile_commands.json
+/.clangd/
