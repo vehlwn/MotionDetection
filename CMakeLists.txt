@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.5)
 
-project(VideoScene LANGUAGES CXX)
+project(MotionDetection LANGUAGES CXX)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
