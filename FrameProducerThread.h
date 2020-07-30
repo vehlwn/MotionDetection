@@ -1,7 +1,5 @@
 #pragma once
 
-#include "qobject.h"
-
 #include <QObject>
 #include <QPixmap>
 #include <QThread>
