@@ -20,6 +20,9 @@ signals:
     void newFrame(QPixmap img);
     void logMessage(QString s);
 
+    public slots:
+        void stopStreaming();
+
 private:
     struct Impl;
     std::unique_ptr<Impl> pimpl;
