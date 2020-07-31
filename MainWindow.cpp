@@ -1,35 +1,48 @@
 #include "MainWindow.h"
 
+#include "FrameProducerThread.h"
 #include "ui_MainWindow.h"
+
+#include <QGraphicsPixmapItem>
+#include <QGraphicsScene>
+
+namespace Ui {
+class MainWindow;
+}
+
+struct MainWindow::Impl
+{
+    Ui::MainWindow ui;
+    QGraphicsScene* scene{};
+    QGraphicsPixmapItem* scenePixmapItem{};
+    std::unique_ptr<FrameProducerThread> frameProducerThread;
+};
 
 MainWindow::MainWindow(QWidget* parent)
     : QMainWindow(parent)
-    , ui(new Ui::MainWindow)
-    , m_scene{new QGraphicsScene}
-    , m_scenePixmapItem{new QGraphicsPixmapItem}
-    , m_frameProducerThread{std::make_unique<FrameProducerThread>()}
+    , pimpl{std::make_unique<Impl>()}
 {
-    ui->setupUi(this);
+    pimpl->scene = new QGraphicsScene;
+    pimpl->scenePixmapItem = new QGraphicsPixmapItem;
+    pimpl->frameProducerThread = std::make_unique<FrameProducerThread>();
+    pimpl->ui.setupUi(this);
 
-    ui->graphicsView->setScene(m_scene);
-    m_scene->addItem(m_scenePixmapItem);
+    pimpl->ui.graphicsView->setScene(pimpl->scene);
+    pimpl->scene->addItem(pimpl->scenePixmapItem);
     connect(
-        m_frameProducerThread.get(),
+        pimpl->frameProducerThread.get(),
         &FrameProducerThread::newFrame,
         this,
-        [this](QPixmap img) {
-            m_scenePixmapItem->setPixmap(std::move(img));
-        });
+        [this](QPixmap img) { pimpl->scenePixmapItem->setPixmap(std::move(img)); });
     connect(
-        m_frameProducerThread.get(),
+        pimpl->frameProducerThread.get(),
         &FrameProducerThread::logMessage,
         this,
-        [this](QString s) { ui->plainTextEdit->appendPlainText(std::move(s)); });
-    m_frameProducerThread->start();
+        [this](QString s) { pimpl->ui.plainTextEdit->appendPlainText(std::move(s)); });
+    pimpl->frameProducerThread->start();
 }
 
 MainWindow::~MainWindow()
 {
-    delete ui;
-    m_frameProducerThread->wait();
+    pimpl->frameProducerThread->wait();
 }

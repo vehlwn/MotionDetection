@@ -1,15 +1,7 @@
 #pragma once
 
-#include "FrameProducerThread.h"
-
-#include <QGraphicsPixmapItem>
-#include <QGraphicsScene>
 #include <QMainWindow>
 #include <memory>
-
-namespace Ui {
-class MainWindow;
-}
 
 class MainWindow : public QMainWindow
 {
@@ -20,8 +12,6 @@ public:
     ~MainWindow();
 
 private:
-    Ui::MainWindow* ui{};
-    QGraphicsScene* m_scene{};
-    QGraphicsPixmapItem* m_scenePixmapItem{};
-    std::unique_ptr<FrameProducerThread> m_frameProducerThread;
+    struct Impl;
+    std::unique_ptr<Impl> pimpl;
 };
