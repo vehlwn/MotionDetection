@@ -15,7 +15,7 @@ struct MainWindow::Impl
 {
     Ui::MainWindow ui;
     PixmapScene* scene{};
-    QGraphicsPixmapItem* scenePixmapItem{};
+    QGraphicsPixmapItem *frameItem{}, *fgmaskItem{};
     std::unique_ptr<FrameProducerThread> frameProducerThread;
 };
 
@@ -26,18 +26,24 @@ MainWindow::MainWindow(QWidget* parent)
     pimpl->ui.setupUi(this);
 
     pimpl->scene = new PixmapScene;
-    pimpl->scenePixmapItem = new QGraphicsPixmapItem;
+    pimpl->frameItem = new QGraphicsPixmapItem;
+    pimpl->fgmaskItem = new QGraphicsPixmapItem;
 
-    pimpl->scenePixmapItem->setFlag(QGraphicsItem::ItemIsMovable, true);
     pimpl->frameProducerThread = std::make_unique<FrameProducerThread>();
 
     pimpl->ui.graphicsView->setScene(pimpl->scene);
-    pimpl->scene->addItem(pimpl->scenePixmapItem);
+    pimpl->scene->addItem(pimpl->frameItem);
+    pimpl->scene->addItem(pimpl->fgmaskItem);
+    pimpl->scene->makeItemsControllable(true);
+    pimpl->scene->resetZvalues();
     connect(
         pimpl->frameProducerThread.get(),
         &FrameProducerThread::newFrame,
         this,
-        [this](QPixmap img) { pimpl->scenePixmapItem->setPixmap(std::move(img)); });
+        [this](QPixmap img) {
+            pimpl->frameItem->setPixmap(img);
+            pimpl->fgmaskItem->setPixmap(img);
+        });
     connect(
         pimpl->frameProducerThread.get(),
         &FrameProducerThread::logMessage,
