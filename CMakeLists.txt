@@ -14,7 +14,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 find_package(
   Qt5 REQUIRED
-  COMPONENTS Widgets Network Concurrent
+  COMPONENTS Widgets
 )
 
 # Download automatically, you can also just copy the conan.cmake file
