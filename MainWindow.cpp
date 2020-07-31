@@ -1,6 +1,7 @@
 #include "MainWindow.h"
 
 #include "FrameProducerThread.h"
+#include "PixmapScene.h"
 #include "ui_MainWindow.h"
 
 #include <QGraphicsPixmapItem>
@@ -13,7 +14,7 @@ class MainWindow;
 struct MainWindow::Impl
 {
     Ui::MainWindow ui;
-    QGraphicsScene* scene{};
+    PixmapScene* scene{};
     QGraphicsPixmapItem* scenePixmapItem{};
     std::unique_ptr<FrameProducerThread> frameProducerThread;
 };
@@ -22,10 +23,13 @@ MainWindow::MainWindow(QWidget* parent)
     : QMainWindow(parent)
     , pimpl{std::make_unique<Impl>()}
 {
-    pimpl->scene = new QGraphicsScene;
-    pimpl->scenePixmapItem = new QGraphicsPixmapItem;
-    pimpl->frameProducerThread = std::make_unique<FrameProducerThread>();
     pimpl->ui.setupUi(this);
+
+    pimpl->scene = new PixmapScene;
+    pimpl->scenePixmapItem = new QGraphicsPixmapItem;
+
+    pimpl->scenePixmapItem->setFlag(QGraphicsItem::ItemIsMovable, true);
+    pimpl->frameProducerThread = std::make_unique<FrameProducerThread>();
 
     pimpl->ui.graphicsView->setScene(pimpl->scene);
     pimpl->scene->addItem(pimpl->scenePixmapItem);

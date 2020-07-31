@@ -45,6 +45,8 @@ add_executable(
   FrameProducerThread.cpp
   utils.h
   utils.cpp
+  PixmapScene.h
+  PixmapScene.cpp
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE Qt5::Widgets ${CONAN_LIBS})
