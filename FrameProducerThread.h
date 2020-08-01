@@ -20,8 +20,8 @@ signals:
     void newFrame(QPixmap img);
     void logMessage(QString s);
 
-    public slots:
-        void stopStreaming();
+public slots:
+    void stopStreaming();
 
 private:
     struct Impl;
