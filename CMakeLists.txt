@@ -47,6 +47,11 @@ add_executable(
   utils.cpp
   PixmapScene.h
   PixmapScene.cpp
+  ApplicationSettings.h
+  ApplicationSettings.cpp
+  SettingsDialog.ui
+  SettingsDialog.h
+  SettingsDialog.cpp
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE Qt5::Widgets ${CONAN_LIBS})
