@@ -12,12 +12,14 @@ class FrameProducerThread : public QThread
 
 public:
     FrameProducerThread(QObject* parent = nullptr);
+    ~FrameProducerThread();
 
 protected:
     void run() override;
 
 signals:
     void newFrame(QPixmap img);
+    void newFgmask(QPixmap img);
     void logMessage(QString s);
 
 public slots:

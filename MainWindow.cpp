@@ -17,7 +17,7 @@ struct MainWindow::Impl
     Ui::MainWindow ui;
     PixmapScene* scene{};
     QGraphicsPixmapItem *frameItem{}, *fgmaskItem{};
-    std::unique_ptr<FrameProducerThread> frameProducerThread;
+    FrameProducerThread frameProducerThread;
 };
 
 MainWindow::MainWindow(QWidget* parent)
@@ -30,31 +30,31 @@ MainWindow::MainWindow(QWidget* parent)
     pimpl->frameItem = new QGraphicsPixmapItem;
     pimpl->fgmaskItem = new QGraphicsPixmapItem;
 
-    pimpl->frameProducerThread = std::make_unique<FrameProducerThread>();
-
     pimpl->ui.graphicsView->setScene(pimpl->scene);
     pimpl->scene->addItem(pimpl->frameItem);
     pimpl->scene->addItem(pimpl->fgmaskItem);
     pimpl->scene->makeItemsControllable(true);
     pimpl->scene->resetZvalues();
     connect(
-        pimpl->frameProducerThread.get(),
+        &pimpl->frameProducerThread,
         &FrameProducerThread::newFrame,
         this,
-        [this](QPixmap img) {
-            pimpl->frameItem->setPixmap(img);
-            pimpl->fgmaskItem->setPixmap(img);
-        });
+        [this](QPixmap img) { pimpl->frameItem->setPixmap(img); });
     connect(
-        pimpl->frameProducerThread.get(),
+        &pimpl->frameProducerThread,
+        &FrameProducerThread::newFgmask,
+        this,
+        [this](QPixmap img) { pimpl->fgmaskItem->setPixmap(img); });
+    connect(
+        &pimpl->frameProducerThread,
         &FrameProducerThread::logMessage,
         this,
         [this](QString s) { pimpl->ui.plainTextEdit->appendPlainText(std::move(s)); });
-    pimpl->frameProducerThread->start();
+    pimpl->frameProducerThread.start();
 }
 
 MainWindow::~MainWindow()
 {
-    emit pimpl->frameProducerThread->stopStreaming();
-    pimpl->frameProducerThread->wait();
+    emit pimpl->frameProducerThread.stopStreaming();
+    pimpl->frameProducerThread.wait();
 }
