@@ -4,7 +4,9 @@
 #include "PixmapScene.h"
 #include "ui_MainWindow.h"
 
+#include <QAbstractButton>
 #include <QDebug>
+#include <QFileDialog>
 #include <QGraphicsPixmapItem>
 #include <QGraphicsScene>
 
@@ -51,10 +53,37 @@ MainWindow::MainWindow(QWidget* parent)
         this,
         [this](QString s) { pimpl->ui.plainTextEdit->appendPlainText(std::move(s)); });
     pimpl->frameProducerThread.start();
+
+    connectUiSlots();
+    pimpl->ui.radioButtonCamera->setChecked(true);
+    pimpl->ui.lineEditFname->setEnabled(false);
+    pimpl->ui.pushButtonOpenFile->setEnabled(false);
 }
 
 MainWindow::~MainWindow()
 {
     emit pimpl->frameProducerThread.stopStreaming();
     pimpl->frameProducerThread.wait();
+}
+
+void MainWindow::connectUiSlots()
+{
+    connect(pimpl->ui.radioButtonCamera, &QAbstractButton::toggled, this, [this](bool b) {
+        pimpl->ui.spinBoxCameraIndex->setEnabled(b);
+    });
+    connect(pimpl->ui.radioButtonFile, &QAbstractButton::toggled, this, [this](bool b) {
+        pimpl->ui.lineEditFname->setEnabled(b);
+        pimpl->ui.pushButtonOpenFile->setEnabled(b);
+    });
+    connect(pimpl->ui.pushButtonOpenFile, &QAbstractButton::clicked, this, [this]() {
+        const QString fileName = QFileDialog::getOpenFileName(
+            this,
+            "Open video file",
+            "",
+            "AVI files (*.avi);;MP4 files (*.mp4);;All files (*.*)");
+
+        if(fileName.isEmpty())
+            return;
+        pimpl->ui.lineEditFname->setText(fileName);
+    });
 }
