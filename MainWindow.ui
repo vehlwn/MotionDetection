@@ -68,6 +68,13 @@
      </widget>
     </item>
     <item>
+     <widget class="QPushButton" name="pushButtonStart">
+      <property name="text">
+       <string>Start</string>
+      </property>
+     </widget>
+    </item>
+    <item>
      <widget class="QGraphicsView" name="graphicsView"/>
     </item>
     <item>

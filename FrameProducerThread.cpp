@@ -16,6 +16,7 @@ struct FrameProducerThread::Impl
 {
     cv::VideoCapture cap;
     std::atomic_bool stopped = false;
+    VideoCaptureOptions videoOptions;
 };
 
 FrameProducerThread::FrameProducerThread(QObject* parent)
@@ -24,17 +25,35 @@ FrameProducerThread::FrameProducerThread(QObject* parent)
 {
 }
 
-FrameProducerThread::~FrameProducerThread() = default;
+FrameProducerThread::~FrameProducerThread()
+{
+    stopStreaming();
+}
+
+void FrameProducerThread::startStreaming(VideoCaptureOptions videoOptions)
+{
+    stopStreaming();
+    pimpl->videoOptions = std::move(videoOptions);
+    start();
+}
 
 void FrameProducerThread::run()
 {
-    emit logMessage(QString::fromStdString(cv::getBuildInformation()));
-    const std::string fname = R"(K:\Road traffic video for object recognition.mp4)";
-    if(!pimpl->cap.open(fname))
+    if(auto fname = std::get_if<QString>(&pimpl->videoOptions.fname))
     {
-        emit logMessage(
-            QString{"Failed to open '%1'"}.arg(QString::fromStdString(fname)));
-        return;
+        if(!pimpl->cap.open(fname->toStdString()))
+        {
+            emit logMessage(QString{"Failed to open file '%1'"}.arg(*fname));
+            return;
+        }
+    }
+    else if(auto index = std::get_if<int>(&pimpl->videoOptions.fname))
+    {
+        if(!pimpl->cap.open(*index))
+        {
+            emit logMessage(QString{"Failed to open camera '%1'"}.arg(*index));
+            return;
+        }
     }
     emit logMessage(QString{"CAP_PROP_FRAME_WIDTH = %1"}.arg(
         pimpl->cap.get(cv::CAP_PROP_FRAME_WIDTH)));
@@ -55,6 +74,7 @@ void FrameProducerThread::run()
     const bool detectShadows = false;
     auto backSubtractor =
         cv::createBackgroundSubtractorMOG2(history, varThreshold, detectShadows);
+    pimpl->stopped = false;
     while(!pimpl->stopped)
     {
         cv::Mat frame;
@@ -76,4 +96,5 @@ void FrameProducerThread::run()
 void FrameProducerThread::stopStreaming()
 {
     pimpl->stopped = true;
+    wait();
 }

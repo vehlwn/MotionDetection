@@ -11,6 +11,9 @@ public:
     explicit MainWindow(QWidget* parent = nullptr);
     ~MainWindow();
 
+private slots:
+    void logMessage(QString s);
+
 private:
     struct Impl;
     std::unique_ptr<Impl> pimpl;
