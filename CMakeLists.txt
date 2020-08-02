@@ -37,21 +37,26 @@ endif()
 
 add_executable(
   ${PROJECT_NAME}# ${GUI_TYPE}
-  main.cpp
-  MainWindow.h
-  MainWindow.cpp
-  MainWindow.ui
-  FrameProducerThread.h
-  FrameProducerThread.cpp
-  utils.h
-  utils.cpp
-  PixmapScene.h
-  PixmapScene.cpp
-  ApplicationSettings.h
   ApplicationSettings.cpp
-  SettingsDialog.ui
-  SettingsDialog.h
+  ApplicationSettings.h
+  BufferedVideoReader.cpp
+  BufferedVideoReader.h
+  FixedThreadSafeQueue.h
+  FrameConsumerThread.cpp
+  FrameConsumerThread.h
+  FrameProducerThread.cpp
+  FrameProducerThread.h
+  MainWindow.cpp
+  MainWindow.h
+  MainWindow.ui
+  PixmapScene.cpp
+  PixmapScene.h
   SettingsDialog.cpp
+  SettingsDialog.h
+  SettingsDialog.ui
+  main.cpp
+  utils.cpp
+  utils.h
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE Qt5::Widgets ${CONAN_LIBS})

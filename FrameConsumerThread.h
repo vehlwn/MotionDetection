@@ -7,20 +7,22 @@
 #include <QThread>
 #include <memory>
 
-class FrameProducerThread : public QThread
+class FrameConsumerThread : public QThread
 {
     Q_OBJECT
     using base = QThread;
 
 public:
-    FrameProducerThread(QObject* parent,
+    FrameConsumerThread(
+        QObject* parent,
         std::weak_ptr<BufferedVideoReader::DataQue> queue);
-    ~FrameProducerThread();
+    ~FrameConsumerThread();
 
 protected:
     void run() override;
 
 signals:
+    void newData(BufferedVideoReader::Data img);
     void logMessage(QString s);
 
 public slots:

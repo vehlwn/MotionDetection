@@ -1,7 +1,7 @@
 #include "MainWindow.h"
 
 #include "ApplicationSettings.h"
-#include "FrameProducerThread.h"
+#include "BufferedVideoReader.h"
 #include "PixmapScene.h"
 #include "SettingsDialog.h"
 #include "ui_MainWindow.h"
@@ -23,7 +23,7 @@ struct MainWindow::Impl
     Ui::MainWindow ui;
     PixmapScene* scene{};
     QGraphicsPixmapItem *frameItem{}, *fgmaskItem{};
-    FrameProducerThread frameProducerThread;
+    BufferedVideoReader videoReader;
 };
 
 MainWindow::MainWindow(QWidget* parent)
@@ -42,26 +42,28 @@ MainWindow::MainWindow(QWidget* parent)
     pimpl->scene->makeItemsControllable(true);
     pimpl->scene->resetZvalues();
     connect(
-        &pimpl->frameProducerThread,
-        &FrameProducerThread::newFrame,
+        &pimpl->videoReader,
+        &BufferedVideoReader::newData,
         this,
-        [this](QPixmap img) { pimpl->frameItem->setPixmap(img); });
+        [this](BufferedVideoReader::Data img) {
+            pimpl->frameItem->setPixmap(img.frame);
+            pimpl->fgmaskItem->setPixmap(img.fgmask);
+        });
     connect(
-        &pimpl->frameProducerThread,
-        &FrameProducerThread::newFgmask,
-        this,
-        [this](QPixmap img) { pimpl->fgmaskItem->setPixmap(img); });
-    connect(
-        &pimpl->frameProducerThread,
-        &FrameProducerThread::logMessage,
+        &pimpl->videoReader,
+        &BufferedVideoReader::logMessage,
         this,
         &MainWindow::logMessage);
     connect(
         pimpl->ui.pushButtonStart,
         &QAbstractButton::clicked,
-        &pimpl->frameProducerThread,
-        &FrameProducerThread::startStreaming);
-    connect(pimpl->ui.actionQuit, &QAction::triggered, this, &QCoreApplication::quit);
+        &pimpl->videoReader,
+        &BufferedVideoReader::start);
+    connect(
+        pimpl->ui.actionQuit,
+        &QAction::triggered,
+        this,
+        &QCoreApplication::quit);
     connect(pimpl->ui.actionSettings, &QAction::triggered, this, [] {
         SettingsDialog dialog;
         if(dialog.exec() != QDialog::Accepted)
@@ -73,6 +75,7 @@ MainWindow::MainWindow(QWidget* parent)
 
 MainWindow::~MainWindow()
 {
+    pimpl->videoReader.waitStop();
 }
 
 void MainWindow::logMessage(QString s)
