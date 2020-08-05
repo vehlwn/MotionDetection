@@ -31,7 +31,8 @@ FrameProducerThread::FrameProducerThread(
     pimpl->queue = std::move(queue);
     pimpl->cap = std::move(cap);
 
-    const int history = 100;
+    const auto& i = ApplicationSettings::i();
+    const int history = i.history();
     const double varThreshold = 16;
     const bool detectShadows = false;
     pimpl->backSubtractor =

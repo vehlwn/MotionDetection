@@ -22,6 +22,10 @@ public:
     void cameraIndex(int i);
     QString fname() const;
     void fname(QString s);
+    int history() const;
+    void history(int i);
+    int frameBufferSize() const;
+    void frameBufferSize(int i);
 
 private:
     ApplicationSettings();

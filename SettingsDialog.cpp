@@ -50,18 +50,18 @@ SettingsDialog::SettingsDialog(QWidget* parent)
         pimpl->ui.lineEditFname->setText(fileName);
         ApplicationSettings::i().fname(fileName);
     });
-    auto& i = ApplicationSettings::i();
+    const auto& i = ApplicationSettings::i();
     pimpl->ui.radioButtonCamera->setChecked(i.cameraChecked());
     radioCameraIndexToggled(i.cameraChecked());
     pimpl->ui.radioButtonFile->setChecked(i.fileChecked());
     radioFileToggled(i.fileChecked());
     pimpl->ui.spinBoxCameraIndex->setValue(i.cameraIndex());
     pimpl->ui.lineEditFname->setText(i.fname());
+    pimpl->ui.spinBoxHistory->setValue(i.history());
+    pimpl->ui.spinBoxFrameBufferSize->setValue(i.frameBufferSize());
 }
 
-SettingsDialog::~SettingsDialog()
-{
-}
+SettingsDialog::~SettingsDialog() = default;
 
 void SettingsDialog::accept()
 {
@@ -70,5 +70,7 @@ void SettingsDialog::accept()
     i.fileChecked(pimpl->ui.radioButtonFile->isChecked());
     i.cameraIndex(pimpl->ui.spinBoxCameraIndex->value());
     i.fname(pimpl->ui.lineEditFname->text());
+    i.history(pimpl->ui.spinBoxHistory->value());
+    i.frameBufferSize(pimpl->ui.spinBoxFrameBufferSize->value());
     base::accept();
 }
