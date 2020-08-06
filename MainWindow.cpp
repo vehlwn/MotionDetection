@@ -13,6 +13,7 @@
 #include <QFileDialog>
 #include <QGraphicsPixmapItem>
 #include <QGraphicsScene>
+#include <memory>
 
 namespace Ui {
 class MainWindow;
@@ -46,7 +47,7 @@ MainWindow::MainWindow(QWidget* parent)
         &BufferedVideoReader::newData,
         this,
         [this](BufferedVideoReader::Data img) {
-            pimpl->frameItem->setPixmap(img.frame);
+            pimpl->frameItem->setPixmap(img.frameToView);
             pimpl->fgmaskItem->setPixmap(img.fgmask);
         });
     connect(
