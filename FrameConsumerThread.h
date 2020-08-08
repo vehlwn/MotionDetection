@@ -35,7 +35,7 @@ public slots:
 
 private:
     struct Impl;
-    std::unique_ptr<Impl> pimpl;
+    std::shared_ptr<Impl> pimpl;
     friend class FrameConsumerWorker;
 };
 
@@ -44,10 +44,11 @@ class FrameConsumerWorker : public TimerWorker
     Q_OBJECT
     using base = TimerWorker;
 
-private:
-    FrameConsumerWorker(FrameConsumerThread* t, int msec, Qt::TimerType atype);
-
 public:
+    FrameConsumerWorker(
+        int msec,
+        Qt::TimerType atype,
+        std::weak_ptr<FrameConsumerThread::Impl> pimpl);
     ~FrameConsumerWorker();
 
 signals:
@@ -57,7 +58,6 @@ protected slots:
     void onTimeout() override;
 
 private:
-    struct Impl;
-    std::unique_ptr<Impl> pimpl;
+    std::weak_ptr<FrameConsumerThread::Impl> pimpl;
     friend class FrameConsumerThread;
 };

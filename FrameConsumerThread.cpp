@@ -28,7 +28,7 @@ struct FrameConsumerThread::Impl
 
 FrameConsumerThread::FrameConsumerThread(QObject* parent)
     : base{parent}
-    , pimpl{std::make_unique<Impl>()}
+    , pimpl{std::make_shared<Impl>()}
 {
 }
 
@@ -64,11 +64,10 @@ void FrameConsumerThread::setOptions(
     }
     emit logMessage(QString{"FrameConsumerThread opened file '%1'"}.arg(outFname));
 
-    pimpl->timerWorker =
-        std::unique_ptr<FrameConsumerWorker>(new FrameConsumerWorker(
-            this,
-            1. / pimpl->videoOptions.fps * 1000.,
-            Qt::PreciseTimer));
+    pimpl->timerWorker = std::make_unique<FrameConsumerWorker>(
+        1. / pimpl->videoOptions.fps * 1000.,
+        Qt::PreciseTimer,
+        pimpl);
     connect(
         pimpl->timerWorker.get(),
         &FrameConsumerWorker::newData,
@@ -88,26 +87,23 @@ void FrameConsumerThread::stop()
     quit();
 }
 
-struct FrameConsumerWorker::Impl
-{
-    FrameConsumerThread* t{};
-};
-
 FrameConsumerWorker::FrameConsumerWorker(
-    FrameConsumerThread* t,
     int msec,
-    Qt::TimerType atype)
+    Qt::TimerType atype,
+    std::weak_ptr<FrameConsumerThread::Impl> pimpl)
     : base{msec, atype}
-    , pimpl{new Impl}
+    , pimpl{std::move(pimpl)}
 {
-    pimpl->t = t;
 }
 
 FrameConsumerWorker::~FrameConsumerWorker() = default;
 
 void FrameConsumerWorker::onTimeout()
 {
-    if(auto que = pimpl->t->pimpl->queue.lock())
+    std::shared_ptr<FrameConsumerThread::Impl> pimpl = this->pimpl.lock();
+    if(!pimpl)
+        return;
+    if(auto que = pimpl->queue.lock())
     {
         if(auto img = que->waitPop())
         {
@@ -123,7 +119,7 @@ void FrameConsumerWorker::onTimeout()
                 250,
                 0);
             painterUtils::drawRecordingCircle(img->frame, 10, 20);
-            pimpl->t->pimpl->out.write(utils::QImage2cvMat(img->frame));
+            pimpl->out.write(utils::QImage2cvMat(img->frame));
             emit newData(std::move(*img));
         }
     }
