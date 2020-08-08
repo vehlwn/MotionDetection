@@ -41,10 +41,13 @@ void FrameConsumerThread::setOptions(
     pimpl->videoOptions = std::move(videoOptions);
     if(!pimpl->videoOptions.outputDir.mkpath("."))
     {
-        emit logMessage(QString{"FrameWriterThread failed to create dir '%1'"}.arg(
+        emit logMessage(QString{"FrameConsumerThread failed to create dir '%1'"}.arg(
             pimpl->videoOptions.outputDir.path()));
         return;
     }
+    emit logMessage(QString{"FrameConsumerThread created dir '%1'"}.arg(
+        pimpl->videoOptions.outputDir.path()));
+
     const QString outFname = pimpl->videoOptions.outputDir.absoluteFilePath(
         getDatetimeFilename() + pimpl->videoOptions.outputExtension);
     if(!pimpl->out.open(
@@ -54,10 +57,11 @@ void FrameConsumerThread::setOptions(
            {pimpl->videoOptions.width, pimpl->videoOptions.height}))
     {
         emit logMessage(
-            QString{"Failed to open output vieo file '%1'"}.arg(outFname));
+            QString{"FrameConsumerThread failed to open output vieo file '%1'"}.arg(
+                outFname));
         return;
     }
-    emit logMessage(QString{"Writer opened file '%1'"}.arg(outFname));
+    emit logMessage(QString{"FrameConsumerThread opened file '%1'"}.arg(outFname));
 
     pimpl->timerWorker =
         std::unique_ptr<FrameConsumerWorker>(new FrameConsumerWorker(

@@ -32,6 +32,8 @@ MainWindow::MainWindow(QWidget* parent)
     , pimpl{std::make_unique<Impl>()}
 {
     pimpl->ui.setupUi(this);
+    pimpl->ui.splitter->setStretchFactor(0, 5);
+    pimpl->ui.splitter->setStretchFactor(1, 1);
 
     pimpl->scene = new PixmapScene;
     pimpl->frameItem = new QGraphicsPixmapItem;
