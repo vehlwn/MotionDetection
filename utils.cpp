@@ -29,7 +29,8 @@ QPixmap cvMat2QPixmap(const cv::Mat& mat)
 
 cv::Mat QPixmap2cvMat(const QPixmap& src)
 {
-    auto img = src.toImage().convertToFormat(QImage::Format_BGR888);
+    auto img = src.toImage();
+    img.convertTo(QImage::Format_BGR888);
     int type = CV_8UC3;
     cv::Mat ret{
         img.height(),
