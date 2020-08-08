@@ -109,14 +109,18 @@ void FrameConsumerWorker::onTimeout()
 {
     if(auto que = pimpl->t->pimpl->queue.lock())
     {
-        /* qDebug() << "que size =" << que->size(); */
         if(auto img = que->waitPop())
         {
             painterUtils::drawDatetime(img->frame, 0, 0);
             painterUtils::drawTextWithBackground(
                 img->frame,
-                QString::number(img->movingArea),
+                QString{"moving=%1"}.arg(img->movingArea),
                 150,
+                0);
+            painterUtils::drawTextWithBackground(
+                img->frame,
+                QString{"que=%1"}.arg(que->size()),
+                250,
                 0);
             painterUtils::drawRecordingCircle(img->frame, 10, 20);
             pimpl->t->pimpl->out.write(utils::QImage2cvMat(img->frame));
