@@ -25,12 +25,17 @@ struct FrameConsumerThread::Impl
     cv::VideoWriter out;
 };
 
-FrameConsumerThread::FrameConsumerThread(
-    QObject* parent,
-    std::weak_ptr<BufferedVideoReader::DataQue> queue,
-    VideoWriterOptions videoOptions)
+FrameConsumerThread::FrameConsumerThread(QObject* parent)
     : base{parent}
     , pimpl{std::make_unique<Impl>()}
+{
+}
+
+FrameConsumerThread::~FrameConsumerThread() = default;
+
+void FrameConsumerThread::setOptions(
+    std::weak_ptr<BufferedVideoReader::DataQue> queue,
+    VideoWriterOptions videoOptions)
 {
     pimpl->queue = std::move(queue);
     pimpl->videoOptions = std::move(videoOptions);
@@ -67,8 +72,6 @@ FrameConsumerThread::FrameConsumerThread(
 
     pimpl->timerWorker->moveToThread(this);
 }
-
-FrameConsumerThread::~FrameConsumerThread() = default;
 
 void FrameConsumerThread::run()
 {
