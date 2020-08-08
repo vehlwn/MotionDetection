@@ -30,6 +30,10 @@ public:
     void outputFolder(QString s);
     QString outputExtension() const;
     void outputExtension(QString s);
+    bool gaussianBlurChecked() const;
+    void gaussianBlurChecked(bool b);
+    int gaussianBlurValue() const;
+    void gaussianBlurValue(int i);
 
 private:
     ApplicationSettings();

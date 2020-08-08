@@ -28,6 +28,8 @@ constexpr auto HISTORY_ENTRY = "history";
 constexpr auto FRAME_BUFFER_SIZE_ENTRY = "frame_buffer_size";
 constexpr auto OUTPUT_FOLDER_ENTRY = "output_folder";
 constexpr auto OUTPUT_EXTENSION_ENTRY = "output_extension";
+constexpr auto GAUSSIAN_BLUR_CHECKED_ENTRY = "gaussian_blur_checked";
+constexpr auto GAUSSIAN_BLUR_VALUE_ENTRY = "gaussian_blur_value";
 
 const auto DEFAULT_SETTINGS = [] {
     std::map<QString, QVariant> result;
@@ -39,6 +41,8 @@ const auto DEFAULT_SETTINGS = [] {
     result[FRAME_BUFFER_SIZE_ENTRY] = 10;
     result[OUTPUT_FOLDER_ENTRY] = "video";
     result[OUTPUT_EXTENSION_ENTRY] = ".mkv";
+    result[GAUSSIAN_BLUR_CHECKED_ENTRY] = true;
+    result[GAUSSIAN_BLUR_VALUE_ENTRY] = 5;
     return result;
 }();
 
@@ -158,4 +162,28 @@ void ApplicationSettings::outputExtension(QString s)
 {
     QMutexLocker lock{&pimpl->settingsMutex};
     pimpl->settings.setValue(OUTPUT_EXTENSION_ENTRY, s);
+}
+
+bool ApplicationSettings::gaussianBlurChecked() const
+{
+    QMutexLocker lock{&pimpl->settingsMutex};
+    return getSettingsValue(pimpl->settings, GAUSSIAN_BLUR_CHECKED_ENTRY).toBool();
+}
+
+void ApplicationSettings::gaussianBlurChecked(bool b)
+{
+    QMutexLocker lock{&pimpl->settingsMutex};
+    pimpl->settings.setValue(GAUSSIAN_BLUR_CHECKED_ENTRY, b);
+}
+
+int ApplicationSettings::gaussianBlurValue() const
+{
+    QMutexLocker lock{&pimpl->settingsMutex};
+    return getSettingsValue(pimpl->settings, GAUSSIAN_BLUR_VALUE_ENTRY).toInt();
+}
+
+void ApplicationSettings::gaussianBlurValue(int i)
+{
+    QMutexLocker lock{&pimpl->settingsMutex};
+    pimpl->settings.setValue(GAUSSIAN_BLUR_VALUE_ENTRY, i);
 }
