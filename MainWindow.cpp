@@ -49,8 +49,8 @@ MainWindow::MainWindow(QWidget* parent)
         &BufferedVideoReader::newData,
         this,
         [this](BufferedVideoReader::Data img) {
-            pimpl->frameItem->setPixmap(img.frameToView);
-            pimpl->fgmaskItem->setPixmap(img.fgmask);
+            pimpl->frameItem->setPixmap(QPixmap::fromImage(img.frame));
+            pimpl->fgmaskItem->setPixmap(QPixmap::fromImage(img.fgmask));
         });
     connect(
         &pimpl->videoReader,

@@ -62,17 +62,9 @@ void FrameProducerThread::run()
         pimpl->backSubtractor->apply(blurredFrame, fgmask);
 
         BufferedVideoReader::Data img;
-        img.fgmask = utils::cvMat2QPixmap(fgmask);
+        img.fgmask = utils::cvMat2QImage(fgmask);
         img.movingArea = cv::countNonZero(fgmask);
-        img.frameToView = utils::cvMat2QPixmap(frame);
-        painterUtils::drawDatetime(img.frameToView, 0, 0);
-        painterUtils::drawTextWithBackground(
-            img.frameToView,
-            QString::number(img.movingArea),
-            150,
-            0);
-        painterUtils::drawRecordingCircle(img.frameToView, 10, 20);
-        img.frameToWrite = img.frameToView.copy();
+        img.frame = utils::cvMat2QImage(frame);
         if(auto que = pimpl->queue.lock())
             que->waitPush(std::move(img));
         else
