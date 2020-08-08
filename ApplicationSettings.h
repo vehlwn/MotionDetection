@@ -26,6 +26,8 @@ public:
     void history(int i);
     int frameBufferSize() const;
     void frameBufferSize(int i);
+    QString outputFolder() const;
+    void outputFolder(QString s);
 
 private:
     ApplicationSettings();

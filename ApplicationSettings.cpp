@@ -26,6 +26,7 @@ constexpr auto CAMERA_INDEX_ENTRY = "camera_index";
 constexpr auto FNAME_ENTRY = "fname";
 constexpr auto HISTORY_ENTRY = "history";
 constexpr auto FRAME_BUFFER_SIZE_ENTRY = "frame_buffer_size";
+constexpr auto OUTPUT_FOLDER_ENTRY = "output_folder";
 
 const auto DEFAULT_SETTINGS = [] {
     std::map<QString, QVariant> result;
@@ -35,6 +36,7 @@ const auto DEFAULT_SETTINGS = [] {
     result[FNAME_ENTRY] = "";
     result[HISTORY_ENTRY] = 100;
     result[FRAME_BUFFER_SIZE_ENTRY] = 10;
+    result[OUTPUT_FOLDER_ENTRY] = "video";
     return result;
 }();
 
@@ -137,4 +139,18 @@ void ApplicationSettings::frameBufferSize(int i)
 {
     QMutexLocker lock{&pimpl->settingsMutex};
     pimpl->settings.setValue(FRAME_BUFFER_SIZE_ENTRY, i);
+}
+
+QString ApplicationSettings::outputFolder() const
+{
+    QMutexLocker lock{&pimpl->settingsMutex};
+    const auto key = OUTPUT_FOLDER_ENTRY;
+    return getSettingsValue(pimpl->settings, key, DEFAULT_SETTINGS.at(key))
+        .toString();
+}
+
+void ApplicationSettings::outputFolder(QString s)
+{
+    QMutexLocker lock{&pimpl->settingsMutex};
+    pimpl->settings.setValue(OUTPUT_FOLDER_ENTRY, s);
 }

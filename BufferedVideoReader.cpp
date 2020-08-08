@@ -71,7 +71,7 @@ void BufferedVideoReader::start()
         pimpl->frameQue,
         pimpl->videoCapture);
     VideoWriterOptions videoOptions;
-    videoOptions.outputDir.setPath("video");
+    videoOptions.outputDir.setPath(i.outputFolder());
     videoOptions.outputExtension = ".mkv";
     videoOptions.fourcc =
         static_cast<int>(pimpl->videoCapture->get(cv::CAP_PROP_FOURCC));
