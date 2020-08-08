@@ -64,6 +64,9 @@ SettingsDialog::SettingsDialog(QWidget* parent)
             pimpl->ui.lineEditOutputFolder->setText(folderName);
             ApplicationSettings::i().outputFolder(folderName);
         });
+    for(auto s : {".mkv", ".avi", ".mp4"})
+        pimpl->ui.comboBoxOutputExtension->addItem(s);
+
     const auto& i = ApplicationSettings::i();
     pimpl->ui.radioButtonCamera->setChecked(i.cameraChecked());
     radioCameraIndexToggled(i.cameraChecked());
@@ -74,6 +77,7 @@ SettingsDialog::SettingsDialog(QWidget* parent)
     pimpl->ui.spinBoxHistory->setValue(i.history());
     pimpl->ui.spinBoxFrameBufferSize->setValue(i.frameBufferSize());
     pimpl->ui.lineEditOutputFolder->setText(i.outputFolder());
+    pimpl->ui.comboBoxOutputExtension->setCurrentText(i.outputExtension());
 }
 
 SettingsDialog::~SettingsDialog() = default;
@@ -88,5 +92,6 @@ void SettingsDialog::accept()
     i.history(pimpl->ui.spinBoxHistory->value());
     i.frameBufferSize(pimpl->ui.spinBoxFrameBufferSize->value());
     i.outputFolder(pimpl->ui.lineEditOutputFolder->text());
+    i.outputExtension(pimpl->ui.comboBoxOutputExtension->currentText());
     base::accept();
 }

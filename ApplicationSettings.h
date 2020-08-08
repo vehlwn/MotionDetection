@@ -28,6 +28,8 @@ public:
     void frameBufferSize(int i);
     QString outputFolder() const;
     void outputFolder(QString s);
+    QString outputExtension() const;
+    void outputExtension(QString s);
 
 private:
     ApplicationSettings();
