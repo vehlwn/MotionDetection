@@ -110,6 +110,8 @@ SettingsDialog::SettingsDialog(QWidget* parent)
     pimpl->ui.spinBoxGaussianBlur->setValue(i.gaussianBlurValue());
     pimpl->ui.doubleSpinBoxFileRotation->setValue(i.fileRotationPeriodValue());
     pimpl->ui.comboBoxFileRotationUnit->setCurrentText(i.fileRotationPeriodUnit());
+    pimpl->ui.spinBoxMinMovingArea->setValue(i.minMovingArea());
+    pimpl->ui.doubleSpinBoxDeltaWithoutMotion->setValue(i.deltaWithoutMotion());
 }
 
 SettingsDialog::~SettingsDialog() = default;
@@ -131,6 +133,8 @@ void SettingsDialog::accept()
         i.gaussianBlurValue(pimpl->ui.spinBoxGaussianBlur->value());
         i.fileRotationPeriodValue(pimpl->ui.doubleSpinBoxFileRotation->value());
         i.fileRotationPeriodUnit(pimpl->ui.comboBoxFileRotationUnit->currentText());
+        i.minMovingArea(pimpl->ui.spinBoxMinMovingArea->value());
+        i.deltaWithoutMotion(pimpl->ui.doubleSpinBoxDeltaWithoutMotion->value());
         base::accept();
     }
 }

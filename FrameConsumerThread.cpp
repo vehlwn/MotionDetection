@@ -24,6 +24,9 @@ struct FrameConsumerThread::Impl
     std::unique_ptr<FileRotationWorker> fileRotationWorker;
     VideoWriterOptions videoOptions;
     cv::VideoWriter out;
+    int minMovingArea{};
+    double deltaWithoutMotion{};
+    QDateTime lastMotionPoint = QDateTime::currentDateTime();
 };
 
 FrameConsumerThread::FrameConsumerThread()
@@ -39,6 +42,9 @@ void FrameConsumerThread::setOptions(
 {
     pimpl->queue = std::move(queue);
     pimpl->videoOptions = std::move(videoOptions);
+    const auto& i = ApplicationSettings::i();
+    pimpl->minMovingArea = i.minMovingArea();
+    pimpl->deltaWithoutMotion = i.deltaWithoutMotion();
 
     if(!pimpl->videoOptions.outputDir.mkpath("."))
     {
@@ -66,11 +72,14 @@ void FrameConsumerThread::setOptions(
             stop();
             emit error(s);
         });
+    connect(
+        pimpl->timerWorker.get(),
+        &FrameConsumerWorker::logMessage,
+        this,
+        &FrameConsumerThread::logMessage);
     pimpl->timerWorker->moveToThread(this);
 
-    const auto& i = ApplicationSettings::i();
     const auto period = static_cast<int>(std::round(i.fileRotationMsec()));
-    emit logMessage(QString{"file rotation period = %1 ms"}.arg(period));
     pimpl->fileRotationWorker = std::make_unique<FileRotationWorker>(period, pimpl);
     connect(
         pimpl->fileRotationWorker.get(),
@@ -140,8 +149,18 @@ void FrameConsumerWorker::onTimeout()
         QString{"que=%1"}.arg(que->size()),
         250,
         0);
-    painterUtils::drawRecordingCircle(img->frame, 10, 20);
-    pimpl->out.write(utils::QImage2cvMat(img->frame));
+
+    const auto now = QDateTime::currentDateTime();
+    bool recording = true;
+    if(img->movingArea >= pimpl->minMovingArea)
+        pimpl->lastMotionPoint = now;
+    else if(pimpl->lastMotionPoint.msecsTo(now) / 1000. >= pimpl->deltaWithoutMotion)
+        recording = false;
+    if(recording)
+    {
+        painterUtils::drawRecordingCircle(img->frame, 10, 20);
+        pimpl->out.write(utils::QImage2cvMat(img->frame));
+    }
     emit newData(std::move(*img));
 }
 
