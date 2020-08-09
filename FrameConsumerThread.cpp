@@ -1,13 +1,12 @@
 #include "FrameConsumerThread.h"
 
+#include "ApplicationSettings.h"
 #include "PainterUtils.h"
 #include "utils.h"
 
 #include <QDateTime>
 #include <QDebug>
-#include <QTimer>
-#include <atomic>
-#include <memory>
+#include <cmath>
 #include <opencv2/videoio.hpp>
 
 namespace {
@@ -69,8 +68,10 @@ void FrameConsumerThread::setOptions(
         });
     pimpl->timerWorker->moveToThread(this);
 
-    pimpl->fileRotationWorker =
-        std::make_unique<FileRotationWorker>(60 * 1000, pimpl);
+    const auto& i = ApplicationSettings::i();
+    const auto period = static_cast<int>(std::round(i.fileRotationMsec()));
+    emit logMessage(QString{"file rotation period = %1 ms"}.arg(period));
+    pimpl->fileRotationWorker = std::make_unique<FileRotationWorker>(period, pimpl);
     connect(
         pimpl->fileRotationWorker.get(),
         &FileRotationWorker::logMessage,

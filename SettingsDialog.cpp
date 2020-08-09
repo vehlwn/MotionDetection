@@ -82,6 +82,9 @@ SettingsDialog::SettingsDialog(QWidget* parent)
         });
     for(auto s : {".mkv", ".avi", ".mp4"})
         pimpl->ui.comboBoxOutputExtension->addItem(s);
+    const auto& i = ApplicationSettings::i();
+    for(auto s : i.validFileRotationUnits())
+        pimpl->ui.comboBoxFileRotationUnit->addItem(s);
     connect(
         pimpl->ui.checkBoxGaussianBlur,
         &QAbstractButton::toggled,
@@ -92,7 +95,6 @@ SettingsDialog::SettingsDialog(QWidget* parent)
         QOverload<int>::of(&QSpinBox::valueChanged),
         this,
         &SettingsDialog::validateGaussianBlurValue);
-    const auto& i = ApplicationSettings::i();
     pimpl->ui.radioButtonCamera->setChecked(i.cameraChecked());
     radioCameraIndexToggled(i.cameraChecked());
     pimpl->ui.radioButtonFile->setChecked(i.fileChecked());
@@ -106,6 +108,8 @@ SettingsDialog::SettingsDialog(QWidget* parent)
     pimpl->ui.checkBoxGaussianBlur->setChecked(i.gaussianBlurChecked());
     gaussianBlurToggled(i.gaussianBlurChecked());
     pimpl->ui.spinBoxGaussianBlur->setValue(i.gaussianBlurValue());
+    pimpl->ui.doubleSpinBoxFileRotation->setValue(i.fileRotationPeriodValue());
+    pimpl->ui.comboBoxFileRotationUnit->setCurrentText(i.fileRotationPeriodUnit());
 }
 
 SettingsDialog::~SettingsDialog() = default;
@@ -125,6 +129,8 @@ void SettingsDialog::accept()
         i.outputExtension(pimpl->ui.comboBoxOutputExtension->currentText());
         i.gaussianBlurChecked(pimpl->ui.checkBoxGaussianBlur->isChecked());
         i.gaussianBlurValue(pimpl->ui.spinBoxGaussianBlur->value());
+        i.fileRotationPeriodValue(pimpl->ui.doubleSpinBoxFileRotation->value());
+        i.fileRotationPeriodUnit(pimpl->ui.comboBoxFileRotationUnit->currentText());
         base::accept();
     }
 }

@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>459</width>
-    <height>293</height>
+    <height>321</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -110,7 +110,7 @@
         <number>1</number>
        </property>
        <property name="maximum">
-        <number>100000</number>
+        <number>1000</number>
        </property>
       </widget>
      </item>
@@ -176,9 +176,42 @@
         <number>1</number>
        </property>
        <property name="maximum">
-        <number>100000</number>
+        <number>101</number>
        </property>
       </widget>
+     </item>
+     <item row="5" column="0">
+      <widget class="QLabel" name="labelFileRotationPeriod">
+       <property name="text">
+        <string>File rotation period</string>
+       </property>
+      </widget>
+     </item>
+     <item row="5" column="1">
+      <layout class="QHBoxLayout" name="horizontalLayout_3">
+       <item>
+        <widget class="QDoubleSpinBox" name="doubleSpinBoxFileRotation">
+         <property name="accelerated">
+          <bool>true</bool>
+         </property>
+         <property name="decimals">
+          <number>3</number>
+         </property>
+         <property name="minimum">
+          <double>1.000000000000000</double>
+         </property>
+         <property name="maximum">
+          <double>100.000000000000000</double>
+         </property>
+         <property name="singleStep">
+          <double>0.100000000000000</double>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QComboBox" name="comboBoxFileRotationUnit"/>
+       </item>
+      </layout>
      </item>
     </layout>
    </item>
