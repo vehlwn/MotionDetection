@@ -158,8 +158,8 @@ void FrameConsumerWorker::onTimeout()
         recording = false;
     if(recording)
     {
-        painterUtils::drawRecordingCircle(img->frame, 10, 20);
         pimpl->out.write(utils::QImage2cvMat(img->frame));
+        painterUtils::drawRecordingCircle(img->frame, 10, 20);
     }
     emit newData(std::move(*img));
 }
