@@ -24,11 +24,9 @@ struct FrameProducerThread::Impl
 };
 
 FrameProducerThread::FrameProducerThread(
-    QObject* parent,
     std::weak_ptr<BufferedVideoReader::DataQue> queue,
     std::weak_ptr<cv::VideoCapture> cap)
-    : base{parent}
-    , pimpl{std::make_unique<Impl>()}
+    : pimpl{std::make_unique<Impl>()}
 {
     pimpl->queue = std::move(queue);
     pimpl->cap = std::move(cap);

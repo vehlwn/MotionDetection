@@ -66,10 +66,9 @@ void BufferedVideoReader::start()
     const double fps = pimpl->videoCapture->get(cv::CAP_PROP_FPS);
     pimpl->frameQue = std::make_shared<FixedThreadSafeQueue<Data>>(
         static_cast<std::size_t>(i.frameBufferSize()));
-    pimpl->producer = std::make_unique<FrameProducerThread>(
-        this,
-        pimpl->frameQue,
-        pimpl->videoCapture);
+    pimpl->producer =
+        std::make_unique<FrameProducerThread>(pimpl->frameQue, pimpl->videoCapture);
+
     VideoWriterOptions videoOptions;
     videoOptions.outputDir.setPath(i.outputFolder());
     videoOptions.outputExtension = i.outputExtension();
@@ -80,12 +79,20 @@ void BufferedVideoReader::start()
         static_cast<int>(pimpl->videoCapture->get(cv::CAP_PROP_FRAME_WIDTH));
     videoOptions.height =
         static_cast<int>(pimpl->videoCapture->get(cv::CAP_PROP_FRAME_HEIGHT));
-    pimpl->consumer = std::make_unique<FrameConsumerThread>(this);
+    pimpl->consumer = std::make_unique<FrameConsumerThread>();
     connect(
         pimpl->consumer.get(),
         &FrameConsumerThread::newData,
         this,
         &BufferedVideoReader::newData);
+    connect(
+        pimpl->consumer.get(),
+        &FrameConsumerThread::error,
+        this,
+        [this](QString s) {
+            waitStop();
+            emit logMessage(std::move(s));
+        });
     connect(
         pimpl->consumer.get(),
         &FrameConsumerThread::logMessage,
