@@ -31,6 +31,7 @@ public:
     void outputFolder(QString s);
     QString outputExtension() const;
     void outputExtension(QString s);
+    std::vector<QString> validExtensions() const;
     bool gaussianBlurChecked() const;
     void gaussianBlurChecked(bool b);
     int gaussianBlurValue() const;
@@ -45,6 +46,13 @@ public:
     void minMovingArea(int i);
     double deltaWithoutMotion() const;
     void deltaWithoutMotion(double d);
+    QString outputFourCC() const;
+    void outputFourCC(QString s);
+    std::vector<QString> exampleOutputFourCC() const;
+    int recommendedInputWidth() const;
+    void recommendedInputWidth(int i);
+    int recommendedInputHeight() const;
+    void recommendedInputHeight(int i);
 
 private:
     ApplicationSettings();

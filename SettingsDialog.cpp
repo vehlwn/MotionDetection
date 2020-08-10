@@ -9,8 +9,9 @@
 
 namespace {
 constexpr auto GAUSSIAN_BLUR_VALUE_ERR =
-    "Gaussian kernel size be positive odd integer";
-};
+    "Gaussian kernel size must be positive odd integer";
+constexpr auto FOURCC_VALUE_ERR = "FOURCC must be 4 characters";
+}; // namespace
 
 namespace Ui {
 class SettingsDialog;
@@ -80,11 +81,13 @@ SettingsDialog::SettingsDialog(QWidget* parent)
             pimpl->ui.lineEditOutputFolder->setText(folderName);
             ApplicationSettings::i().outputFolder(folderName);
         });
-    for(auto s : {".mkv", ".avi", ".mp4"})
-        pimpl->ui.comboBoxOutputExtension->addItem(s);
     const auto& i = ApplicationSettings::i();
+    for(auto s : i.validExtensions())
+        pimpl->ui.comboBoxOutputExtension->addItem(s);
     for(auto s : i.validFileRotationUnits())
         pimpl->ui.comboBoxFileRotationUnit->addItem(s);
+    for(auto s : i.exampleOutputFourCC())
+        pimpl->ui.comboBoxOutputFourCC->addItem(s);
     connect(
         pimpl->ui.checkBoxGaussianBlur,
         &QAbstractButton::toggled,
@@ -95,6 +98,11 @@ SettingsDialog::SettingsDialog(QWidget* parent)
         QOverload<int>::of(&QSpinBox::valueChanged),
         this,
         &SettingsDialog::validateGaussianBlurValue);
+    connect(
+        pimpl->ui.comboBoxOutputFourCC,
+        &QComboBox::currentTextChanged,
+        this,
+        &SettingsDialog::validateOutputFourCC);
     pimpl->ui.radioButtonCamera->setChecked(i.cameraChecked());
     radioCameraIndexToggled(i.cameraChecked());
     pimpl->ui.radioButtonFile->setChecked(i.fileChecked());
@@ -112,6 +120,9 @@ SettingsDialog::SettingsDialog(QWidget* parent)
     pimpl->ui.comboBoxFileRotationUnit->setCurrentText(i.fileRotationPeriodUnit());
     pimpl->ui.spinBoxMinMovingArea->setValue(i.minMovingArea());
     pimpl->ui.doubleSpinBoxDeltaWithoutMotion->setValue(i.deltaWithoutMotion());
+    pimpl->ui.comboBoxOutputFourCC->setCurrentText(i.outputFourCC());
+    pimpl->ui.spinBoxRecommendedInputWidth->setValue(i.recommendedInputWidth());
+    pimpl->ui.spinBoxRecommendedInputHeight->setValue(i.recommendedInputHeight());
 }
 
 SettingsDialog::~SettingsDialog() = default;
@@ -135,6 +146,9 @@ void SettingsDialog::accept()
         i.fileRotationPeriodUnit(pimpl->ui.comboBoxFileRotationUnit->currentText());
         i.minMovingArea(pimpl->ui.spinBoxMinMovingArea->value());
         i.deltaWithoutMotion(pimpl->ui.doubleSpinBoxDeltaWithoutMotion->value());
+        i.outputFourCC(pimpl->ui.comboBoxOutputFourCC->currentText());
+        i.recommendedInputWidth(pimpl->ui.spinBoxRecommendedInputWidth->value());
+        i.recommendedInputHeight(pimpl->ui.spinBoxRecommendedInputHeight->value());
         base::accept();
     }
 }
@@ -147,13 +161,23 @@ void SettingsDialog::setErrorText(QString s)
 
 bool SettingsDialog::validateGaussianBlurValue(int value)
 {
-    bool ret =
+    bool ok =
         !pimpl->ui.checkBoxGaussianBlur->isChecked() || value % 2 == 1 && value > 0;
-    if(ret)
+    if(ok)
         setErrorText("");
     else
         setErrorText(GAUSSIAN_BLUR_VALUE_ERR);
-    return ret;
+    return ok;
+}
+
+bool SettingsDialog::validateOutputFourCC(const QString& text)
+{
+    bool ok = text.size() == 4;
+    if(ok)
+        setErrorText("");
+    else
+        setErrorText(FOURCC_VALUE_ERR);
+    return ok;
 }
 
 bool SettingsDialog::valudateForm()
@@ -161,6 +185,11 @@ bool SettingsDialog::valudateForm()
     if(!validateGaussianBlurValue(pimpl->ui.spinBoxGaussianBlur->value()))
     {
         pimpl->ui.spinBoxGaussianBlur->setFocus();
+        return false;
+    }
+    if(!validateOutputFourCC(pimpl->ui.comboBoxOutputFourCC->currentText()))
+    {
+        pimpl->ui.comboBoxOutputFourCC->setFocus();
         return false;
     }
     return true;
