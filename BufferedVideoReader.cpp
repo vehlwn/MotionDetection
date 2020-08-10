@@ -121,6 +121,14 @@ void BufferedVideoReader::start()
         &FrameProducerThread::logMessage,
         this,
         &BufferedVideoReader::logMessage);
+    connect(
+        pimpl->producer.get(),
+        &FrameProducerThread::ranOutOfFrames,
+        this,
+        [this] {
+            emit logMessage("No more frames available from the source");
+            waitStop();
+        });
     pimpl->consumer->setOptions(pimpl->frameQue, videoOptions);
     pimpl->producer->start();
     pimpl->consumer->start();

@@ -52,7 +52,10 @@ void FrameProducerThread::run()
         if(auto cap = pimpl->cap.lock())
         {
             if(!cap->read(frame))
-                break;
+            {
+                emit ranOutOfFrames();
+                return;
+            }
         }
         else
             break;
