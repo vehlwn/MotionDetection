@@ -22,7 +22,7 @@ conan remote add bincrafters https://api.bintray.com/conan/bincrafters/public-co
 ```
 ### Commands
 
-```
+```bash
 pip install conan
 mkdir build
 cd build
