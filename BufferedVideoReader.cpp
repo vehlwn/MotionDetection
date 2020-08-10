@@ -31,6 +31,11 @@ BufferedVideoReader::~BufferedVideoReader() = default;
 
 void BufferedVideoReader::start()
 {
+    if(pimpl->producer && pimpl->producer->isRunning())
+        return;
+    if(pimpl->consumer && pimpl->consumer->isRunning())
+        return;
+
     pimpl->videoCapture = std::make_shared<cv::VideoCapture>();
     const auto& i = ApplicationSettings::i();
     if(i.fileChecked())
