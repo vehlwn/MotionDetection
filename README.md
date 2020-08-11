@@ -13,17 +13,15 @@ The program depends on:
 
 ### Requirements
 
-Qt_DIR and python3 must be available in system path.
-
-Bincrafters repo must be avaliable in conan remote to install ffmpeg:
+Qt_DIR and python3 must be available in system path. Bincrafters repo must be avaliable in conan remote to install ffmpeg.
 
 ```bash
-conan remote add bincrafters https://api.bintray.com/conan/bincrafters/public-conan
 ```
 ### Commands
 
 ```bash
 pip install conan
+conan remote add bincrafters https://api.bintray.com/conan/bincrafters/public-conan
 mkdir build
 cd build
 cmake -GNinja .. -DCMAKE_BUILD_TYPE=Release
