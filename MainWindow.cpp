@@ -3,6 +3,7 @@
 #include "ApplicationSettings.h"
 #include "BufferedVideoReader.h"
 #include "PixmapScene.h"
+#include "PixmapTitleItem.h"
 #include "SettingsDialog.h"
 #include "ui_MainWindow.h"
 
@@ -11,7 +12,6 @@
 #include <QCoreApplication>
 #include <QDebug>
 #include <QFileDialog>
-#include <QGraphicsPixmapItem>
 #include <QGraphicsScene>
 #include <memory>
 
@@ -23,7 +23,7 @@ struct MainWindow::Impl
 {
     Ui::MainWindow ui;
     PixmapScene* scene{};
-    QGraphicsPixmapItem *frameItem{}, *fgmaskItem{};
+    PixmapTitleItem *frameItem{}, *fgmaskItem{};
     BufferedVideoReader videoReader;
 };
 
@@ -36,8 +36,10 @@ MainWindow::MainWindow(QWidget* parent)
     pimpl->ui.splitter->setStretchFactor(1, 1);
 
     pimpl->scene = new PixmapScene;
-    pimpl->frameItem = new QGraphicsPixmapItem;
-    pimpl->fgmaskItem = new QGraphicsPixmapItem;
+    pimpl->frameItem = new PixmapTitleItem;
+    pimpl->frameItem->setTitle("Frame");
+    pimpl->fgmaskItem = new PixmapTitleItem;
+    pimpl->fgmaskItem->setTitle("Fgmask");
 
     pimpl->ui.graphicsView->setScene(pimpl->scene);
     pimpl->scene->addItem(pimpl->frameItem);
