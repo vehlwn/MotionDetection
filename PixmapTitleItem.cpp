@@ -1,59 +1,50 @@
 #include "PixmapTitleItem.h"
 
+#include <QBrush>
 #include <QColor>
 #include <QFont>
 #include <QFontMetrics>
+#include <QLinearGradient>
 #include <QPainter>
 #include <QPixmap>
 #include <QPoint>
 
 namespace {
-const QColor TITLE_SELECTED_COLOR = Qt::red;
-const QColor TITLE_UNSELECTED_COLOR = Qt::black;
+const QColor TITLE_TEXT_COLOR = Qt::white;
+const QColor TITLE_BAR_SELECTED_COLOR = Qt::darkBlue;
+const QColor TITLE_BAR_UNSELECTED_COLOR = Qt::darkGray;
+constexpr int TITLE_TEXT_PADDING = 3;
 } // namespace
 
 struct PixmapTitleItem::Impl
 {
     QPixmap pixmap;
-    QString title = "lala";
-    int titleAscent = 20;
+    QString titleText;
+    int titleTextHeight{};
     QFont titleFont;
 };
 
 PixmapTitleItem::PixmapTitleItem()
     : pimpl{std::make_unique<Impl>()}
 {
+    setTitle("Title");
 }
 
 PixmapTitleItem::~PixmapTitleItem() = default;
 
 QRectF PixmapTitleItem::boundingRect() const
 {
-    return pimpl->pixmap.rect().adjusted(0, -20, 0, 0);
+    return pimpl->pixmap.rect().adjusted(0, 0, 0, titleBarHeight());
 }
 
 void PixmapTitleItem::paint(
     QPainter* painter,
-    const QStyleOptionGraphicsItem* option,
-    QWidget* widget)
+    const QStyleOptionGraphicsItem* /*option*/,
+    QWidget* /*widget*/)
 {
-    painter->save();
-    if(isSelected())
-        painter->setPen(TITLE_SELECTED_COLOR);
-    else
-        painter->setPen(TITLE_UNSELECTED_COLOR);
-    painter->drawText(0, -20 + pimpl->titleAscent, pimpl->title);
-    painter->drawPixmap(0, 0, pimpl->pixmap);
-    if(isSelected())
-    {
-        painter->setBrush(Qt::NoBrush);
-        QPen pen;
-        pen.setStyle(Qt::DashLine);
-        pen.setColor(Qt::black);
-        painter->setPen(pen);
-        painter->drawRect(boundingRect());
-    }
-    painter->restore();
+    drawTitleBar(painter);
+    drawTitleText(painter);
+    drawPixmap(painter);
 }
 
 void PixmapTitleItem::setPixmap(QPixmap pixmap)
@@ -64,7 +55,57 @@ void PixmapTitleItem::setPixmap(QPixmap pixmap)
 
 void PixmapTitleItem::setTitle(QString s)
 {
-    pimpl->title = std::move(s);
+    pimpl->titleText = std::move(s);
     QFontMetrics fm{pimpl->titleFont};
-    pimpl->titleAscent = fm.ascent();
+    pimpl->titleTextHeight = fm.ascent() + fm.descent();
+    update();
+}
+
+void PixmapTitleItem::drawTitleBar(QPainter* painter)
+{
+    painter->save();
+    painter->setPen(Qt::NoPen);
+    QLinearGradient gradient{titleBarRect().topLeft(), titleBarRect().bottomRight()};
+    if(isSelected())
+        gradient.setColorAt(0, TITLE_BAR_SELECTED_COLOR);
+    else
+        gradient.setColorAt(0, TITLE_BAR_UNSELECTED_COLOR);
+    gradient.setColorAt(1, Qt::white);
+    painter->fillRect(titleBarRect(), QBrush{gradient});
+    painter->restore();
+}
+
+void PixmapTitleItem::drawTitleText(QPainter* painter)
+{
+    painter->save();
+    painter->setPen(TITLE_TEXT_COLOR);
+    painter->drawText(
+        titleBarRect().adjusted(
+            +TITLE_TEXT_PADDING,
+            +TITLE_TEXT_PADDING,
+            -TITLE_TEXT_PADDING,
+            -TITLE_TEXT_PADDING),
+        pimpl->titleText);
+    painter->restore();
+}
+
+void PixmapTitleItem::drawPixmap(QPainter* painter)
+{
+    painter->save();
+    painter->drawPixmap(0, titleBarHeight(), pimpl->pixmap);
+    painter->restore();
+}
+
+QRectF PixmapTitleItem::titleBarRect() const
+{
+    return QRectF{
+        0,
+        0,
+        static_cast<qreal>(pimpl->pixmap.width()),
+        static_cast<qreal>(titleBarHeight())};
+}
+
+int PixmapTitleItem::titleBarHeight() const
+{
+    return pimpl->titleTextHeight + TITLE_TEXT_PADDING * 2;
 }
