@@ -36,7 +36,7 @@ elseif(APPLE)
 endif()
 
 add_executable(
-  ${PROJECT_NAME}# ${GUI_TYPE}
+  ${PROJECT_NAME} ${GUI_TYPE}
   ApplicationSettings.cpp
   ApplicationSettings.h
   BufferedVideoReader.cpp
