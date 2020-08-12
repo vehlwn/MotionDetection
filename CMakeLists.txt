@@ -17,17 +17,7 @@ find_package(
   COMPONENTS Widgets
 )
 
-# Download automatically, you can also just copy the conan.cmake file
-if(NOT EXISTS "${CMAKE_BINARY_DIR}/conan.cmake")
-  message(STATUS "Downloading conan.cmake from https://github.com/conan-io/cmake-conan")
-  file(
-    DOWNLOAD
-    "https://raw.githubusercontent.com/conan-io/cmake-conan/master/conan.cmake"
-    "${CMAKE_BINARY_DIR}/conan.cmake"
-  )
-endif()
-include(${CMAKE_BINARY_DIR}/conan.cmake)
-conan_cmake_run(REQUIRES opencv/4.3.0@conan/stable OPTIONS opencv:ffmpeg=True opencv:parallel=openmp BASIC_SETUP BUILD missing)
+find_package(OpenCV REQUIRED)
 
 if(WIN32)
   set(GUI_TYPE WIN32)
@@ -64,4 +54,5 @@ add_executable(
   utils.h
 )
 
-target_link_libraries(${PROJECT_NAME} PRIVATE Qt5::Widgets ${CONAN_LIBS})
+target_include_directories(${PROJECT_NAME} PUBLIC ${OpenCV_INCLUDE_DIRS})
+target_link_libraries(${PROJECT_NAME} PUBLIC Qt5::Widgets ${OpenCV_LIBS})
