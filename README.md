@@ -5,9 +5,7 @@ Reads video stream from a webcam or file on a disk and detect foreground motions
 The program depends on:
 
 - [Qt](https://www.qt.io/offline-installers) for GUI and signals-slots to communicate threads;
-- [OpenCV](https://opencv.org/) for `cv::VideoCapture`, `cv::VideoWriter` and `cv::BackgroundSubtractorMOG2`;
-- [conan](https://conan.io/index.html) to install OpenCV;
-- [python](https://www.python.org/) to install conan.
+- [OpenCV](https://opencv.org/) for `cv::VideoCapture`, `cv::VideoWriter` and `cv::BackgroundSubtractorMOG2`.
 
 ## Build
 
