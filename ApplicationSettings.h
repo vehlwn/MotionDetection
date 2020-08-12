@@ -15,6 +15,7 @@ public:
 
     static ApplicationSettings& i();
 
+    QString settingsFileName() const;
     bool cameraChecked() const;
     void cameraChecked(bool b);
     bool fileChecked() const;

@@ -82,6 +82,7 @@ SettingsDialog::SettingsDialog(QWidget* parent)
             ApplicationSettings::i().outputFolder(folderName);
         });
     const auto& i = ApplicationSettings::i();
+    pimpl->ui.lineEditSettingsFileName->setText(i.settingsFileName());
     for(auto s : i.validExtensions())
         pimpl->ui.comboBoxOutputExtension->addItem(s);
     for(auto s : i.validFileRotationUnits())

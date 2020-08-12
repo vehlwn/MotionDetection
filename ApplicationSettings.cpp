@@ -1,9 +1,11 @@
 #include "ApplicationSettings.h"
 
 #include <QDebug>
+#include <QDir>
 #include <QMutex>
 #include <QMutexLocker>
 #include <QSettings>
+#include <QStandardPaths>
 #include <map>
 
 struct ApplicationSettings::Impl
@@ -19,7 +21,13 @@ struct ApplicationSettings::Impl
 };
 
 namespace {
-constexpr auto SETTINGS_FILE_NAME = "MotionDetection.ini";
+QString SETTINGS_FILE_NAME()
+{
+    QDir dir{QStandardPaths::writableLocation(QStandardPaths::AppDataLocation)};
+    QString ret = dir.absoluteFilePath("config.ini");
+    return ret;
+};
+
 constexpr auto CAMERA_CHECKED_ENTRY = "camera_checked";
 constexpr auto FILE_CHECKED_ENTRY = "file_checked";
 constexpr auto CAMERA_INDEX_ENTRY = "camera_index";
@@ -70,7 +78,7 @@ QVariant getSettingsValue(QSettings& s, const QString& key)
 } // namespace
 
 ApplicationSettings::ApplicationSettings()
-    : pimpl{std::make_unique<Impl>(SETTINGS_FILE_NAME, QSettings::IniFormat)}
+    : pimpl{std::make_unique<Impl>(SETTINGS_FILE_NAME(), QSettings::IniFormat)}
 {
 }
 
@@ -80,6 +88,11 @@ ApplicationSettings& ApplicationSettings::i()
 {
     static ApplicationSettings obj;
     return obj;
+}
+
+QString ApplicationSettings::settingsFileName() const
+{
+    return pimpl->settings.fileName();
 }
 
 bool ApplicationSettings::cameraChecked() const
