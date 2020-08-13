@@ -27,7 +27,7 @@ cmake --build .
 ### Input video
 
 - Camera or video file on disk. For webcam number refer to [here](https://docs.opencv.org/4.4.0/d8/dfe/classcv_1_1VideoCapture.html#aabce0d83aa0da9af802455e8cf5fd181). Default: camera 0;
-- frame buffer size: maximum number of frames to read in advance from a webcam or video file. Frames are read into a queue in FrameProducerThread.cpp and taken from there on timeout in FrameConsumerThread.cpp. If producer produces too fast it will be blocked and new frames won't longer be pushed to the queue untill the consumer pops them out with a given speed equal to FPS of an input source. Caution should be taken with the size: large values can consume a lot of memory. Default: 10;
+- frame queue size: maximum number of frames to read in advance from a webcam or video file. Frames are read into a queue in FrameProducerThread.cpp and taken from there on timeout in FrameConsumerThread.cpp. If producer produces too fast it will be blocked and new frames won't longer be pushed to the queue untill the consumer pops them out with a given speed equal to FPS of an input source. Caution should be taken with the size: large values can consume a lot of memory. Default: 10;
 - recommended width, height: set this option if your camera supports different output sizes. For details refer to note in [cv::VideoCapture::get](https://docs.opencv.org/4.3.0/d8/dfe/classcv_1_1VideoCapture.html#aa6480e6972ef4c00d74814ec841a2939). Default: width 640, height: 360.
 
 ### Output video
