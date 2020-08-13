@@ -6,6 +6,7 @@
 #include "FrameProducerThread.h"
 #include "VideoWriterOptions.h"
 
+#include <algorithm>
 #include <memory>
 #include <mutex>
 #include <opencv2/videoio.hpp>
@@ -62,7 +63,6 @@ void BufferedVideoReader::start()
     emit logMessage(QString{"CAP_PROP_FRAME_COUNT = %1"}.arg(
         pimpl->videoCapture->get(cv::CAP_PROP_FRAME_COUNT)));
 
-    const double fps = pimpl->videoCapture->get(cv::CAP_PROP_FPS);
     pimpl->frameQue = std::make_shared<FixedThreadSafeQueue<Data>>(
         static_cast<std::size_t>(i.frameBufferSize()));
     pimpl->producer =
@@ -83,7 +83,8 @@ void BufferedVideoReader::start()
         fourccStr[1],
         fourccStr[2],
         fourccStr[3]);
-    videoOptions.fps = fps;
+    const double fps = pimpl->videoCapture->get(cv::CAP_PROP_FPS);
+    videoOptions.fps = std::max(fps, 20.);
     int inputWidth = i.recommendedInputWidth();
     int inputHeight = i.recommendedInputHeight();
     if(!pimpl->videoCapture->set(cv::CAP_PROP_FRAME_WIDTH, inputWidth))
