@@ -33,7 +33,7 @@ constexpr auto FILE_CHECKED_ENTRY = "file_checked";
 constexpr auto CAMERA_INDEX_ENTRY = "camera_index";
 constexpr auto FNAME_ENTRY = "fname";
 constexpr auto HISTORY_ENTRY = "history";
-constexpr auto FRAME_BUFFER_SIZE_ENTRY = "frame_buffer_size";
+constexpr auto FRAME_QUEUE_SIZE_ENTRY = "frame_queue_size";
 constexpr auto OUTPUT_FOLDER_ENTRY = "output_folder";
 constexpr auto OUTPUT_EXTENSION_ENTRY = "output_extension";
 constexpr auto GAUSSIAN_BLUR_CHECKED_ENTRY = "gaussian_blur_checked";
@@ -53,7 +53,7 @@ const auto DEFAULT_SETTINGS = [] {
     result[CAMERA_INDEX_ENTRY] = 0;
     result[FNAME_ENTRY] = "";
     result[HISTORY_ENTRY] = 100;
-    result[FRAME_BUFFER_SIZE_ENTRY] = 10;
+    result[FRAME_QUEUE_SIZE_ENTRY] = 10;
     result[OUTPUT_FOLDER_ENTRY] = "video";
     result[OUTPUT_EXTENSION_ENTRY] = ".avi";
     result[GAUSSIAN_BLUR_CHECKED_ENTRY] = true;
@@ -155,16 +155,16 @@ void ApplicationSettings::history(int i)
     pimpl->settings.setValue(HISTORY_ENTRY, i);
 }
 
-int ApplicationSettings::frameBufferSize() const
+int ApplicationSettings::frameQueueSize() const
 {
     QMutexLocker lock{&pimpl->settingsMutex};
-    return getSettingsValue(pimpl->settings, FRAME_BUFFER_SIZE_ENTRY).toInt();
+    return getSettingsValue(pimpl->settings, FRAME_QUEUE_SIZE_ENTRY).toInt();
 }
 
-void ApplicationSettings::frameBufferSize(int i)
+void ApplicationSettings::frameQueueSize(int i)
 {
     QMutexLocker lock{&pimpl->settingsMutex};
-    pimpl->settings.setValue(FRAME_BUFFER_SIZE_ENTRY, i);
+    pimpl->settings.setValue(FRAME_QUEUE_SIZE_ENTRY, i);
 }
 
 QString ApplicationSettings::outputFolder() const

@@ -71,14 +71,14 @@
        </layout>
       </item>
       <item row="2" column="0">
-       <widget class="QLabel" name="labelFrameBufferSize">
+       <widget class="QLabel" name="labelFrameQueuerSize">
         <property name="text">
-         <string>Frame buffer size</string>
+         <string>Frame queue size</string>
         </property>
        </widget>
       </item>
       <item row="2" column="1">
-       <widget class="QSpinBox" name="spinBoxFrameBufferSize">
+       <widget class="QSpinBox" name="spinBoxFrameQueueSize">
         <property name="accelerated">
          <bool>true</bool>
         </property>

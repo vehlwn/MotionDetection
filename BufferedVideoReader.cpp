@@ -64,7 +64,7 @@ void BufferedVideoReader::start()
         pimpl->videoCapture->get(cv::CAP_PROP_FRAME_COUNT)));
 
     pimpl->frameQue = std::make_shared<FixedThreadSafeQueue<Data>>(
-        static_cast<std::size_t>(i.frameBufferSize()));
+        static_cast<std::size_t>(i.frameQueueSize()));
     pimpl->producer =
         std::make_unique<FrameProducerThread>(pimpl->frameQue, pimpl->videoCapture);
 

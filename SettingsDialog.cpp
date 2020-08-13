@@ -111,7 +111,7 @@ SettingsDialog::SettingsDialog(QWidget* parent)
     pimpl->ui.spinBoxCameraIndex->setValue(i.cameraIndex());
     pimpl->ui.lineEditFname->setText(i.fname());
     pimpl->ui.spinBoxHistory->setValue(i.history());
-    pimpl->ui.spinBoxFrameBufferSize->setValue(i.frameBufferSize());
+    pimpl->ui.spinBoxFrameQueueSize->setValue(i.frameQueueSize());
     pimpl->ui.lineEditOutputFolder->setText(i.outputFolder());
     pimpl->ui.comboBoxOutputExtension->setCurrentText(i.outputExtension());
     pimpl->ui.checkBoxGaussianBlur->setChecked(i.gaussianBlurChecked());
@@ -138,7 +138,7 @@ void SettingsDialog::accept()
         i.cameraIndex(pimpl->ui.spinBoxCameraIndex->value());
         i.fname(pimpl->ui.lineEditFname->text());
         i.history(pimpl->ui.spinBoxHistory->value());
-        i.frameBufferSize(pimpl->ui.spinBoxFrameBufferSize->value());
+        i.frameQueueSize(pimpl->ui.spinBoxFrameQueueSize->value());
         i.outputFolder(pimpl->ui.lineEditOutputFolder->text());
         i.outputExtension(pimpl->ui.comboBoxOutputExtension->currentText());
         i.gaussianBlurChecked(pimpl->ui.checkBoxGaussianBlur->isChecked());
