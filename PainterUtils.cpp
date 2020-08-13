@@ -6,14 +6,14 @@
 
 namespace painterUtils {
 
-void drawDatetime(QPaintDevice& img, int x, int y)
+QRect drawDatetime(QPaintDevice& img, int x, int y)
 {
     const auto now = QDateTime::currentDateTime();
     const QString text = now.toString(Qt::ISODateWithMs);
-    drawTextWithBackground(img, text, x, y);
+    return drawTextWithBackground(img, text, x, y);
 }
 
-void drawTextWithBackground(QPaintDevice& img, const QString& text, int x, int y)
+QRect drawTextWithBackground(QPaintDevice& img, const QString& text, int x, int y)
 {
     QPainter painter{&img};
     QFont f = painter.font();
@@ -25,6 +25,9 @@ void drawTextWithBackground(QPaintDevice& img, const QString& text, int x, int y
     painter.setPen(Qt::black);
     // (x, y) is a top left point.
     painter.drawText(x, y + fm.ascent(), text);
+    QRect ret = fm.boundingRect(text);
+    ret.moveTo(x, y);
+    return ret;
 }
 
 void drawRecordingCircle(QPaintDevice& img, int radius, int padding)

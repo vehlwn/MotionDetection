@@ -6,6 +6,7 @@
 
 #include <QDateTime>
 #include <QDebug>
+#include <algorithm>
 #include <cmath>
 #include <opencv2/videoio.hpp>
 
@@ -27,6 +28,7 @@ struct FrameConsumerThread::Impl
     int minMovingArea{};
     double deltaWithoutMotion{};
     QDateTime lastMotionPoint = QDateTime::currentDateTime();
+    int maxDateTimeTextWidth{}, maxMovingtextWidth{}, maxQueTextWidth{};
 };
 
 FrameConsumerThread::FrameConsumerThread()
@@ -138,17 +140,26 @@ void FrameConsumerWorker::onTimeout()
         return;
     if(!pimpl->out.isOpened())
         return;
-    painterUtils::drawDatetime(img->frame, 0, 0);
-    painterUtils::drawTextWithBackground(
+    constexpr int TEXT_INTERVAL = 20;
+    int textX = 0;
+    QRect textRect = painterUtils::drawDatetime(img->frame, textX, 0);
+    pimpl->maxDateTimeTextWidth =
+        std::max(pimpl->maxDateTimeTextWidth, textRect.width());
+    textX += pimpl->maxDateTimeTextWidth + TEXT_INTERVAL;
+    textRect = painterUtils::drawTextWithBackground(
         img->frame,
         QString{"moving=%1"}.arg(img->movingArea),
-        150,
+        textX,
         0);
-    painterUtils::drawTextWithBackground(
+    pimpl->maxMovingtextWidth =
+        std::max(pimpl->maxMovingtextWidth, textRect.width());
+    textX += pimpl->maxMovingtextWidth + TEXT_INTERVAL;
+    textRect = painterUtils::drawTextWithBackground(
         img->frame,
         QString{"que=%1"}.arg(que->size()),
-        250,
+        textX,
         0);
+    pimpl->maxQueTextWidth = std::max(pimpl->maxQueTextWidth, textRect.width());
 
     const auto now = QDateTime::currentDateTime();
     bool recording = true;
