@@ -32,7 +32,7 @@ cmake --build .
 
 ### Output video
 
-- Folder: a folder where to put recorded video with motion. If it doesn't exist it will be created. Output files will have names with date and time in format QDateTime::toString("yyyy-MM-dd hh.mm.ss"). Output files will be periodically rotated. Refer to 'file rotation period' option. Default: 'video';
+- Folder: a folder where to put recorded video with motion. If it doesn't exist it will be created. Date folder will be created inside the output folder with format `yyyy-MM-dd`. Output files will be created inside date folder with format `hh.mm.ss` + outputExtension. Output files will be periodically rotated. Refer to 'file rotation period' option. Default: 'video';
 - extension: format to save output files. Default: '.avi';
 - FOURCC: codec to encode output video. List of available codes can be found [here](http://www.fourcc.org/codecs.php). Default: 'DIVX';
 - file rotation period: period when old output file will be closed and a new one created with a newly generated name. Default: 1 hour.
