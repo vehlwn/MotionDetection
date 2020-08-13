@@ -74,7 +74,10 @@ class FileRotationWorker : public TimerWorker
     using base = TimerWorker;
 
 public:
-    FileRotationWorker(int msec, std::weak_ptr<FrameConsumerThread::Impl> pimpl);
+    FileRotationWorker(
+        int msec,
+        Qt::TimerType atype,
+        std::weak_ptr<FrameConsumerThread::Impl> pimpl);
     ~FileRotationWorker();
 
 signals:

@@ -10,14 +10,6 @@
 #include <cmath>
 #include <opencv2/videoio.hpp>
 
-namespace {
-QString getDatetimeFilename()
-{
-    auto now = QDateTime::currentDateTime();
-    return now.toString("yyyy-MM-dd hh.mm.ss");
-}
-} // namespace
-
 struct FrameConsumerThread::Impl
 {
     std::weak_ptr<BufferedVideoReader::DataQue> queue;
@@ -82,7 +74,8 @@ void FrameConsumerThread::setOptions(
     pimpl->timerWorker->moveToThread(this);
 
     const auto period = static_cast<int>(std::round(i.fileRotationMsec()));
-    pimpl->fileRotationWorker = std::make_unique<FileRotationWorker>(period, pimpl);
+    pimpl->fileRotationWorker =
+        std::make_unique<FileRotationWorker>(period, Qt::PreciseTimer, pimpl);
     connect(
         pimpl->fileRotationWorker.get(),
         &FileRotationWorker::logMessage,
@@ -177,8 +170,9 @@ void FrameConsumerWorker::onTimeout()
 
 FileRotationWorker::FileRotationWorker(
     int msec,
+    Qt::TimerType atype,
     std::weak_ptr<FrameConsumerThread::Impl> pimpl)
-    : base{msec}
+    : base{msec, atype}
     , pimpl{std::move(pimpl)}
 {
 }
@@ -190,8 +184,14 @@ void FileRotationWorker::onTimeout()
     auto pimpl = this->pimpl.lock();
     if(!pimpl)
         return;
-    const QString outFname = pimpl->videoOptions.outputDir.absoluteFilePath(
-        getDatetimeFilename() + pimpl->videoOptions.outputExtension);
+    const auto now = QDateTime::currentDateTime();
+    const QString dateComponent = now.toString("yyyy-MM-dd");
+    const QString timeComponent = now.toString("hh.mm.ss");
+    QDir dateDir = pimpl->videoOptions.outputDir;
+    dateDir.mkpath(dateComponent);
+    dateDir.cd(dateComponent);
+    const QString outFname = dateDir.absoluteFilePath(
+        timeComponent + pimpl->videoOptions.outputExtension);
     if(!pimpl->out.open(
            outFname.toStdString(),
            pimpl->videoOptions.fourcc,
