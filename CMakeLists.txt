@@ -13,6 +13,24 @@ add_executable(
     ${PROJECT_NAME}
     AppRequestHandlerFactory.cpp
     AppRequestHandlerFactory.h
+    handlers/common/ContentLengthHandler.cpp
+    handlers/common/ContentLengthHandler.h
+    handlers/common/ImencodeHandler.cpp
+    handlers/common/ImencodeHandler.h
+    handlers/common/OkHandler.cpp
+    handlers/common/OkHandler.h
+    handlers/CurrentFrameHandler.cpp
+    handlers/CurrentFrameHandler.h
+    handlers/FpsHandler.cpp
+    handlers/FpsHandler.h
+    handlers/HealthyHandler.cpp
+    handlers/HealthyHandler.h
+    handlers/IndexHandler.cpp
+    handlers/IndexHandler.h
+    handlers/MotionMaskHandler.cpp
+    handlers/MotionMaskHandler.h
+    handlers/NotFoundHandler.cpp
+    handlers/NotFoundHandler.h
     IVideoCapture.h
     main.cpp
     MotionData.h
