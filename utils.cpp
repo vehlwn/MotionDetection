@@ -5,6 +5,7 @@
 #include <array>
 #include <cstdint>
 #include <numeric>
+#include <opencv2/imgproc.hpp>
 
 namespace {
 auto fourcc2array(int value)
@@ -19,7 +20,7 @@ auto fourcc2array(int value)
 } // namespace
 
 namespace utils {
-QImage cvMat2QImage(const cv::Mat& mat)
+QImage cvMat2QImage(cv::Mat mat)
 {
     if(mat.empty())
         return {};
@@ -30,7 +31,8 @@ QImage cvMat2QImage(const cv::Mat& mat)
         format = QImage::Format_Grayscale8;
         break;
     case CV_8UC3:
-        format = QImage::Format_BGR888;
+        format = QImage::Format_RGB888;
+        cv::cvtColor(mat, mat, cv::COLOR_BGR2RGB);
         break;
     default:
         qDebug() << "Unknown mat type";
@@ -45,7 +47,7 @@ QImage cvMat2QImage(const cv::Mat& mat)
     return ret.copy();
 }
 
-cv::Mat QImage2cvMat(const QImage& img)
+cv::Mat QImage2cvMat(QImage img)
 {
     if(img.isNull())
         return {};
@@ -55,8 +57,9 @@ cv::Mat QImage2cvMat(const QImage& img)
     case QImage::Format_Grayscale8:
         type = CV_8UC1;
         break;
-    case QImage::Format_BGR888:
+    case QImage::Format_RGB888:
         type = CV_8UC3;
+        img = std::move(img).rgbSwapped();
         break;
     default:
         qDebug() << "Unknown img format:" << format;
