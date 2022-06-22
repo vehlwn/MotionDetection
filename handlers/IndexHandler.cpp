@@ -45,7 +45,6 @@ constexpr const char INDEX_HTML[] = R"(
     fps_element.oninput = function () {
       console.log(`fps input: ${fps_element.value}`);
       fps = parseFloat(fps_element.value);
-      start_polling();
     };
 
     function start_polling() {
