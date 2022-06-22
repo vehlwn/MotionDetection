@@ -23,4 +23,10 @@ public:
 private:
     struct Impl;
     std::unique_ptr<Impl> pimpl;
+
+    void drawTitleBar(QPainter* painter);
+    void drawTitleText(QPainter* painter);
+    void drawPixmap(QPainter* painter);
+    QRectF titleBarRect() const;
+    int titleBarHeight() const;
 };
