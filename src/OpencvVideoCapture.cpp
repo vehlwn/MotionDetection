@@ -17,7 +17,7 @@ void OpencvVideoCapture::open(const std::string& filename, const int api_prefere
         poco_fatal(
             m_logger,
             fmt::format("Unable to open input file: \"{}\"", filename));
-        std::abort();
+        std::exit(1);
     }
 }
 

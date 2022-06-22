@@ -45,7 +45,7 @@ void MotionDataWorker::start()
             std::optional<cv::Mat> opt_frame = video_capture->read();
             if(!opt_frame) {
                 poco_fatal(m_logger, "Cannot read more frames from a capture file");
-                std::abort();
+                std::exit(1);
             }
             cv::Mat frame = std::move(*opt_frame);
             cv::Mat processed = preprocess_filter->apply(frame);
