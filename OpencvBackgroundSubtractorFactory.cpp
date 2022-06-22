@@ -1,6 +1,6 @@
 #include "OpencvBackgroundSubtractorFactory.h"
 
-#include "Poco/Format.h"
+#include "fmt/core.h"
 
 #include <cstdlib>
 
@@ -24,19 +24,19 @@ std::shared_ptr<cv::BackgroundSubtractor> OpencvBackgroundSubtractorFactory::cre
         const int history = m_config.getInt("background_subtractor.history", 500);
         poco_information(
             m_logger,
-            Poco::format("background_subtractor.history = %d", history));
+            fmt::format("background_subtractor.history = {}", history));
         const double dist2Threshold =
             m_config.getDouble("background_subtractor.dist2Threshold", 400.0);
         poco_information(
             m_logger,
-            Poco::format(
-                "background_subtractor.dist2Threshold = %f",
+            fmt::format(
+                "background_subtractor.dist2Threshold = {}",
                 dist2Threshold));
         const bool detectShadows =
             m_config.getBool("background_subtractor.detectShadows", true);
         poco_information(
             m_logger,
-            Poco::format("background_subtractor.detectShadows = %b", detectShadows));
+            fmt::format("background_subtractor.detectShadows = {}", detectShadows));
         return cv::createBackgroundSubtractorKNN(
             history,
             dist2Threshold,
@@ -47,17 +47,17 @@ std::shared_ptr<cv::BackgroundSubtractor> OpencvBackgroundSubtractorFactory::cre
         const int history = m_config.getInt("background_subtractor.history", 500);
         poco_information(
             m_logger,
-            Poco::format("background_subtractor.history = %d", history));
+            fmt::format("background_subtractor.history = {}", history));
         const double varThreshold =
             m_config.getDouble("background_subtractor.varThreshold", 16.0);
         poco_information(
             m_logger,
-            Poco::format("background_subtractor.varThreshold = %f", varThreshold));
+            fmt::format("background_subtractor.varThreshold = {}", varThreshold));
         const bool detectShadows =
             m_config.getBool("background_subtractor.detectShadows", true);
         poco_information(
             m_logger,
-            Poco::format("background_subtractor.detectShadows = %b", detectShadows));
+            fmt::format("background_subtractor.detectShadows = {}", detectShadows));
         return cv::createBackgroundSubtractorMOG2(
             history,
             varThreshold,
@@ -68,7 +68,7 @@ std::shared_ptr<cv::BackgroundSubtractor> OpencvBackgroundSubtractorFactory::cre
     // https://docs.opencv.org/4.5.3/d2/d55/group__bgsegm.html
     poco_fatal(
         m_logger,
-        Poco::format("Unknown background_subtractor algorithm: %s", algorithm));
+        fmt::format("Unknown background_subtractor algorithm: {}", algorithm));
     std::abort();
 }
 

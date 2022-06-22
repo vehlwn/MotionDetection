@@ -3,6 +3,7 @@
 #include "Poco/Net/HTTPResponse.h"
 #include "Poco/Net/HTTPServerResponse.h"
 #include "Poco/URI.h"
+#include "fmt/core.h"
 #include "opencv2/imgcodecs.hpp"
 
 #include <Poco/Logger.h>
@@ -60,17 +61,14 @@ public:
             {
                 poco_information(
                     m_logger,
-                    Poco::format(
-                        "Saved %s file, buf.size = %z",
-                        format,
-                        buf.size()));
+                    fmt::format("Saved {} file, buf.size = {}", format, buf.size()));
                 response.setContentType("image/jpeg");
                 response.sendBuffer(buf.data(), buf.size());
             }
             else
             {
                 const std::string error_msg =
-                    Poco::format("Can't save %s file.", format);
+                    fmt::format("Can't save {} file.", format);
                 poco_warning(m_logger, error_msg);
                 response.setStatusAndReason(
                     Poco::Net::HTTPResponse::HTTPStatus::HTTP_INTERNAL_SERVER_ERROR);
@@ -80,8 +78,8 @@ public:
         }
         catch(const cv::Exception& ex)
         {
-            const std::string error_msg = Poco::format(
-                "Exception converting image to %s format: %s",
+            const std::string error_msg = fmt::format(
+                "Exception converting image to {} format: {}",
                 format,
                 ex.what());
             poco_warning(m_logger, error_msg);
@@ -198,8 +196,8 @@ Poco::Net::HTTPRequestHandler* AppRequestHandlerFactory::createRequestHandler(
 {
     poco_information(
         m_logger,
-        Poco::format(
-            "%s %s %s",
+        fmt::format(
+            "{} {} {}",
             request.clientAddress().toString(),
             request.getMethod(),
             request.getURI()));

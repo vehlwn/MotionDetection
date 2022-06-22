@@ -3,7 +3,6 @@
 #include "OpencvBackgroundSubtractorFactory.h"
 #include "Poco/AutoPtr.h"
 #include "Poco/ConsoleChannel.h"
-#include "Poco/Format.h"
 #include "Poco/FormattingChannel.h"
 #include "Poco/Logger.h"
 #include "Poco/Message.h"
@@ -14,7 +13,9 @@
 #include "Poco/PatternFormatter.h"
 #include "Poco/Util/ServerApplication.h"
 #include "VideoCaptureFactory.h"
+#include "fmt/core.h"
 
+#include <iostream>
 #include <memory>
 
 class ServerApp : public Poco::Util::ServerApplication
@@ -38,7 +39,7 @@ protected:
         logger().debug("logger.debug");
         poco_information(
             logger(),
-            Poco::format("Loaded %d configuration files", count));
+            fmt::format("Loaded {} configuration files", count));
     }
 
     virtual int main(const std::vector<std::string>& /*args*/) override
@@ -67,7 +68,7 @@ protected:
         srv.start();
         poco_information(
             logger(),
-            Poco::format("Server listening %s", host_and_port));
+            fmt::format("Server listening {}", host_and_port));
         waitForTerminationRequest();
         srv.stop();
         return Poco::Util::Application::EXIT_OK;

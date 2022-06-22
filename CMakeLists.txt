@@ -7,6 +7,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 find_package(OpenCV REQUIRED)
 find_package(Poco REQUIRED COMPONENTS Net Foundation Util)
+find_package(fmt REQUIRED)
 
 add_executable(
   ${PROJECT_NAME}
@@ -25,4 +26,4 @@ add_executable(
   VideoCaptureFactory.h
   main.cpp
 )
-target_link_libraries(${PROJECT_NAME} PUBLIC ${OpenCV_LIBRARIES} ${Poco_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} PUBLIC ${OpenCV_LIBRARIES} ${Poco_LIBRARIES} fmt::fmt)
