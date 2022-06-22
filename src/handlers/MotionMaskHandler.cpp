@@ -13,7 +13,8 @@ void MotionMaskHandler::handleRequest(
     Poco::Net::HTTPServerRequest& /*request*/,
     Poco::Net::HTTPServerResponse& response)
 {
-    const cv::Mat frame = m_motion_data_worker->get_motion_data()->lock()->fgmask();
+    const cv::Mat frame
+        = m_motion_data_worker->get_motion_data()->lock()->fgmask().clone();
     m_imencode_handler.send_encoded_image(frame, response);
 }
 } // namespace vehlwn::handlers
