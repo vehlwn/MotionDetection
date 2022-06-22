@@ -3,8 +3,7 @@
 #include "IImageFilter.hpp"
 
 namespace vehlwn {
-class NormalizedBoxFilter : public IImageFilter
-{
+class NormalizedBoxFilter : public IImageFilter {
 public:
     NormalizedBoxFilter(int kernel_size);
     virtual cv::Mat apply(const cv::Mat& input) override;

@@ -3,8 +3,7 @@
 #include "IImageFilter.hpp"
 
 namespace vehlwn {
-class ResizeFilter : public IImageFilter
-{
+class ResizeFilter : public IImageFilter {
 public:
     ResizeFilter(double scale_factor);
     virtual cv::Mat apply(const cv::Mat& input) override;

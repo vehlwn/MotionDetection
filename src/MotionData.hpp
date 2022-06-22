@@ -2,22 +2,18 @@
 
 #include <opencv2/core/mat.hpp>
 
-class MotionData
-{
+class MotionData {
 public:
     MotionData(cv::Mat frame, cv::Mat fgmask)
         : m_frame{std::move(frame)}
-        , m_fgmask{std::move(fgmask)}
-    {
+        , m_fgmask{std::move(fgmask)} {
     }
 
-    cv::Mat frame() const
-    {
+    cv::Mat frame() const {
         return m_frame.clone();
     }
 
-    cv::Mat fgmask() const
-    {
+    cv::Mat fgmask() const {
         return m_fgmask.clone();
     }
 

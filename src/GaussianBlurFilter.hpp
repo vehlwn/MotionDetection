@@ -3,8 +3,7 @@
 #include "IImageFilter.hpp"
 
 namespace vehlwn {
-class GaussianBlurFilter : public IImageFilter
-{
+class GaussianBlurFilter : public IImageFilter {
 public:
     GaussianBlurFilter(int kernel_size, double sigma);
     virtual cv::Mat apply(const cv::Mat& input) override;

@@ -9,8 +9,7 @@
 #include <vector>
 
 namespace vehlwn::handlers::common {
-class ImencodeHandler
-{
+class ImencodeHandler {
 public:
     ImencodeHandler(Poco::Logger& logger);
     void send_encoded_image(

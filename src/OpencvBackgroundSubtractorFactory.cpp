@@ -9,30 +9,28 @@ OpencvBackgroundSubtractorFactory::OpencvBackgroundSubtractorFactory(
     std::shared_ptr<ApplicationSettings> config,
     Poco::Logger& logger)
     : m_config{std::move(config)}
-    , m_logger{logger}
-{
+    , m_logger{logger} {
 }
 
-std::shared_ptr<cv::BackgroundSubtractor> OpencvBackgroundSubtractorFactory::create()
-{
+std::shared_ptr<cv::BackgroundSubtractor>
+    OpencvBackgroundSubtractorFactory::create() {
     const std::string algorithm = m_config->get_background_subtractor_algorithm();
     poco_information(m_logger, "background_subtractor.algorithm = " + algorithm);
     // https://docs.opencv.org/4.5.3/de/de1/group__video__motion.html
-    if(algorithm == "KNN")
-    {
+    if(algorithm == "KNN") {
         const int history = m_config->get_background_subtractor_history(500);
         poco_information(
             m_logger,
             fmt::format("background_subtractor.history = {}", history));
-        const double dist_2_threshold =
-            m_config->get_background_subtractor_dist_2_threshold(400.0);
+        const double dist_2_threshold
+            = m_config->get_background_subtractor_dist_2_threshold(400.0);
         poco_information(
             m_logger,
             fmt::format(
                 "background_subtractor.dist_2_threshold = {}",
                 dist_2_threshold));
-        const bool detect_shadows =
-            m_config->get_background_subtractor_detect_shadows(true);
+        const bool detect_shadows
+            = m_config->get_background_subtractor_detect_shadows(true);
         poco_information(
             m_logger,
             fmt::format(
@@ -42,20 +40,18 @@ std::shared_ptr<cv::BackgroundSubtractor> OpencvBackgroundSubtractorFactory::cre
             history,
             dist_2_threshold,
             detect_shadows);
-    }
-    else if(algorithm == "MOG2")
-    {
+    } else if(algorithm == "MOG2") {
         const int history = m_config->get_background_subtractor_history(500);
         poco_information(
             m_logger,
             fmt::format("background_subtractor.history = {}", history));
-        const double var_threshold =
-            m_config->get_background_subtractor_var_threshold(16.0);
+        const double var_threshold
+            = m_config->get_background_subtractor_var_threshold(16.0);
         poco_information(
             m_logger,
             fmt::format("background_subtractor.var_threshold = {}", var_threshold));
-        const bool detect_shadows =
-            m_config->get_background_subtractor_detect_shadows(true);
+        const bool detect_shadows
+            = m_config->get_background_subtractor_detect_shadows(true);
         poco_information(
             m_logger,
             fmt::format(

@@ -7,8 +7,7 @@
 #include <memory>
 
 namespace vehlwn {
-class OpencvBackgroundSubtractorFactory
-{
+class OpencvBackgroundSubtractorFactory {
 public:
     OpencvBackgroundSubtractorFactory(
         std::shared_ptr<ApplicationSettings> config,

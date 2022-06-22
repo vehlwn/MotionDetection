@@ -6,8 +6,7 @@
 #include <string>
 
 namespace vehlwn {
-class IVideoCapture
-{
+class IVideoCapture {
 public:
     virtual ~IVideoCapture() = default;
     virtual std::optional<cv::Mat> read() = 0;

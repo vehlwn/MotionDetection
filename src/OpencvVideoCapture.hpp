@@ -8,8 +8,7 @@
 #include <optional>
 
 namespace vehlwn {
-class OpencvVideoCapture : public IVideoCapture
-{
+class OpencvVideoCapture : public IVideoCapture {
 public:
     OpencvVideoCapture(Poco::Logger& logger);
     virtual std::optional<cv::Mat> read() override;

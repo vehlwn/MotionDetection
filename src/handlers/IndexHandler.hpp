@@ -4,8 +4,7 @@
 #include "common/ContentLengthHandler.hpp"
 
 namespace vehlwn::handlers {
-class IndexHandler : public Poco::Net::HTTPRequestHandler
-{
+class IndexHandler : public Poco::Net::HTTPRequestHandler {
 public:
     virtual void handleRequest(
         Poco::Net::HTTPServerRequest& request,

@@ -9,24 +9,20 @@ class Mutex;
 
 namespace detail {
 template<class T>
-class MutexGuard
-{
+class MutexGuard {
     friend class Mutex<T>;
 
 private:
     MutexGuard(Mutex<T>& mutex)
         : m_mutex{mutex}
-        , m_lock{m_mutex.m_inner}
-    {
+        , m_lock{m_mutex.m_inner} {
     }
 
 public:
-    T* operator->() const
-    {
+    T* operator->() const {
         return &m_mutex.m_value;
     }
-    T& operator*() const
-    {
+    T& operator*() const {
         return m_mutex.m_value;
     }
 
@@ -36,24 +32,20 @@ private:
 };
 
 template<class T>
-class ConstMutexGuard
-{
+class ConstMutexGuard {
     friend class Mutex<T>;
 
 private:
     ConstMutexGuard(const Mutex<T>& mutex)
         : m_mutex{mutex}
-        , m_lock{m_mutex.m_inner}
-    {
+        , m_lock{m_mutex.m_inner} {
     }
 
 public:
-    const T* operator->() const
-    {
+    const T* operator->() const {
         return &m_mutex.m_value;
     }
-    const T& operator*() const
-    {
+    const T& operator*() const {
         return m_mutex.m_value;
     }
 
@@ -64,8 +56,7 @@ private:
 }; // namespace detail
 
 template<class T>
-class Mutex
-{
+class Mutex {
     friend class detail::MutexGuard<T>;
     friend class detail::ConstMutexGuard<T>;
 
@@ -73,17 +64,14 @@ public:
     Mutex(const Mutex&) = delete;
     Mutex(Mutex&&) = delete;
     explicit Mutex(T value)
-        : m_value{std::move(value)}
-    {
+        : m_value{std::move(value)} {
     }
     Mutex& operator=(const Mutex&) = delete;
     Mutex& operator=(Mutex&&) = delete;
-    detail::MutexGuard<T> lock()
-    {
+    detail::MutexGuard<T> lock() {
         return detail::MutexGuard<T>{*this};
     }
-    detail::ConstMutexGuard<T> lock() const
-    {
+    detail::ConstMutexGuard<T> lock() const {
         return detail::ConstMutexGuard<T>{*this};
     }
 

@@ -4,8 +4,7 @@
 #include "Poco/Net/HTTPServerResponse.h"
 
 namespace vehlwn::handlers::common {
-class OkHandler
-{
+class OkHandler {
 public:
     void send(Poco::Net::HTTPServerResponse& response);
 

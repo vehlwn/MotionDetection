@@ -6,8 +6,7 @@
 #include <vector>
 
 namespace vehlwn::handlers::common {
-class ContentLengthHandler
-{
+class ContentLengthHandler {
 public:
     void send(const std::string& msg, Poco::Net::HTTPServerResponse& response);
     void send(

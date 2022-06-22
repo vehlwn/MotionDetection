@@ -5,8 +5,7 @@
 #include "common/ContentLengthHandler.hpp"
 
 namespace vehlwn::handlers {
-class FpsHandler : public Poco::Net::HTTPRequestHandler
-{
+class FpsHandler : public Poco::Net::HTTPRequestHandler {
 public:
     FpsHandler(std::shared_ptr<const vehlwn::MotionDataWorker> motion_data_worker);
     virtual void handleRequest(

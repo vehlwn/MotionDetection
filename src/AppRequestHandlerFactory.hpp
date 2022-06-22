@@ -12,8 +12,7 @@
 #include <tuple>
 
 namespace vehlwn {
-class AppRequestHandlerFactory : public Poco::Net::HTTPRequestHandlerFactory
-{
+class AppRequestHandlerFactory : public Poco::Net::HTTPRequestHandlerFactory {
 public:
     AppRequestHandlerFactory(
         std::shared_ptr<vehlwn::MotionDataWorker> motion_data_worker,

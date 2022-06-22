@@ -6,8 +6,7 @@
 
 namespace vehlwn::handlers {
 
-class MotionMaskHandler : public Poco::Net::HTTPRequestHandler
-{
+class MotionMaskHandler : public Poco::Net::HTTPRequestHandler {
 public:
     MotionMaskHandler(
         std::shared_ptr<const vehlwn::MotionDataWorker> motion_data_worker,

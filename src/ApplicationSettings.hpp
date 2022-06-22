@@ -5,8 +5,7 @@
 #include <string>
 
 namespace vehlwn {
-class ApplicationSettings
-{
+class ApplicationSettings {
 public:
     ApplicationSettings(const Poco::Util::AbstractConfiguration& config);
     std::string get_background_subtractor_algorithm() const;

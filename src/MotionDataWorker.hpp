@@ -12,8 +12,7 @@
 #include <thread>
 
 namespace vehlwn {
-class MotionDataWorker
-{
+class MotionDataWorker {
 public:
     MotionDataWorker(
         std::shared_ptr<OpencvBackgroundSubtractorFactory> back_subtractor_factory,

@@ -7,8 +7,7 @@
 #include <memory>
 
 namespace vehlwn {
-class VideoCaptureFactory
-{
+class VideoCaptureFactory {
 public:
     VideoCaptureFactory(
         std::shared_ptr<ApplicationSettings> config,

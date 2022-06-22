@@ -4,8 +4,7 @@
 #include "common/OkHandler.hpp"
 
 namespace vehlwn::handlers {
-class HealthyHandler : public Poco::Net::HTTPRequestHandler
-{
+class HealthyHandler : public Poco::Net::HTTPRequestHandler {
 public:
     virtual void handleRequest(
         Poco::Net::HTTPServerRequest& request,

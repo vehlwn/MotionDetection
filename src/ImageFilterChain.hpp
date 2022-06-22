@@ -6,8 +6,7 @@
 #include <vector>
 
 namespace vehlwn {
-class ImageFilterChain : public IImageFilter
-{
+class ImageFilterChain : public IImageFilter {
 public:
     void add_filter(std::shared_ptr<IImageFilter> filter);
     virtual cv::Mat apply(const cv::Mat& input) override;

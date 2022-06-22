@@ -7,8 +7,7 @@
 #include <memory>
 
 namespace vehlwn {
-class PreprocessImageFactory
-{
+class PreprocessImageFactory {
 public:
     PreprocessImageFactory(
         std::shared_ptr<ApplicationSettings> config,

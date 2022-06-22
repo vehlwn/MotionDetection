@@ -5,12 +5,10 @@
 namespace vehlwn {
 GaussianBlurFilter::GaussianBlurFilter(int kernel_size, double sigma)
     : m_kernel_size{kernel_size}
-    , m_sigma{sigma}
-{
+    , m_sigma{sigma} {
 }
 
-cv::Mat GaussianBlurFilter::apply(const cv::Mat& input)
-{
+cv::Mat GaussianBlurFilter::apply(const cv::Mat& input) {
     cv::Mat ret;
     cv::GaussianBlur(
         input,

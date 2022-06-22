@@ -6,8 +6,7 @@
 
 namespace vehlwn::handlers {
 
-class CurrentFrameHandler : public Poco::Net::HTTPRequestHandler
-{
+class CurrentFrameHandler : public Poco::Net::HTTPRequestHandler {
 public:
     CurrentFrameHandler(
         std::shared_ptr<const vehlwn::MotionDataWorker> motion_data_worker,

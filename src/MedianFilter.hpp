@@ -3,8 +3,7 @@
 #include "IImageFilter.hpp"
 
 namespace vehlwn {
-class MedianFilter : public IImageFilter
-{
+class MedianFilter : public IImageFilter {
 public:
     MedianFilter(int kernel_size);
     virtual cv::Mat apply(const cv::Mat& input) override;
