@@ -10,12 +10,12 @@ namespace vehlwn {
 class VideoCaptureFactory {
 public:
     VideoCaptureFactory(
-        std::shared_ptr<ApplicationSettings> config,
+        const ApplicationSettings::VideoCapture& config,
         Poco::Logger& logger);
     std::shared_ptr<IVideoCapture> create();
 
 private:
-    std::shared_ptr<ApplicationSettings> m_config;
+    const ApplicationSettings::VideoCapture& m_config;
     Poco::Logger& m_logger;
 };
 } // namespace vehlwn

@@ -10,12 +10,12 @@ namespace vehlwn {
 class BackgroundSubtractorFactory {
 public:
     BackgroundSubtractorFactory(
-        std::shared_ptr<ApplicationSettings> config,
+        const ApplicationSettings::BackgroundSubtractor& config,
         Poco::Logger& logger);
     std::shared_ptr<IBackgroundSubtractor> create();
 
 private:
-    std::shared_ptr<ApplicationSettings> m_config;
+    const ApplicationSettings::BackgroundSubtractor& m_config;
     Poco::Logger& m_logger;
 };
 } // namespace vehlwn

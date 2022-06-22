@@ -1,40 +1,89 @@
 #pragma once
 
+#include "Poco/Logger.h"
+#include "Poco/Net/SocketAddress.h"
 #include "Poco/Util/AbstractConfiguration.h"
 
+#include <array>
+#include <optional>
 #include <string>
+#include <variant>
 
 namespace vehlwn {
-class ApplicationSettings {
-public:
-    ApplicationSettings(const Poco::Util::AbstractConfiguration& config);
-    std::string get_background_subtractor_algorithm() const;
-    int get_background_subtractor_history(int default_value) const;
-    double get_background_subtractor_dist_2_threshold(double default_value) const;
-    bool get_background_subtractor_detect_shadows(bool default_value) const;
-    double get_background_subtractor_var_threshold(double default_value) const;
+struct ApplicationSettings {
+    Poco::Net::SocketAddress http_server_host_and_port;
 
-    std::string get_video_capture_filename() const;
-    std::string
-        get_video_capture_api_preference(const std::string& default_value) const;
-    bool has_video_capture_fourcc() const;
-    std::string get_video_capture_fourcc() const;
-    bool has_video_capture_frame_width() const;
-    int get_video_capture_frame_width() const;
-    bool has_video_capture_frame_height() const;
-    int get_video_capture_frame_height() const;
-    bool has_video_capture_fps() const;
-    double get_video_capture_fps() const;
+    struct VideoCapture {
+        std::string filename;
+        enum class ApiPreference {
+            CAP_ANY,
+            CAP_FFMPEG,
+            CAP_V4L2,
+        } api_preference;
+        using FourccType = std::array<char, 4>;
+        std::optional<FourccType> fourcc;
+        struct Size {
+            int width, height;
+            Size(int width, int height)
+                : width{width}
+                , height{height}
+            {}
+        };
+        std::optional<Size> size;
+        std::optional<double> framerate;
+    } video_capture;
 
-    double get_preprocess_resize_factor() const;
-    bool has_preprocess_resize_factor() const;
+    struct BackgroundSubtractor {
+        struct Knn {
+            int history;
+            double dist_2_threshold;
+            bool detect_shadows;
+            Knn()
+                : history{}
+                , dist_2_threshold{}
+                , detect_shadows{}
+            {}
+        };
+        struct Mog2 {
+            int history;
+            double var_threshold;
+            bool detect_shadows;
+            Mog2()
+                : history{}
+                , var_threshold{}
+                , detect_shadows{}
+            {}
+        };
+        std::variant<Knn, Mog2> algorithm;
+    } background_subtractor;
 
-    std::string get_preprocess_smoothing_name() const;
-    bool has_preprocess_smoothing_name() const;
-    int get_preproccess_smoothing_kernel_size() const;
-    double get_preprocess_smoothing_sigma(double default_value) const;
-
-private:
-    const Poco::Util::AbstractConfiguration& m_config;
+    struct Preprocess {
+        std::optional<double> resize_factor;
+        struct NormalizedBox {
+            int kernel_size;
+            NormalizedBox()
+                : kernel_size{}
+            {}
+        };
+        struct Gaussian {
+            int kernel_size;
+            double sigma;
+            Gaussian()
+                : kernel_size{}
+                , sigma{}
+            {}
+        };
+        struct Median {
+            int kernel_size;
+            Median()
+                : kernel_size{}
+            {}
+        };
+        std::optional<std::variant<NormalizedBox, Gaussian, Median>> smoothing;
+    } preprocess;
 };
+
+ApplicationSettings read_settings(
+    const Poco::Util::AbstractConfiguration& config,
+    Poco::Logger& logger) noexcept;
 } // namespace vehlwn

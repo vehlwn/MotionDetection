@@ -25,70 +25,34 @@ private:
 } // namespace
 
 BackgroundSubtractorFactory::BackgroundSubtractorFactory(
-    std::shared_ptr<ApplicationSettings> config,
+    const ApplicationSettings::BackgroundSubtractor& config,
     Poco::Logger& logger)
-    : m_config{std::move(config)}
+    : m_config{config}
     , m_logger{logger}
 {}
 
 std::shared_ptr<IBackgroundSubtractor> BackgroundSubtractorFactory::create()
 {
-    const std::string algorithm = m_config->get_background_subtractor_algorithm();
-    poco_information(m_logger, "background_subtractor.algorithm = " + algorithm);
-    // https://docs.opencv.org/4.5.3/de/de1/group__video__motion.html
-    if(algorithm == "KNN") {
-        const int history = m_config->get_background_subtractor_history(500);
-        poco_information(
-            m_logger,
-            fmt::format("background_subtractor.history = {}", history));
-        const double dist_2_threshold
-            = m_config->get_background_subtractor_dist_2_threshold(400.0);
-        poco_information(
-            m_logger,
-            fmt::format(
-                "background_subtractor.dist_2_threshold = {}",
-                dist_2_threshold));
-        const bool detect_shadows
-            = m_config->get_background_subtractor_detect_shadows(true);
-        poco_information(
-            m_logger,
-            fmt::format(
-                "background_subtractor.detect_shadows = {}",
-                detect_shadows));
+    if(const auto* knn
+       = std::get_if<vehlwn::ApplicationSettings::BackgroundSubtractor::Knn>(
+           &m_config.algorithm)) {
         return std::make_shared<OpencvBackgroundSubtractorAdapter>(
             cv::createBackgroundSubtractorKNN(
-                history,
-                dist_2_threshold,
-                detect_shadows));
-    } else if(algorithm == "MOG2") {
-        const int history = m_config->get_background_subtractor_history(500);
-        poco_information(
-            m_logger,
-            fmt::format("background_subtractor.history = {}", history));
-        const double var_threshold
-            = m_config->get_background_subtractor_var_threshold(16.0);
-        poco_information(
-            m_logger,
-            fmt::format("background_subtractor.var_threshold = {}", var_threshold));
-        const bool detect_shadows
-            = m_config->get_background_subtractor_detect_shadows(true);
-        poco_information(
-            m_logger,
-            fmt::format(
-                "background_subtractor.detect_shadows = {}",
-                detect_shadows));
+                knn->history,
+                knn->dist_2_threshold,
+                knn->detect_shadows));
+    } else if(
+        const auto* mog2
+        = std::get_if<vehlwn::ApplicationSettings::BackgroundSubtractor::Mog2>(
+            &m_config.algorithm)) {
         return std::make_shared<OpencvBackgroundSubtractorAdapter>(
             cv::createBackgroundSubtractorMOG2(
-                history,
-                var_threshold,
-                detect_shadows));
+                mog2->history,
+                mog2->var_threshold,
+                mog2->detect_shadows));
     }
-    // The rest algorithms are in opencv_contrib module which does not present in
-    // system packages. https://docs.opencv.org/4.5.3/d2/d55/group__bgsegm.html
-    poco_fatal(
-        m_logger,
-        fmt::format("Unknown background_subtractor algorithm: {}", algorithm));
-    std::abort();
+    poco_fatal(m_logger, "Unreachable!");
+    std::exit(1);
 }
 
 } // namespace vehlwn

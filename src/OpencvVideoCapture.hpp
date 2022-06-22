@@ -12,11 +12,11 @@ class OpencvVideoCapture : public IVideoCapture {
 public:
     OpencvVideoCapture(Poco::Logger& logger);
     virtual std::optional<cv::Mat> read() override;
-    void open(const std::string& filename, int api_preference);
-    void set_fourcc(const std::string& fourcc);
-    void set_frame_width(int w);
-    void set_frame_height(int h);
-    void set_fps(double n);
+    void open(const std::string& filename, const int api_preference);
+    void set_fourcc(const char c1, const char c2, const char c3, const char c4);
+    void set_frame_width(const int w);
+    void set_frame_height(const int h);
+    void set_fps(const double n);
     virtual double get_fps() const override;
 
 private:

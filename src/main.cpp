@@ -46,17 +46,18 @@ protected:
     virtual int main(const std::vector<std::string>& /*args*/) override
     {
         const auto application_settings
-            = std::make_shared<vehlwn::ApplicationSettings>(config());
+            = std::make_shared<const vehlwn::ApplicationSettings>(
+                vehlwn::read_settings(config(), logger()));
         auto back_subtractor_factory
             = std::make_shared<vehlwn::BackgroundSubtractorFactory>(
-                application_settings,
+                application_settings->background_subtractor,
                 logger());
         auto video_capture_factory = std::make_shared<vehlwn::VideoCaptureFactory>(
-            application_settings,
+            application_settings->video_capture,
             logger());
         auto preprocess_image_factory
             = std::make_shared<vehlwn::PreprocessImageFactory>(
-                application_settings,
+                application_settings->preprocess,
                 logger());
         auto motion_data_worker = std::make_shared<vehlwn::MotionDataWorker>(
             std::move(back_subtractor_factory),
@@ -69,12 +70,14 @@ protected:
             = config().getString("http_server.host_and_port");
         Poco::Net::HTTPServer srv{
             new vehlwn::AppRequestHandlerFactory{motion_data_worker, logger()},
-            Poco::Net::ServerSocket{Poco::Net::SocketAddress{host_and_port}},
+            Poco::Net::ServerSocket{application_settings->http_server_host_and_port},
             new Poco::Net::HTTPServerParams};
         srv.start();
         poco_information(
             logger(),
-            fmt::format("Server listening {}", host_and_port));
+            fmt::format(
+                "Server listening {}",
+                application_settings->http_server_host_and_port.toString()));
 
         waitForTerminationRequest();
         srv.stopAll(true);
