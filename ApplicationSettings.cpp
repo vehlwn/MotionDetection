@@ -34,7 +34,7 @@ const auto DEFAULT_SETTINGS = [] {
     result[CAMERA_INDEX_ENTRY] = 0;
     result[FNAME_ENTRY] = "";
     result[HISTORY_ENTRY] = 100;
-    result[FRAME_BUFFER_SIZE_ENTRY] = 128;
+    result[FRAME_BUFFER_SIZE_ENTRY] = 10;
     return result;
 }();
 
