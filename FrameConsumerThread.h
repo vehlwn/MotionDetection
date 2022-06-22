@@ -16,11 +16,12 @@ class FrameConsumerThread : public QThread
     using base = QThread;
 
 public:
-    FrameConsumerThread(
-        QObject* parent,
+    FrameConsumerThread(QObject* parent);
+    ~FrameConsumerThread();
+
+    void setOptions(
         std::weak_ptr<BufferedVideoReader::DataQue> queue,
         VideoWriterOptions videoOptions);
-    ~FrameConsumerThread();
 
 protected:
     void run() override;
@@ -45,6 +46,7 @@ class FrameConsumerWorker : public TimerWorker
 
 private:
     FrameConsumerWorker(FrameConsumerThread* t, int msec, Qt::TimerType atype);
+
 public:
     ~FrameConsumerWorker();
 

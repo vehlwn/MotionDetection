@@ -80,8 +80,7 @@ void BufferedVideoReader::start()
         static_cast<int>(pimpl->videoCapture->get(cv::CAP_PROP_FRAME_WIDTH));
     videoOptions.height =
         static_cast<int>(pimpl->videoCapture->get(cv::CAP_PROP_FRAME_HEIGHT));
-    pimpl->consumer =
-        std::make_unique<FrameConsumerThread>(this, pimpl->frameQue, videoOptions);
+    pimpl->consumer = std::make_unique<FrameConsumerThread>(this);
     connect(
         pimpl->consumer.get(),
         &FrameConsumerThread::newData,
@@ -97,6 +96,7 @@ void BufferedVideoReader::start()
         &FrameProducerThread::logMessage,
         this,
         &BufferedVideoReader::logMessage);
+    pimpl->consumer->setOptions(pimpl->frameQue, videoOptions);
     pimpl->producer->start();
     pimpl->consumer->start();
     pimpl->frameQue->start();
