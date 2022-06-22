@@ -43,6 +43,7 @@ add_executable(
     IBackgroundSubtractor.hpp
     IVideoCapture.hpp
     main.cpp
+    MotionData.cpp
     MotionData.hpp
     MotionDataWorker.cpp
     MotionDataWorker.hpp
