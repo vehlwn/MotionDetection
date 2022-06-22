@@ -50,6 +50,20 @@ SettingsDialog::SettingsDialog(QWidget* parent)
         pimpl->ui.lineEditFname->setText(fileName);
         ApplicationSettings::i().fname(fileName);
     });
+    connect(
+        pimpl->ui.pushButtonOpenOutputFolder,
+        &QAbstractButton::clicked,
+        this,
+        [this]() {
+            const QString folderName = QFileDialog::getExistingDirectory(
+                this,
+                "Open output folder",
+                ApplicationSettings::i().outputFolder());
+            if(folderName.isEmpty())
+                return;
+            pimpl->ui.lineEditOutputFolder->setText(folderName);
+            ApplicationSettings::i().outputFolder(folderName);
+        });
     const auto& i = ApplicationSettings::i();
     pimpl->ui.radioButtonCamera->setChecked(i.cameraChecked());
     radioCameraIndexToggled(i.cameraChecked());
@@ -59,6 +73,7 @@ SettingsDialog::SettingsDialog(QWidget* parent)
     pimpl->ui.lineEditFname->setText(i.fname());
     pimpl->ui.spinBoxHistory->setValue(i.history());
     pimpl->ui.spinBoxFrameBufferSize->setValue(i.frameBufferSize());
+    pimpl->ui.lineEditOutputFolder->setText(i.outputFolder());
 }
 
 SettingsDialog::~SettingsDialog() = default;
@@ -72,5 +87,6 @@ void SettingsDialog::accept()
     i.fname(pimpl->ui.lineEditFname->text());
     i.history(pimpl->ui.spinBoxHistory->value());
     i.frameBufferSize(pimpl->ui.spinBoxFrameBufferSize->value());
+    i.outputFolder(pimpl->ui.lineEditOutputFolder->text());
     base::accept();
 }
