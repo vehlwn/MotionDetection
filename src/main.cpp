@@ -1,7 +1,7 @@
 #include "AppRequestHandlerFactory.hpp"
 #include "ApplicationSettings.hpp"
+#include "BackgroundSubtractorFactory.hpp"
 #include "MotionDataWorker.hpp"
-#include "OpencvBackgroundSubtractorFactory.hpp"
 #include "Poco/AutoPtr.h"
 #include "Poco/ConsoleChannel.h"
 #include "Poco/FormattingChannel.h"
@@ -48,7 +48,7 @@ protected:
         const auto application_settings
             = std::make_shared<vehlwn::ApplicationSettings>(config());
         auto back_subtractor_factory
-            = std::make_shared<vehlwn::OpencvBackgroundSubtractorFactory>(
+            = std::make_shared<vehlwn::BackgroundSubtractorFactory>(
                 application_settings,
                 logger());
         auto video_capture_factory = std::make_shared<vehlwn::VideoCaptureFactory>(

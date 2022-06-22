@@ -7,7 +7,7 @@
 
 namespace vehlwn {
 MotionDataWorker::MotionDataWorker(
-    std::shared_ptr<OpencvBackgroundSubtractorFactory> back_subtractor_factory,
+    std::shared_ptr<BackgroundSubtractorFactory> back_subtractor_factory,
     std::shared_ptr<VideoCaptureFactory> video_capture_factory,
     std::shared_ptr<PreprocessImageFactory> preprocess_image_factory,
     Poco::Logger& logger)
@@ -48,8 +48,7 @@ void MotionDataWorker::start()
             }
             cv::Mat frame = std::move(*opt_frame);
             cv::Mat processed = preprocess_filter->apply(frame);
-            cv::Mat fgmask;
-            back_subtractor->apply(processed, fgmask);
+            cv::Mat fgmask = back_subtractor->apply(processed);
             *m_motion_data->lock() = {std::move(frame), std::move(fgmask)};
         }
     }};

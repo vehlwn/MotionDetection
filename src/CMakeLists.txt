@@ -7,6 +7,8 @@ add_executable(
     ApplicationSettings.hpp
     AppRequestHandlerFactory.cpp
     AppRequestHandlerFactory.hpp
+    BackgroundSubtractorFactory.cpp
+    BackgroundSubtractorFactory.hpp
     filters/GaussianBlurFilter.cpp
     filters/GaussianBlurFilter.hpp
     filters/IdentityFilter.cpp
@@ -38,14 +40,13 @@ add_executable(
     handlers/MotionMaskHandler.hpp
     handlers/NotFoundHandler.cpp
     handlers/NotFoundHandler.hpp
+    IBackgroundSubtractor.hpp
     IVideoCapture.hpp
     main.cpp
     MotionData.hpp
     MotionDataWorker.cpp
     MotionDataWorker.hpp
     Mutex.hpp
-    OpencvBackgroundSubtractorFactory.cpp
-    OpencvBackgroundSubtractorFactory.hpp
     OpencvVideoCapture.cpp
     OpencvVideoCapture.hpp
     PreprocessImageFactory.cpp

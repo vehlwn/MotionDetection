@@ -1,18 +1,18 @@
 #pragma once
 
 #include "ApplicationSettings.hpp"
+#include "IBackgroundSubtractor.hpp"
 #include "Poco/Logger.h"
-#include "opencv2/video/background_segm.hpp"
 
 #include <memory>
 
 namespace vehlwn {
-class OpencvBackgroundSubtractorFactory {
+class BackgroundSubtractorFactory {
 public:
-    OpencvBackgroundSubtractorFactory(
+    BackgroundSubtractorFactory(
         std::shared_ptr<ApplicationSettings> config,
         Poco::Logger& logger);
-    std::shared_ptr<cv::BackgroundSubtractor> create();
+    std::shared_ptr<IBackgroundSubtractor> create();
 
 private:
     std::shared_ptr<ApplicationSettings> m_config;
