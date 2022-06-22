@@ -24,6 +24,8 @@ constexpr auto CAMERA_CHECKED_ENTRY = "camera_checked";
 constexpr auto FILE_CHECKED_ENTRY = "file_checked";
 constexpr auto CAMERA_INDEX_ENTRY = "camera_index";
 constexpr auto FNAME_ENTRY = "fname";
+constexpr auto HISTORY_ENTRY = "history";
+constexpr auto FRAME_BUFFER_SIZE_ENTRY = "frame_buffer_size";
 
 const auto DEFAULT_SETTINGS = [] {
     std::map<QString, QVariant> result;
@@ -31,6 +33,8 @@ const auto DEFAULT_SETTINGS = [] {
     result[FILE_CHECKED_ENTRY] = false;
     result[CAMERA_INDEX_ENTRY] = 0;
     result[FNAME_ENTRY] = "";
+    result[HISTORY_ENTRY] = 100;
+    result[FRAME_BUFFER_SIZE_ENTRY] = 128;
     return result;
 }();
 
@@ -107,4 +111,30 @@ void ApplicationSettings::fname(QString s)
 {
     QMutexLocker lock{&pimpl->settingsMutex};
     pimpl->settings.setValue(FNAME_ENTRY, s);
+}
+
+int ApplicationSettings::history() const
+{
+    QMutexLocker lock{&pimpl->settingsMutex};
+    const auto key = HISTORY_ENTRY;
+    return getSettingsValue(pimpl->settings, key, DEFAULT_SETTINGS.at(key)).toInt();
+}
+
+void ApplicationSettings::history(int i)
+{
+    QMutexLocker lock{&pimpl->settingsMutex};
+    pimpl->settings.setValue(HISTORY_ENTRY, i);
+}
+
+int ApplicationSettings::frameBufferSize() const
+{
+    QMutexLocker lock{&pimpl->settingsMutex};
+    const auto key = FRAME_BUFFER_SIZE_ENTRY;
+    return getSettingsValue(pimpl->settings, key, DEFAULT_SETTINGS.at(key)).toInt();
+}
+
+void ApplicationSettings::frameBufferSize(int i)
+{
+    QMutexLocker lock{&pimpl->settingsMutex};
+    pimpl->settings.setValue(FRAME_BUFFER_SIZE_ENTRY, i);
 }

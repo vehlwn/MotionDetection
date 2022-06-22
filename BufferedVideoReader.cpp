@@ -63,7 +63,8 @@ void BufferedVideoReader::start()
         pimpl->videoCapture->get(cv::CAP_PROP_BITRATE)));
 
     const double fps = pimpl->videoCapture->get(cv::CAP_PROP_FPS);
-    pimpl->frameQue = std::make_shared<FixedThreadSafeQueue<Data>>(10);
+    pimpl->frameQue = std::make_shared<FixedThreadSafeQueue<Data>>(
+        static_cast<std::size_t>(i.frameBufferSize()));
     pimpl->producer = std::make_unique<FrameProducerThread>(
         this,
         pimpl->frameQue,
