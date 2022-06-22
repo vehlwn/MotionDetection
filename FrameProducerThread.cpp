@@ -9,6 +9,7 @@
 #include <opencv2/core.hpp>
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
+#include <opencv2/video/background_segm.hpp>
 #include <opencv2/videoio.hpp>
 
 struct FrameProducerThread::Impl
@@ -23,10 +24,12 @@ FrameProducerThread::FrameProducerThread(QObject* parent)
 {
 }
 
+FrameProducerThread::~FrameProducerThread() = default;
+
 void FrameProducerThread::run()
 {
     emit logMessage(QString::fromStdString(cv::getBuildInformation()));
-    const std::string fname = R"(K:\60-BPM-Metronome.mp4)";
+    const std::string fname = R"(K:\Road traffic video for object recognition.mp4)";
     if(!pimpl->cap.open(fname))
     {
         emit logMessage(
@@ -46,6 +49,12 @@ void FrameProducerThread::run()
     const auto minFamePeriod = std::chrono::microseconds{
         static_cast<int>(1.0 / pimpl->cap.get(cv::CAP_PROP_FPS) * 1.0e6)};
     emit logMessage(QString{"minFamePeriod = %1"}.arg(minFamePeriod.count()));
+
+    const int history = 100;
+    const double varThreshold = 16;
+    const bool detectShadows = false;
+    auto backSubtractor =
+        cv::createBackgroundSubtractorMOG2(history, varThreshold, detectShadows);
     while(!pimpl->stopped)
     {
         cv::Mat frame;
@@ -53,7 +62,12 @@ void FrameProducerThread::run()
         if(!ret)
             break;
 
+        cv::Mat fgmask;
+        cv::Mat blurredFrame;
+        cv::GaussianBlur(frame, blurredFrame, {21, 21}, 0);
+        backSubtractor->apply(blurredFrame, fgmask);
         emit newFrame(utils::cvMat2QPixmap(frame));
+        emit newFgmask(utils::cvMat2QPixmap(fgmask));
 
         QThread::usleep(minFamePeriod.count());
     }
