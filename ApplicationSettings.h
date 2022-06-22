@@ -26,8 +26,8 @@ public:
     void fname(QString s);
     int history() const;
     void history(int i);
-    int frameBufferSize() const;
-    void frameBufferSize(int i);
+    int frameQueueSize() const;
+    void frameQueueSize(int i);
     QString outputFolder() const;
     void outputFolder(QString s);
     QString outputExtension() const;
