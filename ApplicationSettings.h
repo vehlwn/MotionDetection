@@ -14,6 +14,7 @@ public:
     double get_background_subtractor_dist_2_threshold(double default_value) const;
     bool get_background_subtractor_detect_shadows(bool default_value) const;
     double get_background_subtractor_var_threshold(double default_value) const;
+
     std::string get_video_capture_filename() const;
     std::string
         get_video_capture_api_preference(const std::string& default_value) const;
@@ -25,10 +26,14 @@ public:
     int get_video_capture_frame_height() const;
     bool has_video_capture_fps() const;
     double get_video_capture_fps() const;
-    std::string get_smoothing_filter_name() const;
-    bool has_smoothing_filter_name() const;
-    int get_smoothing_filter_kernel_size() const;
-    double get_smoothing_filter_sigma(double default_value) const;
+
+    double get_preprocess_resize_factor() const;
+    bool has_preprocess_resize_factor() const;
+
+    std::string get_preprocess_smoothing_name() const;
+    bool has_preprocess_smoothing_name() const;
+    int get_preproccess_smoothing_kernel_size() const;
+    double get_preprocess_smoothing_sigma(double default_value) const;
 
 private:
     const Poco::Util::AbstractConfiguration& m_config;

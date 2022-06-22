@@ -1,9 +1,9 @@
 #pragma once
 
-#include "ISmoothingFilter.h"
+#include "IImageFilter.h"
 
 namespace vehlwn {
-class IdentityFilter : public ISmoothingFilter
+class IdentityFilter : public IImageFilter
 {
 public:
     virtual cv::Mat apply(const cv::Mat& input) override;

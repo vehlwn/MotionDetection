@@ -3,14 +3,13 @@
 #include "IImageFilter.h"
 
 namespace vehlwn {
-class GaussianBlurFilter : public IImageFilter
+class ResizeFilter : public IImageFilter
 {
 public:
-    GaussianBlurFilter(int kernel_size, double sigma);
+    ResizeFilter(double scale_factor);
     virtual cv::Mat apply(const cv::Mat& input) override;
 
 private:
-    const int m_kernel_size;
-    const double m_sigma;
+    const double m_scale_factor;
 };
 } // namespace vehlwn

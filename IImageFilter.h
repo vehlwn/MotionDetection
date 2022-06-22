@@ -3,10 +3,10 @@
 #include "opencv2/core/mat.hpp"
 
 namespace vehlwn {
-class ISmoothingFilter
+class IImageFilter
 {
 public:
-    ISmoothingFilter() = default;
+    IImageFilter() = default;
     virtual cv::Mat apply(const cv::Mat& input) = 0;
 };
 } // namespace vehlwn

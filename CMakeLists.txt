@@ -41,7 +41,9 @@ add_executable(
     handlers/NotFoundHandler.h
     IdentityFilter.cpp
     IdentityFilter.h
-    ISmoothingFilter.h
+    IImageFilter.h
+    ImageFilterChain.cpp
+    ImageFilterChain.h
     IVideoCapture.h
     main.cpp
     MedianFilter.cpp
@@ -56,8 +58,10 @@ add_executable(
     OpencvBackgroundSubtractorFactory.h
     OpencvVideoCapture.cpp
     OpencvVideoCapture.h
-    SmoothingFIlterFactory.cpp
-    SmoothingFIlterFactory.h
+    PreprocessImageFactory.cpp
+    PreprocessImageFactory.h
+    ResizeFilter.cpp
+    ResizeFilter.h
     VideoCaptureFactory.cpp
     VideoCaptureFactory.h
 )

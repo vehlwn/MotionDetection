@@ -19,10 +19,11 @@ static const std::string VIDEO_CAPTURE_FRAME_WIDTH_KEY = "video_capture.frame_wi
 static const std::string VIDEO_CAPTURE_FRAME_HEIGHT_KEY =
     "video_capture.frame_height";
 static const std::string VIDEO_CAPTURE_FRAME_FPS_KEY = "video_capture.fps";
-static const std::string SMOOTHING_FILTER_NAME_KEY = "smoothing_filter.name";
-static const std::string SMOOTHING_FILTER_KERNEL_SIZE_KEY =
-    "smoothing_filter.kernel_size";
-static const std::string SMOOTHING_FILTER_SIGMA_KEY = "smoothing_filter.sigma";
+static const std::string PREPROCESS_RESIZE_FACTOR_KEY = "preprocess.resize.factor";
+static const std::string PREPROCESS_SMOOTHING_NAME_KEY = "preprocess.smoothing.name";
+static const std::string SMOOTHING_SMOOTHING_KERNEL_SIZE_KEY =
+    "preprocess.smoothing.kernel_size";
+static const std::string SMOOTHING_FILTER_SIGMA_KEY = "preprocess.smoothing.sigma";
 } // namespace
 
 namespace vehlwn {
@@ -115,22 +116,33 @@ double ApplicationSettings::get_video_capture_fps() const
     return m_config.getDouble(VIDEO_CAPTURE_FRAME_HEIGHT_KEY);
 }
 
-std::string ApplicationSettings::get_smoothing_filter_name() const
+double ApplicationSettings::get_preprocess_resize_factor() const
 {
-    return m_config.getString(SMOOTHING_FILTER_NAME_KEY);
+    return m_config.getDouble(PREPROCESS_RESIZE_FACTOR_KEY);
 }
 
-bool ApplicationSettings::has_smoothing_filter_name() const
+bool ApplicationSettings::has_preprocess_resize_factor() const
 {
-    return m_config.has(SMOOTHING_FILTER_NAME_KEY);
+    return m_config.has(PREPROCESS_RESIZE_FACTOR_KEY);
 }
 
-int ApplicationSettings::get_smoothing_filter_kernel_size() const
+std::string ApplicationSettings::get_preprocess_smoothing_name() const
 {
-    return m_config.getInt(SMOOTHING_FILTER_KERNEL_SIZE_KEY);
+    return m_config.getString(PREPROCESS_SMOOTHING_NAME_KEY);
 }
 
-double ApplicationSettings::get_smoothing_filter_sigma(double default_value) const
+bool ApplicationSettings::has_preprocess_smoothing_name() const
+{
+    return m_config.has(PREPROCESS_SMOOTHING_NAME_KEY);
+}
+
+int ApplicationSettings::get_preproccess_smoothing_kernel_size() const
+{
+    return m_config.getInt(SMOOTHING_SMOOTHING_KERNEL_SIZE_KEY);
+}
+
+double
+    ApplicationSettings::get_preprocess_smoothing_sigma(double default_value) const
 {
     return m_config.getDouble(SMOOTHING_FILTER_SIGMA_KEY, default_value);
 }

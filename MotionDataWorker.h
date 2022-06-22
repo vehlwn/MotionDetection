@@ -4,7 +4,7 @@
 #include "Mutex.h"
 #include "OpencvBackgroundSubtractorFactory.h"
 #include "Poco/Logger.h"
-#include "SmoothingFIlterFactory.h"
+#include "PreprocessImageFactory.h"
 #include "VideoCaptureFactory.h"
 
 #include <atomic>
@@ -18,7 +18,7 @@ public:
     MotionDataWorker(
         std::shared_ptr<OpencvBackgroundSubtractorFactory> back_subtractor_factory,
         std::shared_ptr<VideoCaptureFactory> video_capture_factory,
-        std::shared_ptr<SmoothingFIlterFactory> smoothing_filter_factory,
+        std::shared_ptr<PreprocessImageFactory> smoothing_filter_factory,
         Poco::Logger& logger);
     ~MotionDataWorker();
     std::shared_ptr<const Mutex<MotionData>> get_motion_data() const;
@@ -29,7 +29,7 @@ public:
 private:
     std::shared_ptr<OpencvBackgroundSubtractorFactory> m_back_subtractor_factory;
     std::shared_ptr<VideoCaptureFactory> m_video_capture_factory;
-    std::shared_ptr<SmoothingFIlterFactory> m_smoothing_filter_factory;
+    std::shared_ptr<PreprocessImageFactory> m_preprocess_image_factory;
     std::shared_ptr<Mutex<MotionData>> m_motion_data;
     std::atomic_bool m_stopped;
     Poco::Logger& m_logger;
