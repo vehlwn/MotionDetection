@@ -13,15 +13,11 @@ The program depends on:
 
 ### Requirements
 
-Qt_DIR and python3 must be available in system path. Bincrafters repo must be avaliable in conan remote to install ffmpeg.
+Qt_DIR, OpenCV_DIR must be available to find_package. One can download and build OpenCV from [sources](https://github.com/opencv/opencv).
 
-```bash
-```
 ### Commands
 
 ```bash
-pip install conan
-conan remote add bincrafters https://api.bintray.com/conan/bincrafters/public-conan
 mkdir build
 cd build
 cmake -GNinja .. -DCMAKE_BUILD_TYPE=Release
