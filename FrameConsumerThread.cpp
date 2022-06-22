@@ -19,10 +19,8 @@ FrameConsumerThread::FrameConsumerThread(
     , pimpl{std::make_unique<Impl>()}
 {
     pimpl->queue = std::move(queue);
-    pimpl->timerWorker = std::make_unique<FrameConsumerWorker>(
-        this,
-        1. / fps * 1000.,
-        Qt::CoarseTimer);
+    pimpl->timerWorker = std::unique_ptr<FrameConsumerWorker>(
+        new FrameConsumerWorker(this, 1. / fps * 1000., Qt::PreciseTimer));
     connect(
         pimpl->timerWorker.get(),
         &FrameConsumerWorker::newData,
@@ -56,7 +54,7 @@ FrameConsumerWorker::FrameConsumerWorker(
     int msec,
     Qt::TimerType atype)
     : base{msec, atype}
-    , pimpl{std::make_unique<Impl>()}
+    , pimpl{new Impl}
 {
     pimpl->t = t;
 }
@@ -65,11 +63,12 @@ FrameConsumerWorker::~FrameConsumerWorker() = default;
 
 void FrameConsumerWorker::onTimeout()
 {
-    qDebug() << "FrameConsumerWorker timeout id:" << QThread::currentThreadId();
-    if(auto p = pimpl->t->pimpl->queue.lock())
+    /* qDebug() << "FrameConsumerWorker timeout id:" << QThread::currentThreadId();
+     */
+    if(auto que = pimpl->t->pimpl->queue.lock())
     {
-        qDebug() << "que size =" << p->size();
-        if(auto optData = p->waitPop())
+        /* qDebug() << "que size =" << p->size(); */
+        if(auto optData = que->waitPop())
         {
             emit newData(std::move(*optData));
         }

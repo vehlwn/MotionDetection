@@ -39,6 +39,7 @@ void BufferedVideoReader::start()
             emit logMessage(QString{"Failed to open file '%1'"}.arg(i.fname()));
             return;
         }
+        emit logMessage(QString{"Opened file '%1'"}.arg(i.fname()));
     }
     else if(i.cameraChecked())
     {
@@ -48,6 +49,7 @@ void BufferedVideoReader::start()
                 QString{"Failed to open camera '%1'"}.arg(i.cameraIndex()));
             return;
         }
+        emit logMessage(QString{"Opened camera index %1"}.arg(i.cameraIndex()));
     }
     emit logMessage(QString{"CAP_PROP_FRAME_WIDTH = %1"}.arg(
         pimpl->videoCapture->get(cv::CAP_PROP_FRAME_WIDTH)));
@@ -61,7 +63,7 @@ void BufferedVideoReader::start()
         pimpl->videoCapture->get(cv::CAP_PROP_BITRATE)));
 
     const double fps = pimpl->videoCapture->get(cv::CAP_PROP_FPS);
-    pimpl->frameQue = std::make_shared<FixedThreadSafeQueue<Data>>();
+    pimpl->frameQue = std::make_shared<FixedThreadSafeQueue<Data>>(10);
     pimpl->producer = std::make_unique<FrameProducerThread>(
         this,
         pimpl->frameQue,

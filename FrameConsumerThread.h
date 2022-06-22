@@ -40,9 +40,11 @@ private:
 class FrameConsumerWorker : public TimerWorker
 {
     Q_OBJECT
-        using base = TimerWorker;
-public:
+    using base = TimerWorker;
+
+private:
     FrameConsumerWorker(FrameConsumerThread* t, int msec, Qt::TimerType atype);
+public:
     ~FrameConsumerWorker();
 
 signals:
@@ -53,5 +55,6 @@ protected slots:
 
 private:
     struct Impl;
-    std::shared_ptr<Impl> pimpl;
+    std::unique_ptr<Impl> pimpl;
+    friend class FrameConsumerThread;
 };

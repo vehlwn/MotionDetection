@@ -54,15 +54,15 @@ void FrameProducerThread::run()
             break;
 
         cv::Mat fgmask;
-        /* cv::Mat blurredFrame; */
-        /* cv::GaussianBlur(frame, blurredFrame, {21, 21}, 0); */
-        /* backSubtractor->apply(blurredFrame, fgmask); */
+        cv::Mat blurredFrame;
+        cv::GaussianBlur(frame, blurredFrame, {21, 21}, 0);
+        pimpl->backSubtractor->apply(blurredFrame, fgmask);
 
         BufferedVideoReader::Data img;
         img.fgmask = utils::cvMat2QPixmap(fgmask);
         img.frame = utils::cvMat2QPixmap(frame);
-        if(auto p = pimpl->queue.lock())
-            p->waitPush(std::move(img));
+        if(auto que = pimpl->queue.lock())
+            que->waitPush(std::move(img));
         else
             break;
     }
