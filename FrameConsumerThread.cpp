@@ -100,27 +100,27 @@ FrameConsumerWorker::~FrameConsumerWorker() = default;
 
 void FrameConsumerWorker::onTimeout()
 {
-    std::shared_ptr<FrameConsumerThread::Impl> pimpl = this->pimpl.lock();
+    auto pimpl = this->pimpl.lock();
     if(!pimpl)
         return;
-    if(auto que = pimpl->queue.lock())
-    {
-        if(auto img = que->waitPop())
-        {
-            painterUtils::drawDatetime(img->frame, 0, 0);
-            painterUtils::drawTextWithBackground(
-                img->frame,
-                QString{"moving=%1"}.arg(img->movingArea),
-                150,
-                0);
-            painterUtils::drawTextWithBackground(
-                img->frame,
-                QString{"que=%1"}.arg(que->size()),
-                250,
-                0);
-            painterUtils::drawRecordingCircle(img->frame, 10, 20);
-            pimpl->out.write(utils::QImage2cvMat(img->frame));
-            emit newData(std::move(*img));
-        }
-    }
+    auto que = pimpl->queue.lock();
+    if(!que)
+        return;
+    auto img = que->waitPop();
+    if(!img)
+        return;
+    painterUtils::drawDatetime(img->frame, 0, 0);
+    painterUtils::drawTextWithBackground(
+        img->frame,
+        QString{"moving=%1"}.arg(img->movingArea),
+        150,
+        0);
+    painterUtils::drawTextWithBackground(
+        img->frame,
+        QString{"que=%1"}.arg(que->size()),
+        250,
+        0);
+    painterUtils::drawRecordingCircle(img->frame, 10, 20);
+    pimpl->out.write(utils::QImage2cvMat(img->frame));
+    emit newData(std::move(*img));
 }
