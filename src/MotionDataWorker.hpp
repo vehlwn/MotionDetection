@@ -1,8 +1,8 @@
 #pragma once
 
+#include "BackgroundSubtractorFactory.hpp"
 #include "MotionData.hpp"
 #include "Mutex.hpp"
-#include "BackgroundSubtractorFactory.hpp"
 #include "Poco/Logger.h"
 #include "PreprocessImageFactory.hpp"
 #include "VideoCaptureFactory.hpp"
@@ -33,7 +33,7 @@ private:
     std::atomic_bool m_stopped;
     Poco::Logger& m_logger;
 
-    std::shared_ptr<IVideoCapture> m_video_capture;
+    double m_fps{};
     std::thread m_working_thread;
 };
 } // namespace vehlwn

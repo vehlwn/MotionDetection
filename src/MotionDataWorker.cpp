@@ -37,11 +37,12 @@ void MotionDataWorker::start()
 {
     m_stopped = false;
     auto back_subtractor = m_back_subtractor_factory->create();
-    m_video_capture = m_video_capture_factory->create();
+    auto video_capture = m_video_capture_factory->create();
+    m_fps = video_capture->get_fps();
     auto preprocess_filter = m_preprocess_image_factory->create();
     m_working_thread = std::thread{[=] {
         while(!m_stopped) {
-            std::optional<cv::Mat> opt_frame = m_video_capture->read();
+            std::optional<cv::Mat> opt_frame = video_capture->read();
             if(!opt_frame) {
                 poco_fatal(m_logger, "Cannot read more frames from a capture file");
                 std::abort();
@@ -64,16 +65,10 @@ void MotionDataWorker::stop()
         poco_information(m_logger, "Joined");
     }
     *m_motion_data->lock() = {{}, {}};
-    m_video_capture = nullptr;
 }
 
 double MotionDataWorker::get_fps() const
 {
-    if(!m_stopped && m_video_capture)
-        return m_video_capture->get_fps();
-    else {
-        poco_error(m_logger, "Called get_fps() on stopped video_capture object!");
-        return 0.0;
-    }
+    return m_fps;
 }
 } // namespace vehlwn
