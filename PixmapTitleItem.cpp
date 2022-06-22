@@ -60,7 +60,7 @@ void PixmapTitleItem::setTitle(QString s)
 {
     pimpl->titleText = std::move(s);
     QFontMetrics fm{pimpl->titleFont};
-    pimpl->titleTextHeight = fm.ascent() + fm.descent();
+    pimpl->titleTextHeight = fm.height();
     update();
 }
 
