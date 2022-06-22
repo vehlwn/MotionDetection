@@ -15,7 +15,7 @@ VideoCaptureFactory::VideoCaptureFactory(
 
 std::shared_ptr<IVideoCapture> VideoCaptureFactory::create()
 {
-    const auto ret = std::make_shared<OpencvVideoCapture>(m_logger);
+    auto ret = std::make_shared<OpencvVideoCapture>(m_logger);
     int api_preference{};
     switch(m_config.api_preference) {
     case ApplicationSettings::VideoCapture::ApiPreference::CAP_ANY:
@@ -43,7 +43,7 @@ std::shared_ptr<IVideoCapture> VideoCaptureFactory::create()
         const double fps = *m_config.framerate;
         ret->set_fps(fps);
     }
-    return std::move(ret);
+    return ret;
 }
 
 } // namespace vehlwn
