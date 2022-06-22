@@ -51,8 +51,7 @@ MainWindow::MainWindow(QWidget* parent)
         &pimpl->frameProducerThread,
         &FrameProducerThread::logMessage,
         this,
-        [this](QString s) { pimpl->ui.plainTextEdit->appendPlainText(std::move(s)); });
-    pimpl->frameProducerThread.start();
+        &MainWindow::logMessage);
 
     connectUiSlots();
     pimpl->ui.radioButtonCamera->setChecked(true);
@@ -62,8 +61,11 @@ MainWindow::MainWindow(QWidget* parent)
 
 MainWindow::~MainWindow()
 {
-    emit pimpl->frameProducerThread.stopStreaming();
-    pimpl->frameProducerThread.wait();
+}
+
+void MainWindow::logMessage(QString s)
+{
+    pimpl->ui.plainTextEdit->appendPlainText(std::move(s));
 }
 
 void MainWindow::connectUiSlots()
@@ -85,5 +87,18 @@ void MainWindow::connectUiSlots()
         if(fileName.isEmpty())
             return;
         pimpl->ui.lineEditFname->setText(fileName);
+    });
+    connect(pimpl->ui.pushButtonStart, &QAbstractButton::clicked, this, [this]() {
+        VideoCaptureOptions op;
+        if(pimpl->ui.radioButtonCamera->isChecked())
+            op.fname = int{pimpl->ui.spinBoxCameraIndex->value()};
+        else if(pimpl->ui.radioButtonFile->isChecked())
+            op.fname = QString{pimpl->ui.lineEditFname->text()};
+        else
+        {
+            logMessage("Unknown video source");
+            return;
+        }
+        pimpl->frameProducerThread.startStreaming(op);
     });
 }

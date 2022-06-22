@@ -1,5 +1,7 @@
 #pragma once
 
+#include "VideoCaptureOptions.h"
+
 #include <QObject>
 #include <QPixmap>
 #include <QThread>
@@ -23,9 +25,12 @@ signals:
     void logMessage(QString s);
 
 public slots:
+    void startStreaming(VideoCaptureOptions videoOptions);
     void stopStreaming();
 
 private:
     struct Impl;
     std::unique_ptr<Impl> pimpl;
+
+    using base::start;
 };
