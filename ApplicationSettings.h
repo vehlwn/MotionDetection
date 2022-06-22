@@ -2,6 +2,7 @@
 
 #include <QString>
 #include <memory>
+#include <vector>
 
 class ApplicationSettings
 {
@@ -34,6 +35,12 @@ public:
     void gaussianBlurChecked(bool b);
     int gaussianBlurValue() const;
     void gaussianBlurValue(int i);
+    double fileRotationPeriodValue() const;
+    void fileRotationPeriodValue(double d);
+    QString fileRotationPeriodUnit() const;
+    void fileRotationPeriodUnit(QString s) const;
+    double fileRotationMsec() const;
+    std::vector<QString> validFileRotationUnits() const;
 
 private:
     ApplicationSettings();

@@ -30,6 +30,8 @@ constexpr auto OUTPUT_FOLDER_ENTRY = "output_folder";
 constexpr auto OUTPUT_EXTENSION_ENTRY = "output_extension";
 constexpr auto GAUSSIAN_BLUR_CHECKED_ENTRY = "gaussian_blur_checked";
 constexpr auto GAUSSIAN_BLUR_VALUE_ENTRY = "gaussian_blur_value";
+constexpr auto FILE_ROTATION_PERIOD_VALUE_ENTRY = "file_rotation_period_value";
+constexpr auto FILE_ROTATION_PERIOD_UNIT_ENTRY = "file_rotation_period_unit";
 
 const auto DEFAULT_SETTINGS = [] {
     std::map<QString, QVariant> result;
@@ -43,6 +45,8 @@ const auto DEFAULT_SETTINGS = [] {
     result[OUTPUT_EXTENSION_ENTRY] = ".mkv";
     result[GAUSSIAN_BLUR_CHECKED_ENTRY] = true;
     result[GAUSSIAN_BLUR_VALUE_ENTRY] = 5;
+    result[FILE_ROTATION_PERIOD_VALUE_ENTRY] = 1.0;
+    result[FILE_ROTATION_PERIOD_UNIT_ENTRY] = "h";
     return result;
 }();
 
@@ -186,4 +190,48 @@ void ApplicationSettings::gaussianBlurValue(int i)
 {
     QMutexLocker lock{&pimpl->settingsMutex};
     pimpl->settings.setValue(GAUSSIAN_BLUR_VALUE_ENTRY, i);
+}
+
+double ApplicationSettings::fileRotationPeriodValue() const
+{
+    QMutexLocker lock{&pimpl->settingsMutex};
+    return getSettingsValue(pimpl->settings, FILE_ROTATION_PERIOD_VALUE_ENTRY)
+        .toDouble();
+}
+
+void ApplicationSettings::fileRotationPeriodValue(double d)
+{
+    QMutexLocker lock{&pimpl->settingsMutex};
+    pimpl->settings.setValue(FILE_ROTATION_PERIOD_VALUE_ENTRY, d);
+}
+
+QString ApplicationSettings::fileRotationPeriodUnit() const
+{
+    QMutexLocker lock{&pimpl->settingsMutex};
+    return getSettingsValue(pimpl->settings, FILE_ROTATION_PERIOD_UNIT_ENTRY)
+        .toString();
+}
+
+void ApplicationSettings::fileRotationPeriodUnit(QString s) const
+{
+    QMutexLocker lock{&pimpl->settingsMutex};
+    pimpl->settings.setValue(FILE_ROTATION_PERIOD_UNIT_ENTRY, s);
+}
+
+double ApplicationSettings::fileRotationMsec() const
+{
+    const double rotationValue = fileRotationPeriodValue();
+    const QString rotationUnit = fileRotationPeriodUnit();
+    if(rotationUnit == "s")
+        return rotationValue * 1000.;
+    else if(rotationUnit == "min")
+        return rotationValue * 1000. * 60.;
+    else if(rotationUnit == "h")
+        return rotationValue * 1000. * 60. * 60.;
+    return 1000. * 60. * 60.;
+}
+
+std::vector<QString> ApplicationSettings::validFileRotationUnits() const
+{
+    return {"s", "min", "h"};
 }
