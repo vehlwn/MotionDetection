@@ -50,7 +50,7 @@ public:
         value_type ret = std::move(m_q.front());
         m_q.pop_front();
         m_condvar.wakeOne();
-        return ret;
+        return std::make_optional(std::move(ret));
     }
 
     void stop()

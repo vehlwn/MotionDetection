@@ -1,5 +1,6 @@
 #include "FrameConsumerThread.h"
 
+#include "PainterUtils.h"
 #include "utils.h"
 
 #include <QDateTime>
@@ -109,12 +110,17 @@ void FrameConsumerWorker::onTimeout()
     if(auto que = pimpl->t->pimpl->queue.lock())
     {
         /* qDebug() << "que size =" << que->size(); */
-        if(auto optData = que->waitPop())
+        if(auto img = que->waitPop())
         {
-            emit newData(*optData);
-            if(!optData->frameToWrite.isNull())
-                pimpl->t->pimpl->out.write(
-                    utils::QPixmap2cvMat(optData->frameToWrite));
+            painterUtils::drawDatetime(img->frame, 0, 0);
+            painterUtils::drawTextWithBackground(
+                img->frame,
+                QString::number(img->movingArea),
+                150,
+                0);
+            painterUtils::drawRecordingCircle(img->frame, 10, 20);
+            pimpl->t->pimpl->out.write(utils::QImage2cvMat(img->frame));
+            emit newData(std::move(*img));
         }
     }
 }

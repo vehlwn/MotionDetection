@@ -3,7 +3,7 @@
 #include "FixedThreadSafeQueue.h"
 
 #include <QObject>
-#include <QPixmap>
+#include <QImage>
 #include <memory>
 
 class BufferedVideoReader : public QObject
@@ -12,9 +12,7 @@ class BufferedVideoReader : public QObject
 public:
     struct Data
     {
-        QPixmap frameToView;
-        QPixmap fgmask;
-        QPixmap frameToWrite;
+        QImage frame, fgmask;
         int movingArea{};
     };
     using DataQue = FixedThreadSafeQueue<Data>;

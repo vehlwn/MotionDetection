@@ -1,9 +1,9 @@
 #pragma once
 
-#include <QPixmap>
+#include <QPaintDevice>
 
 namespace painterUtils {
-void drawDatetime(QPixmap& img, int x, int y);
-void drawTextWithBackground(QPixmap& img, const QString& text, int x, int y);
-void drawRecordingCircle(QPixmap& img, int radius, int padding);
+void drawDatetime(QPaintDevice& img, int x, int y);
+void drawTextWithBackground(QPaintDevice& img, const QString& text, int x, int y);
+void drawRecordingCircle(QPaintDevice& img, int radius, int padding);
 } // namespace painterUtils

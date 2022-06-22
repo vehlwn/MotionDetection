@@ -1,11 +1,12 @@
 #include "utils.h"
 
 #include <QDebug>
-#include <QImage>
 
 namespace utils {
-QPixmap cvMat2QPixmap(const cv::Mat& mat)
+QImage cvMat2QImage(const cv::Mat& mat)
 {
+    if(mat.empty())
+        return {};
     QImage::Format format;
     switch(mat.type())
     {
@@ -19,24 +20,37 @@ QPixmap cvMat2QPixmap(const cv::Mat& mat)
         qDebug() << "Unknown mat type";
         return {};
     }
-    return QPixmap::fromImage(QImage{
+    QImage ret{
         reinterpret_cast<const uchar*>(mat.data),
         mat.cols,
         mat.rows,
         static_cast<int>(mat.step),
-        format});
+        format};
+    return ret.copy();
 }
 
-cv::Mat QPixmap2cvMat(const QPixmap& src)
+cv::Mat QImage2cvMat(const QImage& img)
 {
-    auto img = src.toImage();
-    img.convertTo(QImage::Format_BGR888);
-    int type = CV_8UC3;
+    if(img.isNull())
+        return {};
+    int type{};
+    switch(const auto format = img.format())
+    {
+    case QImage::Format_Grayscale8:
+        type = CV_8UC1;
+        break;
+    case QImage::Format_BGR888:
+        type = CV_8UC3;
+        break;
+    default:
+        qDebug() << "Unknown img format:" << format;
+        return {};
+    }
     cv::Mat ret{
         img.height(),
         img.width(),
         type,
-        reinterpret_cast<void*>(img.bits()),
+        const_cast<void*>(static_cast<const void*>(img.constBits())),
         static_cast<std::size_t>(img.bytesPerLine())};
     return ret.clone();
 }

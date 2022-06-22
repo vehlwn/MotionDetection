@@ -1,7 +1,7 @@
-#include <QPixmap>
+#include <QImage>
 #include <opencv2/core/mat.hpp>
 
 namespace utils {
-QPixmap cvMat2QPixmap(const cv::Mat& mat);
-cv::Mat QPixmap2cvMat(const QPixmap& src);
+QImage cvMat2QImage(const cv::Mat& mat);
+cv::Mat QImage2cvMat(const QImage& src);
 } // namespace utils
