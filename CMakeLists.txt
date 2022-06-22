@@ -10,20 +10,22 @@ find_package(Poco REQUIRED COMPONENTS Net Foundation Util)
 find_package(fmt REQUIRED)
 
 add_executable(
-  ${PROJECT_NAME}
-  AppRequestHandlerFactory.cpp
-  AppRequestHandlerFactory.h
-  IVideoCapture.h
-  MotionData.h
-  MotionDataWorker.cpp
-  MotionDataWorker.h
-  Mutex.h
-  OpencvBackgroundSubtractorFactory.cpp
-  OpencvBackgroundSubtractorFactory.h
-  OpencvVideoCapture.cpp
-  OpencvVideoCapture.h
-  VideoCaptureFactory.cpp
-  VideoCaptureFactory.h
-  main.cpp
+    ${PROJECT_NAME}
+    AppRequestHandlerFactory.cpp
+    AppRequestHandlerFactory.h
+    IVideoCapture.h
+    main.cpp
+    MotionData.h
+    MotionDataWorker.cpp
+    MotionDataWorker.h
+    Mutex.h
+    OpencvBackgroundSubtractorFactory.cpp
+    OpencvBackgroundSubtractorFactory.h
+    OpencvVideoCapture.cpp
+    OpencvVideoCapture.h
+    VideoCaptureFactory.cpp
+    VideoCaptureFactory.h
 )
-target_link_libraries(${PROJECT_NAME} PUBLIC ${OpenCV_LIBRARIES} ${Poco_LIBRARIES} fmt::fmt)
+target_link_libraries(
+    ${PROJECT_NAME} PUBLIC ${OpenCV_LIBRARIES} ${Poco_LIBRARIES} fmt::fmt
+)
