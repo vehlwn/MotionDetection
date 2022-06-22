@@ -2,7 +2,9 @@
 
 #include "utils.h"
 
+#include <QDebug>
 #include <QImage>
+#include <atomic>
 #include <chrono>
 #include <opencv2/core.hpp>
 #include <opencv2/imgcodecs.hpp>
@@ -12,7 +14,7 @@
 struct FrameProducerThread::Impl
 {
     cv::VideoCapture cap;
-    bool stopped = false;
+    std::atomic_bool stopped = false;
 };
 
 FrameProducerThread::FrameProducerThread(QObject* parent)

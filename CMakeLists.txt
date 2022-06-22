@@ -36,7 +36,7 @@ elseif(APPLE)
 endif()
 
 add_executable(
-  ${PROJECT_NAME} ${GUI_TYPE}
+  ${PROJECT_NAME}# ${GUI_TYPE}
   main.cpp
   MainWindow.h
   MainWindow.cpp
