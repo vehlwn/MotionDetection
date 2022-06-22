@@ -54,5 +54,6 @@ MainWindow::MainWindow(QWidget* parent)
 
 MainWindow::~MainWindow()
 {
+    emit pimpl->frameProducerThread->stopStreaming();
     pimpl->frameProducerThread->wait();
 }

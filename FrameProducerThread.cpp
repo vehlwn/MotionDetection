@@ -1,7 +1,9 @@
+#include "FrameProducerThread.h"
+
 #include "utils.h"
 
-#include <FrameProducerThread.h>
 #include <QImage>
+#include <chrono>
 #include <opencv2/core.hpp>
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
@@ -10,6 +12,7 @@
 struct FrameProducerThread::Impl
 {
     cv::VideoCapture cap;
+    bool stopped = false;
 };
 
 FrameProducerThread::FrameProducerThread(QObject* parent)
@@ -21,7 +24,7 @@ FrameProducerThread::FrameProducerThread(QObject* parent)
 void FrameProducerThread::run()
 {
     emit logMessage(QString::fromStdString(cv::getBuildInformation()));
-    const std::string fname = R"(K:\Road traffic video for object recognition.mp4)";
+    const std::string fname = R"(K:\60-BPM-Metronome.mp4)";
     if(!pimpl->cap.open(fname))
     {
         emit logMessage(
@@ -33,8 +36,15 @@ void FrameProducerThread::run()
     emit logMessage(QString{"CAP_PROP_FRAME_HEIGHT = %1"}.arg(
         pimpl->cap.get(cv::CAP_PROP_FRAME_HEIGHT)));
     emit logMessage(QString{"CAP_PROP_FPS = %1"}.arg(pimpl->cap.get(cv::CAP_PROP_FPS)));
+    emit logMessage(QString{"CAP_PROP_FRAME_COUNT = %1"}.arg(
+        pimpl->cap.get(cv::CAP_PROP_FRAME_COUNT)));
+    emit logMessage(
+        QString{"CAP_PROP_BITRATE = %1"}.arg(pimpl->cap.get(cv::CAP_PROP_BITRATE)));
 
-    while(true)
+    const auto minFamePeriod = std::chrono::microseconds{
+        static_cast<int>(1.0 / pimpl->cap.get(cv::CAP_PROP_FPS) * 1.0e6)};
+    emit logMessage(QString{"minFamePeriod = %1"}.arg(minFamePeriod.count()));
+    while(!pimpl->stopped)
     {
         cv::Mat frame;
         const bool ret = pimpl->cap.read(frame);
@@ -42,6 +52,12 @@ void FrameProducerThread::run()
             break;
 
         emit newFrame(utils::cvMat2QPixmap(frame));
-        break;
+
+        QThread::usleep(minFamePeriod.count());
     }
+}
+
+void FrameProducerThread::stopStreaming()
+{
+    pimpl->stopped = true;
 }
