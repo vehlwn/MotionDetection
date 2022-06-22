@@ -1,8 +1,8 @@
 #pragma once
 
 #include "ApplicationSettings.hpp"
-#include "IImageFilter.hpp"
 #include "Poco/Logger.h"
+#include "filters/IImageFilter.hpp"
 
 #include <memory>
 

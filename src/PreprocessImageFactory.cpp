@@ -1,11 +1,11 @@
 #include "PreprocessImageFactory.hpp"
 
-#include "GaussianBlurFilter.hpp"
-#include "IdentityFilter.hpp"
-#include "ImageFilterChain.hpp"
-#include "MedianFilter.hpp"
-#include "NormalizedBoxFilter.hpp"
-#include "ResizeFilter.hpp"
+#include "filters/GaussianBlurFilter.hpp"
+#include "filters/IdentityFilter.hpp"
+#include "filters/ImageFilterChain.hpp"
+#include "filters/MedianFilter.hpp"
+#include "filters/NormalizedBoxFilter.hpp"
+#include "filters/ResizeFilter.hpp"
 #include "fmt/core.h"
 
 #include <cstdlib>

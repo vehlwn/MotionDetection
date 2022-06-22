@@ -19,8 +19,19 @@ add_executable(
     src/ApplicationSettings.hpp
     src/AppRequestHandlerFactory.cpp
     src/AppRequestHandlerFactory.hpp
-    src/GaussianBlurFilter.cpp
-    src/GaussianBlurFilter.hpp
+    src/filters/GaussianBlurFilter.cpp
+    src/filters/GaussianBlurFilter.hpp
+    src/filters/IdentityFilter.cpp
+    src/filters/IdentityFilter.hpp
+    src/filters/IImageFilter.hpp
+    src/filters/ImageFilterChain.cpp
+    src/filters/ImageFilterChain.hpp
+    src/filters/MedianFilter.cpp
+    src/filters/MedianFilter.hpp
+    src/filters/NormalizedBoxFilter.cpp
+    src/filters/NormalizedBoxFilter.hpp
+    src/filters/ResizeFilter.cpp
+    src/filters/ResizeFilter.hpp
     src/handlers/common/ContentLengthHandler.cpp
     src/handlers/common/ContentLengthHandler.hpp
     src/handlers/common/ImencodeHandler.cpp
@@ -39,29 +50,18 @@ add_executable(
     src/handlers/MotionMaskHandler.hpp
     src/handlers/NotFoundHandler.cpp
     src/handlers/NotFoundHandler.hpp
-    src/IdentityFilter.cpp
-    src/IdentityFilter.hpp
-    src/IImageFilter.hpp
-    src/ImageFilterChain.cpp
-    src/ImageFilterChain.hpp
     src/IVideoCapture.hpp
     src/main.cpp
-    src/MedianFilter.cpp
-    src/MedianFilter.hpp
     src/MotionData.hpp
     src/MotionDataWorker.cpp
     src/MotionDataWorker.hpp
     src/Mutex.hpp
-    src/NormalizedBoxFilter.cpp
-    src/NormalizedBoxFilter.hpp
     src/OpencvBackgroundSubtractorFactory.cpp
     src/OpencvBackgroundSubtractorFactory.hpp
     src/OpencvVideoCapture.cpp
     src/OpencvVideoCapture.hpp
     src/PreprocessImageFactory.cpp
     src/PreprocessImageFactory.hpp
-    src/ResizeFilter.cpp
-    src/ResizeFilter.hpp
     src/VideoCaptureFactory.cpp
     src/VideoCaptureFactory.hpp
 )
