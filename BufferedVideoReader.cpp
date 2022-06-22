@@ -57,10 +57,6 @@ void BufferedVideoReader::start()
         }
         emit logMessage(QString{"Opened camera index %1"}.arg(i.cameraIndex()));
     }
-    emit logMessage(QString{"CAP_PROP_FRAME_WIDTH = %1"}.arg(
-        pimpl->videoCapture->get(cv::CAP_PROP_FRAME_WIDTH)));
-    emit logMessage(QString{"CAP_PROP_FRAME_HEIGHT = %1"}.arg(
-        pimpl->videoCapture->get(cv::CAP_PROP_FRAME_HEIGHT)));
     emit logMessage(QString{"CAP_PROP_FPS = %1"}.arg(
         pimpl->videoCapture->get(cv::CAP_PROP_FPS)));
     emit logMessage(QString{"CAP_PROP_FRAME_COUNT = %1"}.arg(
