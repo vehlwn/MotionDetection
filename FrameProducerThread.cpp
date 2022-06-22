@@ -21,7 +21,7 @@ FrameProducerThread::FrameProducerThread(QObject* parent)
 void FrameProducerThread::run()
 {
     emit logMessage(QString::fromStdString(cv::getBuildInformation()));
-    const std::string fname = R"(K:\Road traffic video for object recognition.avi)";
+    const std::string fname = R"(K:\Road traffic video for object recognition.mp4)";
     if(!pimpl->cap.open(fname))
     {
         emit logMessage(
