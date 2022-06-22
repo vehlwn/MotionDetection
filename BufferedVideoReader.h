@@ -2,8 +2,8 @@
 
 #include "FixedThreadSafeQueue.h"
 
-#include <QObject>
 #include <QImage>
+#include <QObject>
 #include <memory>
 
 class BufferedVideoReader : public QObject
@@ -29,6 +29,9 @@ public slots:
     void stop();
     void wait();
     void waitStop();
+
+private slots:
+    void onError(QString s);
 
 private:
     struct Impl;

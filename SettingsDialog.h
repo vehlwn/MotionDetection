@@ -16,7 +16,8 @@ public:
     void accept() override;
 
 private slots:
-    bool validateGaussianBlurValue(int value) ;
+    bool validateGaussianBlurValue(int value);
+    bool validateOutputFourCC(const QString& text);
 
 private:
     struct Impl;

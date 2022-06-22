@@ -1,6 +1,22 @@
 #include "utils.h"
 
 #include <QDebug>
+#include <QTextStream>
+#include <array>
+#include <cstdint>
+#include <numeric>
+
+namespace {
+auto fourcc2array(int value)
+{
+    std::array<std::uint8_t, 4> ret{};
+    ret[0] = (std::uint8_t)(value & 0XFF);
+    ret[1] = (std::uint8_t)((value & 0XFF00) >> 8);
+    ret[2] = (std::uint8_t)((value & 0XFF0000) >> 16);
+    ret[3] = (std::uint8_t)((value & 0XFF000000) >> 24);
+    return ret;
+}
+} // namespace
 
 namespace utils {
 QImage cvMat2QImage(const cv::Mat& mat)
@@ -53,5 +69,23 @@ cv::Mat QImage2cvMat(const QImage& img)
         const_cast<void*>(static_cast<const void*>(img.constBits())),
         static_cast<std::size_t>(img.bytesPerLine())};
     return ret.clone();
+}
+
+QString fourcc2string(int value)
+{
+    const auto arr = fourcc2array(value);
+    return std::accumulate(arr.begin(), arr.end(), QString{});
+}
+
+QString fourcc2hexString(int value)
+{
+    QString ret;
+    QTextStream in{&ret};
+    in.setIntegerBase(16);
+    in.setPadChar('0');
+    in.setFieldWidth(6);
+    in.setNumberFlags(QTextStream::ShowBase);
+    in << value;
+    return ret;
 }
 } // namespace utils

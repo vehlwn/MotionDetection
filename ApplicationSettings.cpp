@@ -34,6 +34,9 @@ constexpr auto FILE_ROTATION_PERIOD_VALUE_ENTRY = "file_rotation_period_value";
 constexpr auto FILE_ROTATION_PERIOD_UNIT_ENTRY = "file_rotation_period_unit";
 constexpr auto MIN_MOVING_AREA_ENTRY = "min_moving_area";
 constexpr auto DELTA_WITHOUT_MOTION_ENTRY = "delta_without_motion";
+constexpr auto OUTPUT_FOURCC_ENTRY = "output_fourcc";
+constexpr auto RECOMMENDED_INPUT_WIDTH_ENTRY = "recommended_input_width";
+constexpr auto RECOMMENDED_INPUT_HEIGHT_ENTRY = "recommended_input_height";
 
 const auto DEFAULT_SETTINGS = [] {
     std::map<QString, QVariant> result;
@@ -51,6 +54,9 @@ const auto DEFAULT_SETTINGS = [] {
     result[FILE_ROTATION_PERIOD_UNIT_ENTRY] = "h";
     result[MIN_MOVING_AREA_ENTRY] = 500;
     result[DELTA_WITHOUT_MOTION_ENTRY] = 5.0;
+    result[OUTPUT_FOURCC_ENTRY] = "DIVX";
+    result[RECOMMENDED_INPUT_WIDTH_ENTRY] = 640;
+    result[RECOMMENDED_INPUT_HEIGHT_ENTRY] = 360;
     return result;
 }();
 
@@ -172,6 +178,11 @@ void ApplicationSettings::outputExtension(QString s)
     pimpl->settings.setValue(OUTPUT_EXTENSION_ENTRY, s);
 }
 
+std::vector<QString> ApplicationSettings::validExtensions() const
+{
+    return {".mkv", ".avi", ".mp4"};
+}
+
 bool ApplicationSettings::gaussianBlurChecked() const
 {
     QMutexLocker lock{&pimpl->settingsMutex};
@@ -262,4 +273,45 @@ void ApplicationSettings::deltaWithoutMotion(double d)
 {
     QMutexLocker lock{&pimpl->settingsMutex};
     pimpl->settings.setValue(DELTA_WITHOUT_MOTION_ENTRY, d);
+}
+
+QString ApplicationSettings::outputFourCC() const
+{
+    QMutexLocker lock{&pimpl->settingsMutex};
+    return getSettingsValue(pimpl->settings, OUTPUT_FOURCC_ENTRY).toString();
+}
+
+void ApplicationSettings::outputFourCC(QString s)
+{
+    QMutexLocker lock{&pimpl->settingsMutex};
+    pimpl->settings.setValue(OUTPUT_FOURCC_ENTRY, s);
+}
+
+std::vector<QString> ApplicationSettings::exampleOutputFourCC() const
+{
+    return {"DIVX", "XVID", "MJPG", "X264", "WMV1", "WMV2"};
+}
+
+int ApplicationSettings::recommendedInputWidth() const
+{
+    QMutexLocker lock{&pimpl->settingsMutex};
+    return getSettingsValue(pimpl->settings, RECOMMENDED_INPUT_WIDTH_ENTRY).toInt();
+}
+
+void ApplicationSettings::recommendedInputWidth(int i)
+{
+    QMutexLocker lock{&pimpl->settingsMutex};
+    pimpl->settings.setValue(RECOMMENDED_INPUT_WIDTH_ENTRY, i);
+}
+
+int ApplicationSettings::recommendedInputHeight() const
+{
+    QMutexLocker lock{&pimpl->settingsMutex};
+    return getSettingsValue(pimpl->settings, RECOMMENDED_INPUT_HEIGHT_ENTRY).toInt();
+}
+
+void ApplicationSettings::recommendedInputHeight(int i)
+{
+    QMutexLocker lock{&pimpl->settingsMutex};
+    pimpl->settings.setValue(RECOMMENDED_INPUT_HEIGHT_ENTRY, i);
 }

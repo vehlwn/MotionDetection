@@ -24,7 +24,6 @@ protected:
 
 signals:
     void logMessage(QString s);
-    void fps(double d);
 
 public slots:
     void stop();

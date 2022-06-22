@@ -187,7 +187,12 @@ void FileRotationWorker::onTimeout()
            pimpl->videoOptions.fps,
            {pimpl->videoOptions.width, pimpl->videoOptions.height}))
     {
-        emit error(QString{"Failed to open output video file '%1'"}.arg(outFname));
+        const int fourcc = pimpl->videoOptions.fourcc;
+        emit error(QString{
+            "Failed to open output video file '%1'. Unsupported FOURCC %2/'%3'?"}
+                       .arg(outFname)
+                       .arg(utils::fourcc2hexString(fourcc))
+                       .arg(utils::fourcc2string(fourcc)));
         return;
     }
     emit logMessage(QString{"Opened file '%1'"}.arg(outFname));

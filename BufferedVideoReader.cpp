@@ -60,8 +60,6 @@ void BufferedVideoReader::start()
         pimpl->videoCapture->get(cv::CAP_PROP_FPS)));
     emit logMessage(QString{"CAP_PROP_FRAME_COUNT = %1"}.arg(
         pimpl->videoCapture->get(cv::CAP_PROP_FRAME_COUNT)));
-    emit logMessage(QString{"CAP_PROP_BITRATE = %1"}.arg(
-        pimpl->videoCapture->get(cv::CAP_PROP_BITRATE)));
 
     const double fps = pimpl->videoCapture->get(cv::CAP_PROP_FPS);
     pimpl->frameQue = std::make_shared<FixedThreadSafeQueue<Data>>(
@@ -72,13 +70,36 @@ void BufferedVideoReader::start()
     VideoWriterOptions videoOptions;
     videoOptions.outputDir.setPath(i.outputFolder());
     videoOptions.outputExtension = i.outputExtension();
-    videoOptions.fourcc =
-        static_cast<int>(pimpl->videoCapture->get(cv::CAP_PROP_FOURCC));
+    const std::string fourccStr = i.outputFourCC().toStdString();
+    if(fourccStr.size() != 4)
+    {
+        emit logMessage(QString{"FOURCC must contain 4 characters. Given: '%1'"}.arg(
+            i.outputFourCC()));
+        return;
+    }
+    videoOptions.fourcc = cv::VideoWriter::fourcc(
+        fourccStr[0],
+        fourccStr[1],
+        fourccStr[2],
+        fourccStr[3]);
     videoOptions.fps = fps;
-    videoOptions.width =
+    int inputWidth = i.recommendedInputWidth();
+    int inputHeight = i.recommendedInputHeight();
+    if(!pimpl->videoCapture->set(cv::CAP_PROP_FRAME_WIDTH, inputWidth))
+        emit logMessage(
+            "Warning: capture device does not support custom frame width");
+    if(!pimpl->videoCapture->set(cv::CAP_PROP_FRAME_HEIGHT, inputHeight))
+        emit logMessage(
+            "Warning: capture device does not support custom frame height");
+    inputWidth =
         static_cast<int>(pimpl->videoCapture->get(cv::CAP_PROP_FRAME_WIDTH));
-    videoOptions.height =
+    inputHeight =
         static_cast<int>(pimpl->videoCapture->get(cv::CAP_PROP_FRAME_HEIGHT));
+    emit logMessage(QString{"Selected input width = %1, height = %2"}
+                        .arg(inputWidth)
+                        .arg(inputHeight));
+    videoOptions.width = inputWidth;
+    videoOptions.height = inputHeight;
     pimpl->consumer = std::make_unique<FrameConsumerThread>();
     connect(
         pimpl->consumer.get(),
@@ -89,10 +110,7 @@ void BufferedVideoReader::start()
         pimpl->consumer.get(),
         &FrameConsumerThread::error,
         this,
-        [this](QString s) {
-            waitStop();
-            emit logMessage(std::move(s));
-        });
+        &BufferedVideoReader::onError);
     connect(
         pimpl->consumer.get(),
         &FrameConsumerThread::logMessage,
@@ -131,4 +149,10 @@ void BufferedVideoReader::waitStop()
 {
     stop();
     wait();
+}
+
+void BufferedVideoReader::onError(QString s)
+{
+    waitStop();
+    emit logMessage("Error: " + s);
 }
