@@ -1,29 +1,35 @@
+#include "utils.h"
+
 #include <FrameProducerThread.h>
 #include <QImage>
+#include <opencv2/core.hpp>
 #include <opencv2/imgcodecs.hpp>
+#include <opencv2/imgproc.hpp>
+#include <opencv2/videoio.hpp>
+
+struct FrameProducerThread::Impl
+{
+    cv::VideoCapture cap;
+};
 
 FrameProducerThread::FrameProducerThread(QObject* parent)
     : base{parent}
+    , pimpl{std::make_unique<Impl>()}
 {
 }
 
 void FrameProducerThread::run()
 {
-    for(const auto& fname : std::vector<QString>{"a.jpg", "b.jpg"})
+    const std::string fname =
+        R"(K:\Road traffic video for object recognition.avi)";
+    if(!pimpl->cap.open(fname))
     {
-        emit logMessage("fname = " + fname);
-        const cv::Mat mat = cv::imread(fname.toStdString());
-        if(mat.data == nullptr)
-        {
-            emit logMessage("continue");
-            continue;
-        }
-        /* emit newFrame(QPixmap{fname}); */
-        emit newFrame(QPixmap::fromImage(QImage{
-            reinterpret_cast<const uchar*>(mat.data),
-            mat.cols,
-            mat.rows,
-            QImage::Format_RGB888}));
-        QThread::sleep(2);
+        emit logMessage(
+            QString{"Failed to open '%1'"}.arg(QString::fromStdString(fname)));
+        return;
     }
+    emit logMessage(QString{"CAP_PROP_FRAME_WIDTH = %1"}.arg(
+        pimpl->cap.get(cv::CAP_PROP_FRAME_WIDTH)));
+
+    /* emit newFrame(utils::cvMat2QPixmap(mat)); */
 }

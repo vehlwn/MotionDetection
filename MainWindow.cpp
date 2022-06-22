@@ -18,7 +18,6 @@ MainWindow::MainWindow(QWidget* parent)
         &FrameProducerThread::newFrame,
         this,
         [this](QPixmap img) {
-            ui->plainTextEdit->appendPlainText("a");
             m_scenePixmapItem->setPixmap(std::move(img));
         });
     connect(

@@ -43,6 +43,8 @@ add_executable(
   MainWindow.ui
   FrameProducerThread.h
   FrameProducerThread.cpp
+  utils.h
+  utils.cpp
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE Qt5::Widgets ${CONAN_LIBS})

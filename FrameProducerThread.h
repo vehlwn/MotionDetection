@@ -5,6 +5,7 @@
 #include <QObject>
 #include <QPixmap>
 #include <QThread>
+#include <memory>
 
 class FrameProducerThread : public QThread
 {
@@ -20,4 +21,8 @@ protected:
 signals:
     void newFrame(QPixmap img);
     void logMessage(QString s);
+
+private:
+    struct Impl;
+    std::unique_ptr<Impl> pimpl;
 };
