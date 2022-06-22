@@ -1,11 +1,7 @@
 #pragma once
 
-#include <opencv2/core/mat.hpp>
+#include "filters/IImageFilter.hpp"
 
 namespace vehlwn {
-class IBackgroundSubtractor {
-public:
-    virtual cv::Mat apply(const cv::Mat& image) = 0;
-    virtual ~IBackgroundSubtractor() = default;
-};
+class IBackgroundSubtractor : public IImageFilter {};
 } // namespace vehlwn
