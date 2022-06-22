@@ -20,9 +20,7 @@ MotionDataWorker::MotionDataWorker(
 
 MotionDataWorker::~MotionDataWorker()
 {
-    m_stopped = true;
-    if(m_working_thread.joinable())
-        m_working_thread.join();
+    stop();
 }
 
 const std::shared_ptr<const Mutex<MotionData>>
@@ -35,13 +33,11 @@ void MotionDataWorker::start()
 {
     std::shared_ptr<cv::BackgroundSubtractor> back_subtractor =
         m_back_subtractor_factory->create();
-    std::shared_ptr<IVideoCapture> video_capture = m_video_capture_factory->create();
-    m_working_thread = std::thread{[this,
-                                    back_subtractor = std::move(back_subtractor),
-                                    video_capture = std::move(video_capture)] {
+    m_video_capture = m_video_capture_factory->create();
+    m_working_thread = std::thread{[=] {
         while(!m_stopped)
         {
-            std::optional<cv::Mat> opt_frame = video_capture->read();
+            std::optional<cv::Mat> opt_frame = m_video_capture->read();
             if(!opt_frame)
             {
                 poco_fatal(m_logger, "Cannot read more frames from a capture file");
@@ -50,11 +46,24 @@ void MotionDataWorker::start()
             cv::Mat frame = std::move(*opt_frame);
             cv::Mat fgmask;
             back_subtractor->apply(frame, fgmask);
-            {
-                *m_motion_data->lock() = {std::move(frame), std::move(fgmask)};
-            }
+            *m_motion_data->lock() = {std::move(frame), std::move(fgmask)};
         }
     }};
 }
 
+void MotionDataWorker::stop()
+{
+    poco_information(m_logger, "Stopping...");
+    m_stopped = true;
+    if(m_working_thread.joinable())
+        m_working_thread.join();
+    poco_information(m_logger, "Joined working thread");
+    *m_motion_data->lock() = {{}, {}};
+    m_video_capture = nullptr;
+}
+
+double MotionDataWorker::get_fps() const
+{
+    return m_video_capture->get_fps();
+}
 } // namespace vehlwn

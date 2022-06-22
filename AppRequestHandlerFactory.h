@@ -16,13 +16,13 @@ class AppRequestHandlerFactory : public Poco::Net::HTTPRequestHandlerFactory
 {
 public:
     AppRequestHandlerFactory(
-        std::shared_ptr<const vehlwn::MotionDataWorker> motion_data_worker,
+        std::shared_ptr<vehlwn::MotionDataWorker> motion_data_worker,
         Poco::Logger& logger);
     virtual Poco::Net::HTTPRequestHandler*
         createRequestHandler(const Poco::Net::HTTPServerRequest& request) override;
 
 private:
-    std::shared_ptr<const vehlwn::MotionDataWorker> m_motion_data_worker;
+    std::shared_ptr<vehlwn::MotionDataWorker> m_motion_data_worker;
     Poco::Logger& m_logger;
     std::map<
         std::tuple<std::string, std::string>,

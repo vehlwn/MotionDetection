@@ -55,11 +55,21 @@ void OpencvVideoCapture::set_frame_height(int h)
     }
 }
 
-void OpencvVideoCapture::set_fps(int n)
+void OpencvVideoCapture::set_fps(double n)
 {
     if(!m_cap.set(cv::CAP_PROP_FPS, n))
     {
         poco_warning(m_logger, "Input file does not support custom FPS");
     }
+}
+
+double OpencvVideoCapture::get_fps() const
+{
+    const double ret = m_cap.get(cv::CAP_PROP_FPS);
+    if(ret == 0.0)
+    {
+        poco_warning(m_logger, "CAP_PROP_FPS is not supported");
+    }
+    return ret;
 }
 } // namespace vehlwn

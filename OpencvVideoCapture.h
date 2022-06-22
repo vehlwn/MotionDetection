@@ -17,7 +17,8 @@ public:
     void set_fourcc(const std::string& fourcc);
     void set_frame_width(int w);
     void set_frame_height(int h);
-    void set_fps(int n);
+    void set_fps(double n);
+    virtual double get_fps() const override;
 
 private:
     Poco::Logger& m_logger;

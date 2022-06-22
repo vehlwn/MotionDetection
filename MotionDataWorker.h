@@ -21,10 +21,13 @@ public:
     ~MotionDataWorker();
     const std::shared_ptr<const Mutex<MotionData>> get_motion_data() const;
     void start();
+    void stop();
+    double get_fps() const;
 
 private:
     std::shared_ptr<OpencvBackgroundSubtractorFactory> m_back_subtractor_factory;
     std::shared_ptr<VideoCaptureFactory> m_video_capture_factory;
+    std::shared_ptr<IVideoCapture> m_video_capture;
     std::shared_ptr<Mutex<MotionData>> m_motion_data;
     std::atomic_bool m_stopped;
     Poco::Logger& m_logger;

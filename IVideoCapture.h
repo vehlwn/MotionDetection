@@ -11,5 +11,6 @@ class IVideoCapture
 public:
     virtual ~IVideoCapture() = default;
     virtual std::optional<cv::Mat> read() = 0;
+    virtual double get_fps() const = 0;
 };
 } // namespace vehlwn

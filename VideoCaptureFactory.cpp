@@ -52,7 +52,7 @@ std::shared_ptr<IVideoCapture> VideoCaptureFactory::create()
         m_logger,
         fmt::format("video_capture.frame_height = {}", frame_height));
     ret->set_frame_height(frame_height);
-    const int fps = m_config.getInt("video_capture.fps");
+    const double fps = m_config.getDouble("video_capture.fps");
     poco_information(m_logger, fmt::format("video_capture.fps = {}", fps));
     ret->set_fps(fps);
     return std::move(ret);
