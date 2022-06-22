@@ -18,7 +18,6 @@ public:
         Poco::Net::HTTPServerRequest& /*request*/,
         Poco::Net::HTTPServerResponse& response) override
     {
-        response.setStatus(Poco::Net::HTTPResponse::HTTPStatus::HTTP_OK);
         response.setContentType("text/plain");
         const std::string msg = "ok";
         response.sendBuffer(msg.data(), msg.size());
@@ -73,7 +72,7 @@ public:
                 const std::string error_msg =
                     Poco::format("Can't save %s file.", format);
                 poco_warning(m_logger, error_msg);
-                response.setStatus(
+                response.setStatusAndReason(
                     Poco::Net::HTTPResponse::HTTPStatus::HTTP_INTERNAL_SERVER_ERROR);
                 response.setContentType("text/plain");
                 response.sendBuffer(error_msg.data(), error_msg.size());
@@ -86,7 +85,7 @@ public:
                 format,
                 ex.what());
             poco_warning(m_logger, error_msg);
-            response.setStatus(
+            response.setStatusAndReason(
                 Poco::Net::HTTPResponse::HTTPStatus::HTTP_INTERNAL_SERVER_ERROR);
             response.setContentType("text/plain");
             response.sendBuffer(error_msg.data(), error_msg.size());
@@ -147,6 +146,31 @@ private:
     std::shared_ptr<const vehlwn::MotionDataWorker> m_motion_data_worker;
 };
 
+class IndexHandler : public Poco::Net::HTTPRequestHandler
+{
+public:
+    virtual void handleRequest(
+        Poco::Net::HTTPServerRequest& /*request*/,
+        Poco::Net::HTTPServerResponse& response) override
+    {
+        response.setContentType("text/html");
+        const std::string msg = R"(
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>MotionDetection</title>
+  </head>
+  <body>
+    <h1>ass</h1>
+  </body>
+</html>
+
+)";
+        response.sendBuffer(msg.data(), msg.size());
+    }
+};
 } // namespace detail
 
 AppRequestHandlerFactory::AppRequestHandlerFactory(
@@ -157,15 +181,16 @@ AppRequestHandlerFactory::AppRequestHandlerFactory(
 {
     auto* logger_copy = &m_logger;
     auto motion_data_worker_copy = m_motion_data_worker;
-    m_routes[{"GET", "/healthy"}] = [] { return new detail::LivenessHandler; };
-    m_routes[{"GET", "/current_frame"}] = [=] {
+    m_routes[{"GET", "/api/healthy"}] = [] { return new detail::LivenessHandler; };
+    m_routes[{"GET", "/api/current_frame"}] = [=] {
         return new detail::CurrentFrameHandler{
             motion_data_worker_copy,
             *logger_copy};
     };
-    m_routes[{"GET", "/motion_mask"}] = [=] {
+    m_routes[{"GET", "/api/motion_mask"}] = [=] {
         return new detail::MotionMaskHandler{motion_data_worker_copy, *logger_copy};
     };
+    m_routes[{"GET", "/front/index.html"}] = [] { return new detail::IndexHandler; };
 }
 
 Poco::Net::HTTPRequestHandler* AppRequestHandlerFactory::createRequestHandler(
