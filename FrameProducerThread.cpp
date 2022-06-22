@@ -1,12 +1,14 @@
 #include "FrameProducerThread.h"
 
 #include "ApplicationSettings.h"
+#include "PainterUtils.h"
 #include "utils.h"
 
 #include <QDebug>
 #include <QImage>
 #include <atomic>
 #include <chrono>
+#include <memory>
 #include <opencv2/core.hpp>
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
@@ -61,7 +63,20 @@ void FrameProducerThread::run()
 
         BufferedVideoReader::Data img;
         img.fgmask = utils::cvMat2QPixmap(fgmask);
-        img.frame = utils::cvMat2QPixmap(frame);
+        cv::Mat thresh;
+        cv::threshold(fgmask, thresh, 127, 255, cv::THRESH_BINARY);
+        img.movingArea = cv::countNonZero(thresh);
+        img.frameToView = utils::cvMat2QPixmap(frame);
+        img.frameToView =
+            painterUtils::drawDatetime(std::move(img.frameToView), 0, 0);
+        img.frameToView = painterUtils::drawTextWithBackground(
+            std::move(img.frameToView),
+            QString::number(img.movingArea),
+            150,
+            0);
+        img.frameToView =
+            painterUtils::drawRecordingCircle(std::move(img.frameToView), 10, 20);
+        img.frameToWrite = img.frameToView.copy();
         if(auto que = pimpl->queue.lock())
             que->waitPush(std::move(img));
         else

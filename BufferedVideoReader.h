@@ -12,7 +12,10 @@ class BufferedVideoReader : public QObject
 public:
     struct Data
     {
-        QPixmap frame, fgmask;
+        QPixmap frameToView;
+        QPixmap fgmask;
+        QPixmap frameToWrite;
+        int movingArea{};
     };
     using DataQue = FixedThreadSafeQueue<Data>;
 

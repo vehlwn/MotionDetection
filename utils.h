@@ -3,4 +3,5 @@
 
 namespace utils {
 QPixmap cvMat2QPixmap(const cv::Mat& mat);
-}
+cv::Mat QPixmap2cvMat(const QPixmap& src);
+} // namespace utils
