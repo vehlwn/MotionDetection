@@ -178,6 +178,29 @@ private:
     std::shared_ptr<const vehlwn::MotionDataWorker> m_motion_data_worker;
 };
 
+class FpsHandler : public Poco::Net::HTTPRequestHandler
+{
+public:
+    FpsHandler(std::shared_ptr<const vehlwn::MotionDataWorker> motion_data_worker)
+        : m_motion_data_worker{std::move(motion_data_worker)}
+    {
+    }
+
+    virtual void handleRequest(
+        Poco::Net::HTTPServerRequest& /*request*/,
+        Poco::Net::HTTPServerResponse& response) override
+    {
+        const double fps = m_motion_data_worker->get_fps();
+        const std::string msg = fmt::format("{}", fps);
+        response.setContentType("text/plain");
+        m_content_length_handler.send(msg, response);
+    }
+
+private:
+    std::shared_ptr<const vehlwn::MotionDataWorker> m_motion_data_worker;
+    ContentLengthHandler m_content_length_handler;
+};
+
 class IndexHandler : public Poco::Net::HTTPRequestHandler
 {
 public:
@@ -224,6 +247,9 @@ AppRequestHandlerFactory::AppRequestHandlerFactory(
     };
     m_routes[{"GET", "/api/motion_mask"}] = [=] {
         return new detail::MotionMaskHandler{motion_data_worker_copy, *logger_copy};
+    };
+    m_routes[{"GET", "/api/fps"}] = [=] {
+        return new detail::FpsHandler{motion_data_worker_copy};
     };
     m_routes[{"GET", "/front/index.html"}] = [] { return new detail::IndexHandler; };
 }

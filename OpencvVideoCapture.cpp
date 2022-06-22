@@ -1,5 +1,8 @@
 #include "OpencvVideoCapture.h"
 
+#include <cstdlib>
+#include <fmt/core.h>
+
 using namespace std::string_literals;
 
 namespace vehlwn {
@@ -13,7 +16,10 @@ void OpencvVideoCapture::open(const std::string& filename, int api_preference)
     m_cap.open(filename, api_preference);
     if(!m_cap.isOpened())
     {
-        poco_fatal(m_logger, "Unable to open input file: "s + '"' + filename + '"');
+        poco_fatal(
+            m_logger,
+            fmt::format("Unable to open input file: \"{}\"", filename));
+        std::abort();
     }
 }
 
@@ -28,11 +34,17 @@ std::optional<cv::Mat> OpencvVideoCapture::read()
 
 void OpencvVideoCapture::set_fourcc(const std::string& fourcc)
 {
-    const int decoded_fourcc = cv::VideoWriter::fourcc(
-        fourcc.at(0),
-        fourcc.at(1),
-        fourcc.at(2),
-        fourcc.at(3));
+    if(fourcc.size() != 4)
+    {
+        poco_error(
+            m_logger,
+            fmt::format("FOURCC length must be equal 4, given = {}", fourcc.size()));
+    }
+    const char c1 = fourcc.at(0);
+    const char c2 = fourcc.at(1);
+    const char c3 = fourcc.at(2);
+    const char c4 = fourcc.at(3);
+    const int decoded_fourcc = cv::VideoWriter::fourcc(c1, c2, c3, c4);
     if(!m_cap.set(cv::CAP_PROP_FOURCC, decoded_fourcc))
     {
         poco_warning(m_logger, "Failed to set fourcc for input file");
