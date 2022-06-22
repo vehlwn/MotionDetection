@@ -20,7 +20,8 @@ MotionDataWorker::MotionDataWorker(
 
 MotionDataWorker::~MotionDataWorker()
 {
-    stop();
+    if(!m_stopped)
+        stop();
 }
 
 const std::shared_ptr<const Mutex<MotionData>>
@@ -31,6 +32,7 @@ const std::shared_ptr<const Mutex<MotionData>>
 
 void MotionDataWorker::start()
 {
+    m_stopped = false;
     std::shared_ptr<cv::BackgroundSubtractor> back_subtractor =
         m_back_subtractor_factory->create();
     m_video_capture = m_video_capture_factory->create();
@@ -64,6 +66,12 @@ void MotionDataWorker::stop()
 
 double MotionDataWorker::get_fps() const
 {
-    return m_video_capture->get_fps();
+    if(!m_stopped && m_video_capture)
+        return m_video_capture->get_fps();
+    else
+    {
+        poco_error(m_logger, "Called get_fps() on stopped video_capture object!");
+        return 0.0;
+    }
 }
 } // namespace vehlwn
