@@ -1,5 +1,6 @@
 #pragma once
 
+#include <mutex>
 #include <shared_mutex>
 
 namespace vehlwn {
@@ -13,28 +14,25 @@ class MutexGuard
     friend class Mutex<T>;
 
 private:
-    MutexGuard(Mutex<T>& lock)
-        : m_lock{lock}
+    MutexGuard(Mutex<T>& mutex)
+        : m_mutex{mutex}
+        , m_lock{m_mutex.m_inner}
     {
-        m_lock.m_shared_mutex.lock();
     }
 
 public:
-    ~MutexGuard()
-    {
-        m_lock.m_shared_mutex.unlock();
-    }
     T* operator->() const
     {
-        return &m_lock.m_value;
+        return &m_mutex.m_value;
     }
     T& operator*() const
     {
-        return m_lock.m_value;
+        return m_mutex.m_value;
     }
 
 private:
-    Mutex<T>& m_lock;
+    Mutex<T>& m_mutex;
+    std::unique_lock<std::shared_mutex> m_lock;
 };
 
 template<class T>
@@ -43,28 +41,25 @@ class ConstMutexGuard
     friend class Mutex<T>;
 
 private:
-    ConstMutexGuard(const Mutex<T>& lock)
-        : m_lock{lock}
+    ConstMutexGuard(const Mutex<T>& mutex)
+        : m_mutex{mutex}
+        , m_lock{m_mutex.m_inner}
     {
-        m_lock.m_shared_mutex.lock_shared();
     }
 
 public:
-    ~ConstMutexGuard()
-    {
-        m_lock.m_shared_mutex.unlock_shared();
-    }
     const T* operator->() const
     {
-        return &m_lock.m_value;
+        return &m_mutex.m_value;
     }
     const T& operator*() const
     {
-        return m_lock.m_value;
+        return m_mutex.m_value;
     }
 
 private:
-    const Mutex<T>& m_lock;
+    const Mutex<T>& m_mutex;
+    std::shared_lock<std::shared_mutex> m_lock;
 };
 }; // namespace detail
 
@@ -94,6 +89,6 @@ public:
 
 private:
     T m_value;
-    mutable std::shared_mutex m_shared_mutex;
+    mutable std::shared_mutex m_inner;
 };
 } // namespace vehlwn
