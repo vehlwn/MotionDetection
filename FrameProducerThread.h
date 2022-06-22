@@ -6,6 +6,7 @@
 #include <QPixmap>
 #include <QThread>
 #include <memory>
+#include <opencv2/videoio.hpp>
 
 class FrameProducerThread : public QThread
 {
@@ -13,8 +14,10 @@ class FrameProducerThread : public QThread
     using base = QThread;
 
 public:
-    FrameProducerThread(QObject* parent,
-        std::weak_ptr<BufferedVideoReader::DataQue> queue);
+    FrameProducerThread(
+        QObject* parent,
+        std::weak_ptr<BufferedVideoReader::DataQue> queue,
+        std::weak_ptr<cv::VideoCapture> cap);
     ~FrameProducerThread();
 
 protected:
@@ -22,6 +25,7 @@ protected:
 
 signals:
     void logMessage(QString s);
+    void fps(double d);
 
 public slots:
     void stop();

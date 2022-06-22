@@ -58,7 +58,10 @@ MainWindow::MainWindow(QWidget* parent)
         pimpl->ui.pushButtonStart,
         &QAbstractButton::clicked,
         &pimpl->videoReader,
-        &BufferedVideoReader::start);
+        [this] {
+            pimpl->videoReader.waitStop();
+            pimpl->videoReader.start();
+        });
     connect(
         pimpl->ui.actionQuit,
         &QAction::triggered,

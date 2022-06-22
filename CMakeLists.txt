@@ -54,6 +54,7 @@ add_executable(
   SettingsDialog.cpp
   SettingsDialog.h
   SettingsDialog.ui
+  TimerWorker.h
   main.cpp
   utils.cpp
   utils.h

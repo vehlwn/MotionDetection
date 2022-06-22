@@ -15,67 +15,42 @@
 
 struct FrameProducerThread::Impl
 {
-    cv::VideoCapture cap;
+    cv::Ptr<cv::BackgroundSubtractorMOG2> backSubtractor;
     std::atomic_bool stopped = false;
     std::weak_ptr<BufferedVideoReader::DataQue> queue;
+    std::weak_ptr<cv::VideoCapture> cap;
 };
 
 FrameProducerThread::FrameProducerThread(
     QObject* parent,
-    std::weak_ptr<BufferedVideoReader::DataQue> queue)
+    std::weak_ptr<BufferedVideoReader::DataQue> queue,
+    std::weak_ptr<cv::VideoCapture> cap)
     : base{parent}
     , pimpl{std::make_unique<Impl>()}
 {
     pimpl->queue = std::move(queue);
-}
-
-FrameProducerThread::~FrameProducerThread()
-{
-    stop();
-}
-
-void FrameProducerThread::run()
-{
-    const auto& i = ApplicationSettings::i();
-    if(i.fileChecked())
-    {
-        if(!pimpl->cap.open(i.fname().toStdString()))
-        {
-            emit logMessage(QString{"Failed to open file '%1'"}.arg(i.fname()));
-            return;
-        }
-    }
-    else if(i.cameraChecked())
-    {
-        if(!pimpl->cap.open(i.cameraIndex()))
-        {
-            emit logMessage(
-                QString{"Failed to open camera '%1'"}.arg(i.cameraIndex()));
-            return;
-        }
-    }
-    emit logMessage(QString{"CAP_PROP_FRAME_WIDTH = %1"}.arg(
-        pimpl->cap.get(cv::CAP_PROP_FRAME_WIDTH)));
-    emit logMessage(QString{"CAP_PROP_FRAME_HEIGHT = %1"}.arg(
-        pimpl->cap.get(cv::CAP_PROP_FRAME_HEIGHT)));
-    emit logMessage(
-        QString{"CAP_PROP_FPS = %1"}.arg(pimpl->cap.get(cv::CAP_PROP_FPS)));
-    emit logMessage(QString{"CAP_PROP_FRAME_COUNT = %1"}.arg(
-        pimpl->cap.get(cv::CAP_PROP_FRAME_COUNT)));
-    emit logMessage(
-        QString{"CAP_PROP_BITRATE = %1"}.arg(pimpl->cap.get(cv::CAP_PROP_BITRATE)));
+    pimpl->cap = std::move(cap);
 
     const int history = 100;
     const double varThreshold = 16;
     const bool detectShadows = false;
-    auto backSubtractor =
+    pimpl->backSubtractor =
         cv::createBackgroundSubtractorMOG2(history, varThreshold, detectShadows);
-    pimpl->stopped = false;
+}
+
+FrameProducerThread::~FrameProducerThread() = default;
+
+void FrameProducerThread::run()
+{
     while(!pimpl->stopped)
     {
         cv::Mat frame;
-        const bool ret = pimpl->cap.read(frame);
-        if(!ret)
+        if(auto cap = pimpl->cap.lock())
+        {
+            if(!cap->read(frame))
+                break;
+        }
+        else
             break;
 
         cv::Mat fgmask;
