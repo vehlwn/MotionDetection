@@ -24,6 +24,7 @@ protected:
 
 signals:
     void logMessage(QString s);
+    void ranOutOfFrames();
 
 public slots:
     void stop();
