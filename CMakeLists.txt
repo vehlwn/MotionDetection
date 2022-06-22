@@ -53,6 +53,8 @@ add_executable(
   PainterUtils.h
   PixmapScene.cpp
   PixmapScene.h
+  PixmapTitleItem.cpp
+  PixmapTitleItem.h
   SettingsDialog.cpp
   SettingsDialog.h
   SettingsDialog.ui
