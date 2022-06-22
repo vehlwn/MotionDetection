@@ -17,28 +17,26 @@ struct FrameProducerThread::Impl
 {
     cv::VideoCapture cap;
     std::atomic_bool stopped = false;
+    std::weak_ptr<BufferedVideoReader::DataQue> queue;
 };
 
-FrameProducerThread::FrameProducerThread(QObject* parent)
+FrameProducerThread::FrameProducerThread(
+    QObject* parent,
+    std::weak_ptr<BufferedVideoReader::DataQue> queue)
     : base{parent}
     , pimpl{std::make_unique<Impl>()}
 {
+    pimpl->queue = std::move(queue);
 }
 
 FrameProducerThread::~FrameProducerThread()
 {
-    stopStreaming();
-}
-
-void FrameProducerThread::startStreaming()
-{
-    stopStreaming();
-    start();
+    stop();
 }
 
 void FrameProducerThread::run()
 {
-    auto& i = ApplicationSettings::i();
+    const auto& i = ApplicationSettings::i();
     if(i.fileChecked())
     {
         if(!pimpl->cap.open(i.fname().toStdString()))
@@ -51,7 +49,8 @@ void FrameProducerThread::run()
     {
         if(!pimpl->cap.open(i.cameraIndex()))
         {
-            emit logMessage(QString{"Failed to open camera '%1'"}.arg(i.cameraIndex()));
+            emit logMessage(
+                QString{"Failed to open camera '%1'"}.arg(i.cameraIndex()));
             return;
         }
     }
@@ -59,15 +58,12 @@ void FrameProducerThread::run()
         pimpl->cap.get(cv::CAP_PROP_FRAME_WIDTH)));
     emit logMessage(QString{"CAP_PROP_FRAME_HEIGHT = %1"}.arg(
         pimpl->cap.get(cv::CAP_PROP_FRAME_HEIGHT)));
-    emit logMessage(QString{"CAP_PROP_FPS = %1"}.arg(pimpl->cap.get(cv::CAP_PROP_FPS)));
+    emit logMessage(
+        QString{"CAP_PROP_FPS = %1"}.arg(pimpl->cap.get(cv::CAP_PROP_FPS)));
     emit logMessage(QString{"CAP_PROP_FRAME_COUNT = %1"}.arg(
         pimpl->cap.get(cv::CAP_PROP_FRAME_COUNT)));
     emit logMessage(
         QString{"CAP_PROP_BITRATE = %1"}.arg(pimpl->cap.get(cv::CAP_PROP_BITRATE)));
-
-    const auto minFamePeriod = std::chrono::microseconds{
-        static_cast<int>(1.0 / pimpl->cap.get(cv::CAP_PROP_FPS) * 1.0e6)};
-    emit logMessage(QString{"minFamePeriod = %1"}.arg(minFamePeriod.count()));
 
     const int history = 100;
     const double varThreshold = 16;
@@ -83,18 +79,21 @@ void FrameProducerThread::run()
             break;
 
         cv::Mat fgmask;
-        cv::Mat blurredFrame;
-        cv::GaussianBlur(frame, blurredFrame, {21, 21}, 0);
-        backSubtractor->apply(blurredFrame, fgmask);
-        emit newFrame(utils::cvMat2QPixmap(frame));
-        emit newFgmask(utils::cvMat2QPixmap(fgmask));
+        /* cv::Mat blurredFrame; */
+        /* cv::GaussianBlur(frame, blurredFrame, {21, 21}, 0); */
+        /* backSubtractor->apply(blurredFrame, fgmask); */
 
-        QThread::usleep(minFamePeriod.count());
+        BufferedVideoReader::Data img;
+        img.fgmask = utils::cvMat2QPixmap(fgmask);
+        img.frame = utils::cvMat2QPixmap(frame);
+        if(auto p = pimpl->queue.lock())
+            p->waitPush(std::move(img));
+        else
+            break;
     }
 }
 
-void FrameProducerThread::stopStreaming()
+void FrameProducerThread::stop()
 {
     pimpl->stopped = true;
-    wait();
 }
