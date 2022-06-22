@@ -1,20 +1,22 @@
 #pragma once
 
+#include "ApplicationSettings.h"
 #include "IVideoCapture.h"
 #include "Poco/Logger.h"
-#include "Poco/Util/AbstractConfiguration.h"
+
+#include <memory>
 
 namespace vehlwn {
 class VideoCaptureFactory
 {
 public:
     VideoCaptureFactory(
-        const Poco::Util::AbstractConfiguration& config,
+        std::shared_ptr<ApplicationSettings> config,
         Poco::Logger& logger);
     std::shared_ptr<IVideoCapture> create();
 
 private:
-    const Poco::Util::AbstractConfiguration& m_config;
+    std::shared_ptr<ApplicationSettings> m_config;
     Poco::Logger& m_logger;
 };
 } // namespace vehlwn

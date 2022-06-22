@@ -7,9 +7,9 @@
 
 namespace vehlwn {
 VideoCaptureFactory::VideoCaptureFactory(
-    const Poco::Util::AbstractConfiguration& config,
+    std::shared_ptr<ApplicationSettings> config,
     Poco::Logger& logger)
-    : m_config{config}
+    : m_config{std::move(config)}
     , m_logger{logger}
 {
 }
@@ -17,11 +17,11 @@ VideoCaptureFactory::VideoCaptureFactory(
 std::shared_ptr<IVideoCapture> VideoCaptureFactory::create()
 {
     const auto ret = std::make_shared<OpencvVideoCapture>(m_logger);
-    const std::string filename = m_config.getString("video_capture.filename");
+    const std::string filename = m_config->get_video_capture_filename();
     poco_information(m_logger, fmt::format("video_capture.filename = {}", filename));
     int api_preference = cv::VideoCaptureAPIs::CAP_ANY;
     const std::string tmp_api_preference_str =
-        m_config.getString("video_capture.api_preference");
+        m_config->get_video_capture_api_preference("CAP_V4L2");
     poco_information(
         m_logger,
         fmt::format("video_capture.api_preference = {}", tmp_api_preference_str));
@@ -31,7 +31,7 @@ std::shared_ptr<IVideoCapture> VideoCaptureFactory::create()
         api_preference = cv::VideoCaptureAPIs::CAP_V4L2;
     else
     {
-        poco_notice(
+        poco_information(
             m_logger,
             fmt::format(
                 "Unknown api_preference: {}. Choosing default CAP_ANY",
@@ -39,22 +39,34 @@ std::shared_ptr<IVideoCapture> VideoCaptureFactory::create()
     }
     ret->open(filename, api_preference);
 
-    const std::string fourcc = m_config.getString("video_capture.fourcc");
-    poco_information(m_logger, fmt::format("video_capture.fourcc = {}", fourcc));
-    ret->set_fourcc(fourcc);
-    const int frame_width = m_config.getInt("video_capture.frame_width");
-    poco_information(
-        m_logger,
-        fmt::format("video_capture.frame_width = {}", frame_width));
-    ret->set_frame_width(frame_width);
-    const int frame_height = m_config.getInt("video_capture.frame_height");
-    poco_information(
-        m_logger,
-        fmt::format("video_capture.frame_height = {}", frame_height));
-    ret->set_frame_height(frame_height);
-    const double fps = m_config.getDouble("video_capture.fps");
-    poco_information(m_logger, fmt::format("video_capture.fps = {}", fps));
-    ret->set_fps(fps);
+    if(m_config->has_video_capture_fourcc())
+    {
+        const std::string fourcc = m_config->get_video_capture_fourcc();
+        poco_information(m_logger, fmt::format("video_capture.fourcc = {}", fourcc));
+        ret->set_fourcc(fourcc);
+    }
+    if(m_config->has_video_capture_frame_width())
+    {
+        const int frame_width = m_config->get_video_capture_frame_width();
+        poco_information(
+            m_logger,
+            fmt::format("video_capture.frame_width = {}", frame_width));
+        ret->set_frame_width(frame_width);
+    }
+    if(m_config->has_video_capture_frame_height())
+    {
+        const int frame_height = m_config->get_video_capture_frame_height();
+        poco_information(
+            m_logger,
+            fmt::format("video_capture.frame_height = {}", frame_height));
+        ret->set_frame_height(frame_height);
+    }
+    if(m_config->has_video_capture_fps())
+    {
+        const double fps = m_config->get_video_capture_fps();
+        poco_information(m_logger, fmt::format("video_capture.fps = {}", fps));
+        ret->set_fps(fps);
+    }
     return std::move(ret);
 }
 

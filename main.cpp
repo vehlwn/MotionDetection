@@ -1,4 +1,5 @@
 #include "AppRequestHandlerFactory.h"
+#include "ApplicationSettings.h"
 #include "MotionDataWorker.h"
 #include "OpencvBackgroundSubtractorFactory.h"
 #include "Poco/AutoPtr.h"
@@ -44,12 +45,15 @@ protected:
 
     virtual int main(const std::vector<std::string>& /*args*/) override
     {
+        const auto application_settings =
+            std::make_shared<vehlwn::ApplicationSettings>(config());
         auto back_subtractor_factory =
             std::make_shared<vehlwn::OpencvBackgroundSubtractorFactory>(
-                config(),
+                application_settings,
                 logger());
-        auto video_capture_factory =
-            std::make_shared<vehlwn::VideoCaptureFactory>(config(), logger());
+        auto video_capture_factory = std::make_shared<vehlwn::VideoCaptureFactory>(
+            application_settings,
+            logger());
         auto motion_data_worker = std::make_shared<vehlwn::MotionDataWorker>(
             std::move(back_subtractor_factory),
             std::move(video_capture_factory),

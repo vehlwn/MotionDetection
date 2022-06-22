@@ -11,6 +11,8 @@ find_package(fmt REQUIRED)
 
 add_executable(
     ${PROJECT_NAME}
+    ApplicationSettings.cpp
+    ApplicationSettings.h
     AppRequestHandlerFactory.cpp
     AppRequestHandlerFactory.h
     handlers/common/ContentLengthHandler.cpp
