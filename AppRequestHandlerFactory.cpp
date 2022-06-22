@@ -54,10 +54,13 @@ Poco::Net::HTTPRequestHandler* AppRequestHandlerFactory::createRequestHandler(
     poco_information(
         m_logger,
         fmt::format(
-            "{} {} {}",
-            request.clientAddress().toString(),
-            request.getMethod(),
-            request.getURI()));
+            "{remote_addr} \"{method} {uri}\" \"{http_user_agent}\"",
+            fmt::arg("remote_addr", request.clientAddress().toString()),
+            fmt::arg("method", request.getMethod()),
+            fmt::arg("uri", request.getURI()),
+            fmt::arg(
+                "http_user_agent",
+                request.has("User-Agent") ? request.get("User-Agent") : "-")));
     const Poco::URI url{request.getURI()};
     if(const auto it = m_routes.find(std::tie(request.getMethod(), url.getPath()));
        it != m_routes.end())
