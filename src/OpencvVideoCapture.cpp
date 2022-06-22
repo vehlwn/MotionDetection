@@ -1,4 +1,4 @@
-#include "OpencvVideoCapture.h"
+#include "OpencvVideoCapture.hpp"
 
 #include <cstdlib>
 #include <fmt/core.h>

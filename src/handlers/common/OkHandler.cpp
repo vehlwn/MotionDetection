@@ -1,4 +1,4 @@
-#include "OkHandler.h"
+#include "OkHandler.hpp"
 
 namespace vehlwn::handlers::common {
 void OkHandler::send(Poco::Net::HTTPServerResponse& response)

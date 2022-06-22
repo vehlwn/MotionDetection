@@ -1,7 +1,7 @@
-#include "AppRequestHandlerFactory.h"
-#include "ApplicationSettings.h"
-#include "MotionDataWorker.h"
-#include "OpencvBackgroundSubtractorFactory.h"
+#include "AppRequestHandlerFactory.hpp"
+#include "ApplicationSettings.hpp"
+#include "MotionDataWorker.hpp"
+#include "OpencvBackgroundSubtractorFactory.hpp"
 #include "Poco/AutoPtr.h"
 #include "Poco/ConsoleChannel.h"
 #include "Poco/FormattingChannel.h"
@@ -13,8 +13,8 @@
 #include "Poco/Net/SocketAddress.h"
 #include "Poco/PatternFormatter.h"
 #include "Poco/Util/ServerApplication.h"
-#include "PreprocessImageFactory.h"
-#include "VideoCaptureFactory.h"
+#include "PreprocessImageFactory.hpp"
+#include "VideoCaptureFactory.hpp"
 #include "fmt/core.h"
 
 #include <iostream>

@@ -1,17 +1,18 @@
 #pragma once
 
-#include "../MotionDataWorker.h"
+#include "../MotionDataWorker.hpp"
 #include "Poco/Net/HTTPRequestHandler.h"
-#include "common/ImencodeHandler.h"
+#include "common/ImencodeHandler.hpp"
 
 namespace vehlwn::handlers {
 
-class CurrentFrameHandler : public Poco::Net::HTTPRequestHandler
+class MotionMaskHandler : public Poco::Net::HTTPRequestHandler
 {
 public:
-    CurrentFrameHandler(
+    MotionMaskHandler(
         std::shared_ptr<const vehlwn::MotionDataWorker> motion_data_worker,
         Poco::Logger& logger);
+
     virtual void handleRequest(
         Poco::Net::HTTPServerRequest& request,
         Poco::Net::HTTPServerResponse& response) override;

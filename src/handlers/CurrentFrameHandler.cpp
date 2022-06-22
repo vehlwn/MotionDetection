@@ -1,4 +1,4 @@
-#include "CurrentFrameHandler.h"
+#include "CurrentFrameHandler.hpp"
 
 namespace vehlwn::handlers {
 

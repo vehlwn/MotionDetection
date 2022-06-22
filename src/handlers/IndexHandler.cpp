@@ -1,4 +1,4 @@
-#include "IndexHandler.h"
+#include "IndexHandler.hpp"
 
 namespace {
 constexpr const char INDEX_HTML[] = R"(

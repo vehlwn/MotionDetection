@@ -1,6 +1,6 @@
 #pragma once
 
-#include "IImageFilter.h"
+#include "IImageFilter.hpp"
 
 #include <memory>
 #include <vector>

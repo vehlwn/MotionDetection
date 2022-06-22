@@ -1,4 +1,4 @@
-#include "GaussianBlurFilter.h"
+#include "GaussianBlurFilter.hpp"
 
 #include "opencv2/imgproc.hpp"
 

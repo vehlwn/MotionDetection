@@ -1,15 +1,15 @@
-#include "AppRequestHandlerFactory.h"
+#include "AppRequestHandlerFactory.hpp"
 
 #include "Poco/Net/HTTPResponse.h"
 #include "Poco/Net/HTTPServerResponse.h"
 #include "Poco/URI.h"
 #include "fmt/core.h"
-#include "handlers/CurrentFrameHandler.h"
-#include "handlers/FpsHandler.h"
-#include "handlers/HealthyHandler.h"
-#include "handlers/IndexHandler.h"
-#include "handlers/MotionMaskHandler.h"
-#include "handlers/NotFoundHandler.h"
+#include "handlers/CurrentFrameHandler.hpp"
+#include "handlers/FpsHandler.hpp"
+#include "handlers/HealthyHandler.hpp"
+#include "handlers/IndexHandler.hpp"
+#include "handlers/MotionMaskHandler.hpp"
+#include "handlers/NotFoundHandler.hpp"
 
 #include <Poco/Logger.h>
 #include <vector>

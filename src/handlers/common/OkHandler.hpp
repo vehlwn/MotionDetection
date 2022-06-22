@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ContentLengthHandler.h"
+#include "ContentLengthHandler.hpp"
 #include "Poco/Net/HTTPServerResponse.h"
 
 namespace vehlwn::handlers::common {

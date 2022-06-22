@@ -1,4 +1,4 @@
-#include "FpsHandler.h"
+#include "FpsHandler.hpp"
 
 #include "fmt/core.h"
 

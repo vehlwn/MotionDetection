@@ -1,10 +1,10 @@
 #pragma once
 
 #include "Poco/Net/HTTPRequestHandler.h"
-#include "common/ContentLengthHandler.h"
+#include "common/OkHandler.hpp"
 
 namespace vehlwn::handlers {
-class NotFoundHandler : public Poco::Net::HTTPRequestHandler
+class HealthyHandler : public Poco::Net::HTTPRequestHandler
 {
 public:
     virtual void handleRequest(
@@ -12,6 +12,6 @@ public:
         Poco::Net::HTTPServerResponse& response) override;
 
 private:
-    common::ContentLengthHandler m_content_length_handler;
+    common::OkHandler m_ok_handler;
 };
 } // namespace vehlwn::handlers

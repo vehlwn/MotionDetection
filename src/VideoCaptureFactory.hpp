@@ -1,7 +1,7 @@
 #pragma once
 
-#include "ApplicationSettings.h"
-#include "IVideoCapture.h"
+#include "ApplicationSettings.hpp"
+#include "IVideoCapture.hpp"
 #include "Poco/Logger.h"
 
 #include <memory>

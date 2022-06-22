@@ -1,7 +1,7 @@
-#include "VideoCaptureFactory.h"
+#include "VideoCaptureFactory.hpp"
 
-#include "IVideoCapture.h"
-#include "OpencvVideoCapture.h"
+#include "IVideoCapture.hpp"
+#include "OpencvVideoCapture.hpp"
 #include "fmt/core.h"
 #include "opencv2/videoio.hpp"
 

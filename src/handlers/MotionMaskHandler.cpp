@@ -1,4 +1,4 @@
-#include "MotionMaskHandler.h"
+#include "MotionMaskHandler.hpp"
 
 namespace vehlwn::handlers {
 

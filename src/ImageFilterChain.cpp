@@ -1,4 +1,4 @@
-#include "ImageFilterChain.h"
+#include "ImageFilterChain.hpp"
 
 #include <algorithm>
 

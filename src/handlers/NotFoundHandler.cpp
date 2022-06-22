@@ -1,4 +1,4 @@
-#include "NotFoundHandler.h"
+#include "NotFoundHandler.hpp"
 
 namespace vehlwn::handlers {
 

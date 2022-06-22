@@ -1,4 +1,4 @@
-#include "ApplicationSettings.h"
+#include "ApplicationSettings.hpp"
 
 namespace {
 static const std::string BACKGROUND_SUBTRACTOR_ALGORITHM_KEY =

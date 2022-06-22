@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ApplicationSettings.h"
+#include "ApplicationSettings.hpp"
 #include "Poco/Logger.h"
 #include "opencv2/video/background_segm.hpp"
 

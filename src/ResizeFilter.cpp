@@ -1,4 +1,4 @@
-#include "ResizeFilter.h"
+#include "ResizeFilter.hpp"
 
 #include "opencv2/imgproc.hpp"
 

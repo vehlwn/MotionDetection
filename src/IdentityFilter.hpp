@@ -1,6 +1,6 @@
 #pragma once
 
-#include "IImageFilter.h"
+#include "IImageFilter.hpp"
 
 namespace vehlwn {
 class IdentityFilter : public IImageFilter

@@ -1,4 +1,4 @@
-#include "OpencvBackgroundSubtractorFactory.h"
+#include "OpencvBackgroundSubtractorFactory.hpp"
 
 #include "fmt/core.h"
 

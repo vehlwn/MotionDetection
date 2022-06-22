@@ -16,54 +16,54 @@ set(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} ${SANITIZER}")
 add_executable(
     ${PROJECT_NAME}
     src/ApplicationSettings.cpp
-    src/ApplicationSettings.h
+    src/ApplicationSettings.hpp
     src/AppRequestHandlerFactory.cpp
-    src/AppRequestHandlerFactory.h
+    src/AppRequestHandlerFactory.hpp
     src/GaussianBlurFilter.cpp
-    src/GaussianBlurFilter.h
+    src/GaussianBlurFilter.hpp
     src/handlers/common/ContentLengthHandler.cpp
-    src/handlers/common/ContentLengthHandler.h
+    src/handlers/common/ContentLengthHandler.hpp
     src/handlers/common/ImencodeHandler.cpp
-    src/handlers/common/ImencodeHandler.h
+    src/handlers/common/ImencodeHandler.hpp
     src/handlers/common/OkHandler.cpp
-    src/handlers/common/OkHandler.h
+    src/handlers/common/OkHandler.hpp
     src/handlers/CurrentFrameHandler.cpp
-    src/handlers/CurrentFrameHandler.h
+    src/handlers/CurrentFrameHandler.hpp
     src/handlers/FpsHandler.cpp
-    src/handlers/FpsHandler.h
+    src/handlers/FpsHandler.hpp
     src/handlers/HealthyHandler.cpp
-    src/handlers/HealthyHandler.h
+    src/handlers/HealthyHandler.hpp
     src/handlers/IndexHandler.cpp
-    src/handlers/IndexHandler.h
+    src/handlers/IndexHandler.hpp
     src/handlers/MotionMaskHandler.cpp
-    src/handlers/MotionMaskHandler.h
+    src/handlers/MotionMaskHandler.hpp
     src/handlers/NotFoundHandler.cpp
-    src/handlers/NotFoundHandler.h
+    src/handlers/NotFoundHandler.hpp
     src/IdentityFilter.cpp
-    src/IdentityFilter.h
-    src/IImageFilter.h
+    src/IdentityFilter.hpp
+    src/IImageFilter.hpp
     src/ImageFilterChain.cpp
-    src/ImageFilterChain.h
-    src/IVideoCapture.h
+    src/ImageFilterChain.hpp
+    src/IVideoCapture.hpp
     src/main.cpp
     src/MedianFilter.cpp
-    src/MedianFilter.h
-    src/MotionData.h
+    src/MedianFilter.hpp
+    src/MotionData.hpp
     src/MotionDataWorker.cpp
-    src/MotionDataWorker.h
-    src/Mutex.h
+    src/MotionDataWorker.hpp
+    src/Mutex.hpp
     src/NormalizedBoxFilter.cpp
-    src/NormalizedBoxFilter.h
+    src/NormalizedBoxFilter.hpp
     src/OpencvBackgroundSubtractorFactory.cpp
-    src/OpencvBackgroundSubtractorFactory.h
+    src/OpencvBackgroundSubtractorFactory.hpp
     src/OpencvVideoCapture.cpp
-    src/OpencvVideoCapture.h
+    src/OpencvVideoCapture.hpp
     src/PreprocessImageFactory.cpp
-    src/PreprocessImageFactory.h
+    src/PreprocessImageFactory.hpp
     src/ResizeFilter.cpp
-    src/ResizeFilter.h
+    src/ResizeFilter.hpp
     src/VideoCaptureFactory.cpp
-    src/VideoCaptureFactory.h
+    src/VideoCaptureFactory.hpp
 )
 target_link_libraries(
     ${PROJECT_NAME} PUBLIC ${OpenCV_LIBRARIES} ${Poco_LIBRARIES} fmt::fmt

@@ -1,4 +1,4 @@
-#include "MedianFilter.h"
+#include "MedianFilter.hpp"
 
 #include "opencv2/imgproc.hpp"
 

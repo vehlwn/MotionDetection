@@ -1,11 +1,11 @@
 #pragma once
 
-#include "MotionData.h"
-#include "Mutex.h"
-#include "OpencvBackgroundSubtractorFactory.h"
+#include "MotionData.hpp"
+#include "Mutex.hpp"
+#include "OpencvBackgroundSubtractorFactory.hpp"
 #include "Poco/Logger.h"
-#include "PreprocessImageFactory.h"
-#include "VideoCaptureFactory.h"
+#include "PreprocessImageFactory.hpp"
+#include "VideoCaptureFactory.hpp"
 
 #include <atomic>
 #include <memory>

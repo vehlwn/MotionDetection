@@ -1,6 +1,6 @@
 #pragma once
 
-#include "IVideoCapture.h"
+#include "IVideoCapture.hpp"
 #include "Poco/Logger.h"
 #include "opencv2/core/mat.hpp"
 #include "opencv2/videoio.hpp"

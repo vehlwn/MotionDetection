@@ -1,7 +1,7 @@
 #pragma once
 
-#include "ApplicationSettings.h"
-#include "IImageFilter.h"
+#include "ApplicationSettings.hpp"
+#include "IImageFilter.hpp"
 #include "Poco/Logger.h"
 
 #include <memory>

@@ -1,4 +1,4 @@
-#include "HealthyHandler.h"
+#include "HealthyHandler.hpp"
 
 namespace vehlwn::handlers {
 void HealthyHandler ::handleRequest(
