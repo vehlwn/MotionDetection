@@ -45,6 +45,9 @@ FrameProducerThread::~FrameProducerThread() = default;
 
 void FrameProducerThread::run()
 {
+    const auto& i = ApplicationSettings::i();
+    const bool gaussianBlurChecked = i.gaussianBlurChecked();
+    const int ksize = i.gaussianBlurValue();
     while(!pimpl->stopped)
     {
         cv::Mat frame;
@@ -58,7 +61,11 @@ void FrameProducerThread::run()
 
         cv::Mat fgmask;
         cv::Mat blurredFrame;
-        cv::GaussianBlur(frame, blurredFrame, {3, 3}, 0);
+        if(gaussianBlurChecked)
+            cv::GaussianBlur(frame, blurredFrame, {ksize, ksize}, 0);
+        else
+            blurredFrame = frame;
+
         pimpl->backSubtractor->apply(blurredFrame, fgmask);
 
         BufferedVideoReader::Data img;
