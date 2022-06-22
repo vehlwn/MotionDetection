@@ -11,19 +11,17 @@
 #include "handlers/MotionMaskHandler.h"
 #include "handlers/NotFoundHandler.h"
 
-#include <utility>
+#include <Poco/Logger.h>
 #include <vector>
 
 namespace vehlwn {
-namespace detail {
-} // namespace detail
-
 AppRequestHandlerFactory::AppRequestHandlerFactory(
     std::shared_ptr<vehlwn::MotionDataWorker> motion_data_worker,
     Poco::Logger& logger)
     : m_motion_data_worker{std::move(motion_data_worker)}
     , m_logger{logger}
 {
+    poco_information(m_logger, "constructor AppRequestHandlerFactory");
     auto* logger_copy = &m_logger;
     auto motion_data_worker_copy = m_motion_data_worker;
     m_routes[{"GET", "/api/healthy"}] = [] { return new handlers::HealthyHandler; };
@@ -43,6 +41,11 @@ AppRequestHandlerFactory::AppRequestHandlerFactory(
     m_routes[{"GET", "/front/index.html"}] = [] {
         return new handlers::IndexHandler;
     };
+}
+
+AppRequestHandlerFactory::~AppRequestHandlerFactory()
+{
+    poco_information(m_logger, "destructor ~AppRequestHandlerFactory");
 }
 
 Poco::Net::HTTPRequestHandler* AppRequestHandlerFactory::createRequestHandler(

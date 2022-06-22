@@ -9,6 +9,10 @@ find_package(OpenCV REQUIRED)
 find_package(Poco REQUIRED COMPONENTS Net Foundation Util)
 find_package(fmt REQUIRED)
 
+set(SANITIZER "-g3 -O0 -fno-inline -fno-omit-frame-pointer -fsanitize=thread")
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} ${SANITIZER}")
+set(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} ${SANITIZER}")
+
 add_executable(
     ${PROJECT_NAME}
     ApplicationSettings.cpp

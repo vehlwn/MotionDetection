@@ -32,7 +32,7 @@ protected:
         auto pattern_formatter = new Poco::PatternFormatter;
         pattern_formatter->setProperty(
             "pattern",
-            "%Y-%m-%d %H:%M:%S [%p] [%O:%u] %t");
+            "%Y-%m-%d %H:%M:%S.%F [%p] [tid=%I] [%O:%u] %t");
         auto format_channel =
             new Poco::FormattingChannel(pattern_formatter, console_channel);
         logger().setChannel(format_channel);
@@ -63,9 +63,7 @@ protected:
         const std::string host_and_port =
             config().getString("http_server.host_and_port");
         Poco::Net::HTTPServer srv{
-            new vehlwn::AppRequestHandlerFactory{
-                std::move(motion_data_worker),
-                logger()},
+            new vehlwn::AppRequestHandlerFactory{motion_data_worker, logger()},
             Poco::Net::ServerSocket{Poco::Net::SocketAddress{host_and_port}},
             new Poco::Net::HTTPServerParams};
         srv.start();
@@ -75,6 +73,16 @@ protected:
 
         waitForTerminationRequest();
         srv.stop();
+
+        // We must join working thread here because motion_data_worker can
+        // somehow overlive this main() method and cause segfault later
+        // somewhere in opencv.
+        motion_data_worker->stop();
+        poco_information(
+            logger(),
+            fmt::format(
+                "motion_data_worker.use_count = {}",
+                motion_data_worker.use_count()));
         return Poco::Util::Application::EXIT_OK;
     }
 };

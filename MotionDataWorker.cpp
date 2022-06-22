@@ -16,10 +16,12 @@ MotionDataWorker::MotionDataWorker(
     , m_stopped{false}
     , m_logger{logger}
 {
+    poco_information(m_logger, "constructor MotionDataWorker");
 }
 
 MotionDataWorker::~MotionDataWorker()
 {
+    poco_information(m_logger, "destructor ~MotionDataWorker");
     if(!m_stopped)
         stop();
 }
@@ -36,7 +38,7 @@ void MotionDataWorker::start()
     std::shared_ptr<cv::BackgroundSubtractor> back_subtractor =
         m_back_subtractor_factory->create();
     m_video_capture = m_video_capture_factory->create();
-    m_working_thread = std::thread{[=] {
+    m_working_thread = std::thread{[this, back_subtractor] {
         while(!m_stopped)
         {
             std::optional<cv::Mat> opt_frame = m_video_capture->read();
@@ -58,8 +60,11 @@ void MotionDataWorker::stop()
     poco_information(m_logger, "Stopping...");
     m_stopped = true;
     if(m_working_thread.joinable())
+    {
+        poco_information(m_logger, "Joining working thread...");
         m_working_thread.join();
-    poco_information(m_logger, "Joined working thread");
+        poco_information(m_logger, "Joined");
+    }
     *m_motion_data->lock() = {{}, {}};
     m_video_capture = nullptr;
 }

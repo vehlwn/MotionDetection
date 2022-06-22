@@ -18,6 +18,7 @@ public:
     AppRequestHandlerFactory(
         std::shared_ptr<vehlwn::MotionDataWorker> motion_data_worker,
         Poco::Logger& logger);
+    ~AppRequestHandlerFactory();
     virtual Poco::Net::HTTPRequestHandler*
         createRequestHandler(const Poco::Net::HTTPServerRequest& request) override;
 
