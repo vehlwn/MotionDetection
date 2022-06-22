@@ -40,6 +40,7 @@ MainWindow::MainWindow(QWidget* parent)
     pimpl->frameItem->setTitle("Frame");
     pimpl->fgmaskItem = new PixmapTitleItem;
     pimpl->fgmaskItem->setTitle("Fgmask");
+    pimpl->fgmaskItem->setPos(100, 100);
 
     pimpl->ui.graphicsView->setScene(pimpl->scene);
     pimpl->scene->addItem(pimpl->frameItem);
