@@ -19,6 +19,10 @@ static const std::string VIDEO_CAPTURE_FRAME_WIDTH_KEY = "video_capture.frame_wi
 static const std::string VIDEO_CAPTURE_FRAME_HEIGHT_KEY =
     "video_capture.frame_height";
 static const std::string VIDEO_CAPTURE_FRAME_FPS_KEY = "video_capture.fps";
+static const std::string SMOOTHING_FILTER_NAME_KEY = "smoothing_filter.name";
+static const std::string SMOOTHING_FILTER_KERNEL_SIZE_KEY =
+    "smoothing_filter.kernel_size";
+static const std::string SMOOTHING_FILTER_SIGMA_KEY = "smoothing_filter.sigma";
 } // namespace
 
 namespace vehlwn {
@@ -109,5 +113,25 @@ bool ApplicationSettings::has_video_capture_fps() const
 double ApplicationSettings::get_video_capture_fps() const
 {
     return m_config.getDouble(VIDEO_CAPTURE_FRAME_HEIGHT_KEY);
+}
+
+std::string ApplicationSettings::get_smoothing_filter_name() const
+{
+    return m_config.getString(SMOOTHING_FILTER_NAME_KEY);
+}
+
+bool ApplicationSettings::has_smoothing_filter_name() const
+{
+    return m_config.has(SMOOTHING_FILTER_NAME_KEY);
+}
+
+int ApplicationSettings::get_smoothing_filter_kernel_size() const
+{
+    return m_config.getInt(SMOOTHING_FILTER_KERNEL_SIZE_KEY);
+}
+
+double ApplicationSettings::get_smoothing_filter_sigma(double default_value) const
+{
+    return m_config.getDouble(SMOOTHING_FILTER_SIGMA_KEY, default_value);
 }
 } // namespace vehlwn

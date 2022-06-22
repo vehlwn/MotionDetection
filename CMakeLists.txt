@@ -19,6 +19,8 @@ add_executable(
     ApplicationSettings.h
     AppRequestHandlerFactory.cpp
     AppRequestHandlerFactory.h
+    GaussianBlurFilter.cpp
+    GaussianBlurFilter.h
     handlers/common/ContentLengthHandler.cpp
     handlers/common/ContentLengthHandler.h
     handlers/common/ImencodeHandler.cpp
@@ -37,16 +39,25 @@ add_executable(
     handlers/MotionMaskHandler.h
     handlers/NotFoundHandler.cpp
     handlers/NotFoundHandler.h
+    IdentityFilter.cpp
+    IdentityFilter.h
+    ISmoothingFilter.h
     IVideoCapture.h
     main.cpp
+    MedianFilter.cpp
+    MedianFilter.h
     MotionData.h
     MotionDataWorker.cpp
     MotionDataWorker.h
     Mutex.h
+    NormalizedBoxFilter.cpp
+    NormalizedBoxFilter.h
     OpencvBackgroundSubtractorFactory.cpp
     OpencvBackgroundSubtractorFactory.h
     OpencvVideoCapture.cpp
     OpencvVideoCapture.h
+    SmoothingFIlterFactory.cpp
+    SmoothingFIlterFactory.h
     VideoCaptureFactory.cpp
     VideoCaptureFactory.h
 )

@@ -25,6 +25,10 @@ public:
     int get_video_capture_frame_height() const;
     bool has_video_capture_fps() const;
     double get_video_capture_fps() const;
+    std::string get_smoothing_filter_name() const;
+    bool has_smoothing_filter_name() const;
+    int get_smoothing_filter_kernel_size() const;
+    double get_smoothing_filter_sigma(double default_value) const;
 
 private:
     const Poco::Util::AbstractConfiguration& m_config;

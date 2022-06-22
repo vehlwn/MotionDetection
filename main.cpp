@@ -13,6 +13,7 @@
 #include "Poco/Net/SocketAddress.h"
 #include "Poco/PatternFormatter.h"
 #include "Poco/Util/ServerApplication.h"
+#include "SmoothingFIlterFactory.h"
 #include "VideoCaptureFactory.h"
 #include "fmt/core.h"
 
@@ -54,9 +55,14 @@ protected:
         auto video_capture_factory = std::make_shared<vehlwn::VideoCaptureFactory>(
             application_settings,
             logger());
+        auto smoothing_filter_factory =
+            std::make_shared<vehlwn::SmoothingFIlterFactory>(
+                application_settings,
+                logger());
         auto motion_data_worker = std::make_shared<vehlwn::MotionDataWorker>(
             std::move(back_subtractor_factory),
             std::move(video_capture_factory),
+            std::move(smoothing_filter_factory),
             logger());
         motion_data_worker->start();
 
@@ -72,7 +78,7 @@ protected:
             fmt::format("Server listening {}", host_and_port));
 
         waitForTerminationRequest();
-        srv.stop();
+        srv.stopAll(true);
 
         // We must join working thread here because motion_data_worker can
         // somehow overlive this main() method and cause segfault later

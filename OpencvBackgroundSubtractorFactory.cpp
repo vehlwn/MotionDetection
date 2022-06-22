@@ -66,9 +66,8 @@ std::shared_ptr<cv::BackgroundSubtractor> OpencvBackgroundSubtractorFactory::cre
             var_threshold,
             detect_shadows);
     }
-    // The rest algorithms are in opencv_contrib module which does not present
-    // in system packages.
-    // https://docs.opencv.org/4.5.3/d2/d55/group__bgsegm.html
+    // The rest algorithms are in opencv_contrib module which does not present in
+    // system packages. https://docs.opencv.org/4.5.3/d2/d55/group__bgsegm.html
     poco_fatal(
         m_logger,
         fmt::format("Unknown background_subtractor algorithm: {}", algorithm));

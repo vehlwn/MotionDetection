@@ -9,9 +9,11 @@ namespace vehlwn {
 MotionDataWorker::MotionDataWorker(
     std::shared_ptr<OpencvBackgroundSubtractorFactory> back_subtractor_factory,
     std::shared_ptr<VideoCaptureFactory> video_capture_factory,
+    std::shared_ptr<SmoothingFIlterFactory> smoothing_filter_factory,
     Poco::Logger& logger)
     : m_back_subtractor_factory{std::move(back_subtractor_factory)}
     , m_video_capture_factory{std::move(video_capture_factory)}
+    , m_smoothing_filter_factory{std::move(smoothing_filter_factory)}
     , m_motion_data{std::make_shared<Mutex<MotionData>>(MotionData{{}, {}})}
     , m_stopped{false}
     , m_logger{logger}
@@ -26,8 +28,7 @@ MotionDataWorker::~MotionDataWorker()
         stop();
 }
 
-const std::shared_ptr<const Mutex<MotionData>>
-    MotionDataWorker::get_motion_data() const
+std::shared_ptr<const Mutex<MotionData>> MotionDataWorker::get_motion_data() const
 {
     return m_motion_data;
 }
@@ -35,10 +36,10 @@ const std::shared_ptr<const Mutex<MotionData>>
 void MotionDataWorker::start()
 {
     m_stopped = false;
-    std::shared_ptr<cv::BackgroundSubtractor> back_subtractor =
-        m_back_subtractor_factory->create();
+    auto back_subtractor = m_back_subtractor_factory->create();
     m_video_capture = m_video_capture_factory->create();
-    m_working_thread = std::thread{[this, back_subtractor] {
+    auto smoothing_filter = m_smoothing_filter_factory->create();
+    m_working_thread = std::thread{[=] {
         while(!m_stopped)
         {
             std::optional<cv::Mat> opt_frame = m_video_capture->read();
@@ -48,8 +49,9 @@ void MotionDataWorker::start()
                 std::abort();
             }
             cv::Mat frame = std::move(*opt_frame);
+            cv::Mat smoothed = smoothing_filter->apply(frame);
             cv::Mat fgmask;
-            back_subtractor->apply(frame, fgmask);
+            back_subtractor->apply(smoothed, fgmask);
             *m_motion_data->lock() = {std::move(frame), std::move(fgmask)};
         }
     }};
