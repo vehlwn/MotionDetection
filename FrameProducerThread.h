@@ -15,7 +15,6 @@ class FrameProducerThread : public QThread
 
 public:
     FrameProducerThread(
-        QObject* parent,
         std::weak_ptr<BufferedVideoReader::DataQue> queue,
         std::weak_ptr<cv::VideoCapture> cap);
     ~FrameProducerThread();
