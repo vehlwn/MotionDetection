@@ -57,7 +57,7 @@ private:
     const Mutex<T>& m_mutex;
     std::shared_lock<std::shared_mutex> m_lock;
 };
-}; // namespace detail
+} // namespace detail
 
 template<class T>
 class Mutex {
