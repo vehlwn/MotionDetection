@@ -16,21 +16,25 @@ MotionDataWorker::MotionDataWorker(
     , m_preprocess_image_factory{std::move(preprocess_image_factory)}
     , m_motion_data{std::make_shared<Mutex<MotionData>>(MotionData{{}, {}})}
     , m_stopped{false}
-    , m_logger{logger} {
+    , m_logger{logger}
+{
     poco_information(m_logger, "constructor MotionDataWorker");
 }
 
-MotionDataWorker::~MotionDataWorker() {
+MotionDataWorker::~MotionDataWorker()
+{
     poco_information(m_logger, "destructor ~MotionDataWorker");
     if(!m_stopped)
         stop();
 }
 
-std::shared_ptr<const Mutex<MotionData>> MotionDataWorker::get_motion_data() const {
+std::shared_ptr<const Mutex<MotionData>> MotionDataWorker::get_motion_data() const
+{
     return m_motion_data;
 }
 
-void MotionDataWorker::start() {
+void MotionDataWorker::start()
+{
     m_stopped = false;
     auto back_subtractor = m_back_subtractor_factory->create();
     m_video_capture = m_video_capture_factory->create();
@@ -51,7 +55,8 @@ void MotionDataWorker::start() {
     }};
 }
 
-void MotionDataWorker::stop() {
+void MotionDataWorker::stop()
+{
     poco_information(m_logger, "Stopping...");
     m_stopped = true;
     if(m_working_thread.joinable()) {
@@ -63,7 +68,8 @@ void MotionDataWorker::stop() {
     m_video_capture = nullptr;
 }
 
-double MotionDataWorker::get_fps() const {
+double MotionDataWorker::get_fps() const
+{
     if(!m_stopped && m_video_capture)
         return m_video_capture->get_fps();
     else {

@@ -109,7 +109,8 @@ namespace vehlwn::handlers {
 
 void IndexHandler::handleRequest(
     Poco::Net::HTTPServerRequest& /*request*/,
-    Poco::Net::HTTPServerResponse& response) {
+    Poco::Net::HTTPServerResponse& response)
+{
     response.setContentType("text/html");
     const std::string msg = INDEX_HTML;
     m_content_length_handler.send(msg, response);

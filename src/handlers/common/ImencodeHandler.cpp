@@ -5,12 +5,13 @@
 
 namespace vehlwn::handlers::common {
 ImencodeHandler::ImencodeHandler(Poco::Logger& logger)
-    : m_logger{logger} {
-}
+    : m_logger{logger}
+{}
 
 void ImencodeHandler::send_encoded_image(
     const cv::Mat& image,
-    Poco::Net::HTTPServerResponse& response) {
+    Poco::Net::HTTPServerResponse& response)
+{
     const std::string format = ".jpg";
     try {
         std::vector<unsigned char> buf;

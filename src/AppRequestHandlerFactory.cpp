@@ -19,7 +19,8 @@ AppRequestHandlerFactory::AppRequestHandlerFactory(
     std::shared_ptr<vehlwn::MotionDataWorker> motion_data_worker,
     Poco::Logger& logger)
     : m_motion_data_worker{std::move(motion_data_worker)}
-    , m_logger{logger} {
+    , m_logger{logger}
+{
     poco_information(m_logger, "constructor AppRequestHandlerFactory");
     auto* logger_copy = &m_logger;
     auto motion_data_worker_copy = m_motion_data_worker;
@@ -40,12 +41,14 @@ AppRequestHandlerFactory::AppRequestHandlerFactory(
         = [] { return new handlers::IndexHandler; };
 }
 
-AppRequestHandlerFactory::~AppRequestHandlerFactory() {
+AppRequestHandlerFactory::~AppRequestHandlerFactory()
+{
     poco_information(m_logger, "destructor ~AppRequestHandlerFactory");
 }
 
 Poco::Net::HTTPRequestHandler* AppRequestHandlerFactory::createRequestHandler(
-    const Poco::Net::HTTPServerRequest& request) {
+    const Poco::Net::HTTPServerRequest& request)
+{
     poco_information(
         m_logger,
         fmt::format(

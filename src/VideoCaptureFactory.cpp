@@ -10,10 +10,11 @@ VideoCaptureFactory::VideoCaptureFactory(
     std::shared_ptr<ApplicationSettings> config,
     Poco::Logger& logger)
     : m_config{std::move(config)}
-    , m_logger{logger} {
-}
+    , m_logger{logger}
+{}
 
-std::shared_ptr<IVideoCapture> VideoCaptureFactory::create() {
+std::shared_ptr<IVideoCapture> VideoCaptureFactory::create()
+{
     const auto ret = std::make_shared<OpencvVideoCapture>(m_logger);
     const std::string filename = m_config->get_video_capture_filename();
     poco_information(m_logger, fmt::format("video_capture.filename = {}", filename));

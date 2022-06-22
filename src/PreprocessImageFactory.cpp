@@ -17,10 +17,11 @@ PreprocessImageFactory::PreprocessImageFactory(
     std::shared_ptr<ApplicationSettings> config,
     Poco::Logger& logger)
     : m_config{std::move(config)}
-    , m_logger{logger} {
-}
+    , m_logger{logger}
+{}
 
-std::shared_ptr<IImageFilter> PreprocessImageFactory::create() {
+std::shared_ptr<IImageFilter> PreprocessImageFactory::create()
+{
     auto ret = std::make_shared<ImageFilterChain>();
     bool has_any_filter = false;
     if(m_config->has_preprocess_resize_factor()) {

@@ -24,7 +24,8 @@ class ServerApp : public Poco::Util::ServerApplication {
     using base = Poco::Util::ServerApplication;
 
 protected:
-    virtual void initialize(Poco::Util::Application& self) override {
+    virtual void initialize(Poco::Util::Application& self) override
+    {
         const int count = loadConfiguration();
         base::initialize(self);
         auto console_channel = new Poco::ConsoleChannel;
@@ -42,7 +43,8 @@ protected:
             fmt::format("Loaded {} configuration files", count));
     }
 
-    virtual int main(const std::vector<std::string>& /*args*/) override {
+    virtual int main(const std::vector<std::string>& /*args*/) override
+    {
         const auto application_settings
             = std::make_shared<vehlwn::ApplicationSettings>(config());
         auto back_subtractor_factory

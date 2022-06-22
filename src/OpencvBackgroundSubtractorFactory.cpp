@@ -9,11 +9,11 @@ OpencvBackgroundSubtractorFactory::OpencvBackgroundSubtractorFactory(
     std::shared_ptr<ApplicationSettings> config,
     Poco::Logger& logger)
     : m_config{std::move(config)}
-    , m_logger{logger} {
-}
+    , m_logger{logger}
+{}
 
-std::shared_ptr<cv::BackgroundSubtractor>
-    OpencvBackgroundSubtractorFactory::create() {
+std::shared_ptr<cv::BackgroundSubtractor> OpencvBackgroundSubtractorFactory::create()
+{
     const std::string algorithm = m_config->get_background_subtractor_algorithm();
     poco_information(m_logger, "background_subtractor.algorithm = " + algorithm);
     // https://docs.opencv.org/4.5.3/de/de1/group__video__motion.html
