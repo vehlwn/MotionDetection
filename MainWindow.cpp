@@ -4,9 +4,9 @@
 #include "PixmapScene.h"
 #include "ui_MainWindow.h"
 
+#include <QDebug>
 #include <QGraphicsPixmapItem>
 #include <QGraphicsScene>
-#include <QDebug>
 
 namespace Ui {
 class MainWindow;
