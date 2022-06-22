@@ -6,35 +6,35 @@
 
 namespace painterUtils {
 
-QPixmap drawDatetime(QPixmap input, int x, int y)
+void drawDatetime(QPixmap& img, int x, int y)
 {
     const auto now = QDateTime::currentDateTime();
     const QString text = now.toString(Qt::ISODateWithMs);
-    return drawTextWithBackground(input, text, x, y);
+    drawTextWithBackground(img, text, x, y);
 }
 
-QPixmap drawTextWithBackground(QPixmap input, const QString& text, int x, int y)
+void drawTextWithBackground(QPixmap& img, const QString& text, int x, int y)
 {
-    QPainter painter{&input};
-    QFontMetrics fm{painter.font()};
+    QPainter painter{&img};
+    QFont f = painter.font();
+    f.setStyleStrategy(QFont::NoAntialias);
+    QFontMetrics fm{f};
     painter.setBackgroundMode(Qt::OpaqueMode);
     painter.setBackground(Qt::white);
     painter.setPen(Qt::black);
     // (x, y) is a top left point.
     painter.drawText(x, y + fm.ascent(), text);
-    return input;
 }
 
-QPixmap drawRecordingCircle(QPixmap input, int radius, int padding)
+void drawRecordingCircle(QPixmap& img, int radius, int padding)
 {
-    QPainter painter{&input};
+    QPainter painter{&img};
     painter.setBrush(Qt::red);
     painter.setPen(Qt::NoPen);
     painter.drawEllipse(
-        input.width() - radius * 2 - padding,
+        img.width() - radius * 2 - padding,
         padding,
         radius * 2,
         radius * 2);
-    return input;
 }
 } // namespace painterUtils

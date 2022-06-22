@@ -58,24 +58,20 @@ void FrameProducerThread::run()
 
         cv::Mat fgmask;
         cv::Mat blurredFrame;
-        cv::GaussianBlur(frame, blurredFrame, {21, 21}, 0);
+        cv::GaussianBlur(frame, blurredFrame, {3, 3}, 0);
         pimpl->backSubtractor->apply(blurredFrame, fgmask);
 
         BufferedVideoReader::Data img;
         img.fgmask = utils::cvMat2QPixmap(fgmask);
-        cv::Mat thresh;
-        cv::threshold(fgmask, thresh, 127, 255, cv::THRESH_BINARY);
-        img.movingArea = cv::countNonZero(thresh);
+        img.movingArea = cv::countNonZero(fgmask);
         img.frameToView = utils::cvMat2QPixmap(frame);
-        img.frameToView =
-            painterUtils::drawDatetime(std::move(img.frameToView), 0, 0);
-        img.frameToView = painterUtils::drawTextWithBackground(
-            std::move(img.frameToView),
+        painterUtils::drawDatetime(img.frameToView, 0, 0);
+        painterUtils::drawTextWithBackground(
+            img.frameToView,
             QString::number(img.movingArea),
             150,
             0);
-        img.frameToView =
-            painterUtils::drawRecordingCircle(std::move(img.frameToView), 10, 20);
+        painterUtils::drawRecordingCircle(img.frameToView, 10, 20);
         img.frameToWrite = img.frameToView.copy();
         if(auto que = pimpl->queue.lock())
             que->waitPush(std::move(img));

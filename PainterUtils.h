@@ -3,7 +3,7 @@
 #include <QPixmap>
 
 namespace painterUtils {
-QPixmap drawDatetime(QPixmap input, int x, int y);
-QPixmap drawTextWithBackground(QPixmap input, const QString& text, int x, int y);
-QPixmap drawRecordingCircle(QPixmap input, int radius, int padding);
+void drawDatetime(QPixmap& img, int x, int y);
+void drawTextWithBackground(QPixmap& img, const QString& text, int x, int y);
+void drawRecordingCircle(QPixmap& img, int radius, int padding);
 } // namespace painterUtils

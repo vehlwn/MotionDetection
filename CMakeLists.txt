@@ -46,11 +46,11 @@ add_executable(
   FrameConsumerThread.h
   FrameProducerThread.cpp
   FrameProducerThread.h
-  FrameWriterThread.cpp
-  FrameWriterThread.h
   MainWindow.cpp
   MainWindow.h
   MainWindow.ui
+  PainterUtils.cpp
+  PainterUtils.h
   PixmapScene.cpp
   PixmapScene.h
   SettingsDialog.cpp
@@ -60,8 +60,6 @@ add_executable(
   main.cpp
   utils.cpp
   utils.h
-  PainterUtils.h
-  PainterUtils.cpp
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE Qt5::Widgets ${CONAN_LIBS})

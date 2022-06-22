@@ -2,6 +2,7 @@
 
 #include "BufferedVideoReader.h"
 #include "TimerWorker.h"
+#include "VideoWriterOptions.h"
 
 #include <QObject>
 #include <QPixmap>
@@ -18,7 +19,7 @@ public:
     FrameConsumerThread(
         QObject* parent,
         std::weak_ptr<BufferedVideoReader::DataQue> queue,
-        double fps);
+        VideoWriterOptions videoOptions);
     ~FrameConsumerThread();
 
 protected:

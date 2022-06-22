@@ -4,7 +4,7 @@
 #include "FixedThreadSafeQueue.h"
 #include "FrameConsumerThread.h"
 #include "FrameProducerThread.h"
-#include "FrameWriterThread.h"
+#include "VideoWriterOptions.h"
 
 #include <memory>
 #include <mutex>
@@ -16,7 +16,6 @@ struct BufferedVideoReader::Impl
     std::shared_ptr<cv::VideoCapture> videoCapture;
     std::unique_ptr<FrameConsumerThread> consumer;
     std::unique_ptr<FrameProducerThread> producer;
-    std::unique_ptr<FrameWriterThread> writer;
 };
 
 BufferedVideoReader::BufferedVideoReader()
@@ -71,26 +70,23 @@ void BufferedVideoReader::start()
         this,
         pimpl->frameQue,
         pimpl->videoCapture);
+    VideoWriterOptions videoOptions;
+    videoOptions.outputDir.setPath("video");
+    videoOptions.outputExtension = ".mkv";
+    videoOptions.fourcc =
+        static_cast<int>(pimpl->videoCapture->get(cv::CAP_PROP_FOURCC));
+    videoOptions.fps = fps;
+    videoOptions.width =
+        static_cast<int>(pimpl->videoCapture->get(cv::CAP_PROP_FRAME_WIDTH));
+    videoOptions.height =
+        static_cast<int>(pimpl->videoCapture->get(cv::CAP_PROP_FRAME_HEIGHT));
     pimpl->consumer =
-        std::make_unique<FrameConsumerThread>(this, pimpl->frameQue, fps);
-    pimpl->writer = std::make_unique<FrameWriterThread>(
-        this,
-        QString{"video"},
-        ".mkv",
-        static_cast<int>(pimpl->videoCapture->get(cv::CAP_PROP_FOURCC)),
-        fps,
-        static_cast<int>(pimpl->videoCapture->get(cv::CAP_PROP_FRAME_WIDTH)),
-        static_cast<int>(pimpl->videoCapture->get(cv::CAP_PROP_FRAME_HEIGHT)));
+        std::make_unique<FrameConsumerThread>(this, pimpl->frameQue, videoOptions);
     connect(
         pimpl->consumer.get(),
         &FrameConsumerThread::newData,
         this,
         &BufferedVideoReader::newData);
-    connect(
-        pimpl->consumer.get(),
-        &FrameConsumerThread::newData,
-        pimpl->writer.get(),
-        &FrameWriterThread::newData);
     connect(
         pimpl->consumer.get(),
         &FrameConsumerThread::logMessage,
@@ -101,14 +97,8 @@ void BufferedVideoReader::start()
         &FrameProducerThread::logMessage,
         this,
         &BufferedVideoReader::logMessage);
-    connect(
-        pimpl->writer.get(),
-        &FrameWriterThread::logMessage,
-        this,
-        &BufferedVideoReader::logMessage);
     pimpl->producer->start();
     pimpl->consumer->start();
-    pimpl->writer->start();
     pimpl->frameQue->start();
 }
 
@@ -118,8 +108,6 @@ void BufferedVideoReader::stop()
         pimpl->producer->stop();
     if(pimpl->consumer)
         pimpl->consumer->stop();
-    if(pimpl->writer)
-        pimpl->writer->stop();
     if(pimpl->frameQue)
         pimpl->frameQue->stop();
 }
@@ -130,8 +118,6 @@ void BufferedVideoReader::wait()
         pimpl->producer->wait();
     if(pimpl->consumer)
         pimpl->consumer->wait();
-    if(pimpl->writer)
-        pimpl->writer->wait();
 }
 
 void BufferedVideoReader::waitStop()
