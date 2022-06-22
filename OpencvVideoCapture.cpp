@@ -23,7 +23,7 @@ std::optional<cv::Mat> OpencvVideoCapture::read()
     const bool ok = m_cap.read(frame);
     if(!ok || frame.empty())
         return std::nullopt;
-    return frame;
+    return std::optional<cv::Mat>{std::move(frame)};
 }
 
 void OpencvVideoCapture::set_fourcc(const std::string& fourcc)

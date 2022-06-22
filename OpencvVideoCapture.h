@@ -2,6 +2,7 @@
 
 #include "IVideoCapture.h"
 #include "Poco/Logger.h"
+#include "opencv2/core/mat.hpp"
 #include "opencv2/videoio.hpp"
 
 #include <optional>
