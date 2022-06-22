@@ -27,6 +27,7 @@ constexpr auto FNAME_ENTRY = "fname";
 constexpr auto HISTORY_ENTRY = "history";
 constexpr auto FRAME_BUFFER_SIZE_ENTRY = "frame_buffer_size";
 constexpr auto OUTPUT_FOLDER_ENTRY = "output_folder";
+constexpr auto OUTPUT_EXTENSION_ENTRY = "output_extension";
 
 const auto DEFAULT_SETTINGS = [] {
     std::map<QString, QVariant> result;
@@ -37,6 +38,7 @@ const auto DEFAULT_SETTINGS = [] {
     result[HISTORY_ENTRY] = 100;
     result[FRAME_BUFFER_SIZE_ENTRY] = 10;
     result[OUTPUT_FOLDER_ENTRY] = "video";
+    result[OUTPUT_EXTENSION_ENTRY] = ".mkv";
     return result;
 }();
 
@@ -153,4 +155,18 @@ void ApplicationSettings::outputFolder(QString s)
 {
     QMutexLocker lock{&pimpl->settingsMutex};
     pimpl->settings.setValue(OUTPUT_FOLDER_ENTRY, s);
+}
+
+QString ApplicationSettings::outputExtension() const
+{
+    QMutexLocker lock{&pimpl->settingsMutex};
+    const auto key = OUTPUT_EXTENSION_ENTRY;
+    return getSettingsValue(pimpl->settings, key, DEFAULT_SETTINGS.at(key))
+        .toString();
+}
+
+void ApplicationSettings::outputExtension(QString s)
+{
+    QMutexLocker lock{&pimpl->settingsMutex};
+    pimpl->settings.setValue(OUTPUT_EXTENSION_ENTRY, s);
 }
