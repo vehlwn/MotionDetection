@@ -56,7 +56,6 @@ protected:
             logger());
         motion_data_worker->start();
 
-        auto params = new Poco::Net::HTTPServerParams;
         const std::string host_and_port =
             config().getString("http_server.host_and_port");
         Poco::Net::HTTPServer srv{
@@ -69,6 +68,7 @@ protected:
         poco_information(
             logger(),
             fmt::format("Server listening {}", host_and_port));
+
         waitForTerminationRequest();
         srv.stop();
         return Poco::Util::Application::EXIT_OK;
