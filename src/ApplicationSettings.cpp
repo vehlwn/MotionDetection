@@ -112,7 +112,7 @@ bool ApplicationSettings::has_video_capture_fps() const
 
 double ApplicationSettings::get_video_capture_fps() const
 {
-    return m_config.getDouble(VIDEO_CAPTURE_FRAME_HEIGHT_KEY);
+    return m_config.getDouble(VIDEO_CAPTURE_FRAME_FPS_KEY);
 }
 
 double ApplicationSettings::get_preprocess_resize_factor() const
