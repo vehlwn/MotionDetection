@@ -38,9 +38,13 @@ public:
     double fileRotationPeriodValue() const;
     void fileRotationPeriodValue(double d);
     QString fileRotationPeriodUnit() const;
-    void fileRotationPeriodUnit(QString s) const;
+    void fileRotationPeriodUnit(QString s);
     double fileRotationMsec() const;
     std::vector<QString> validFileRotationUnits() const;
+    int minMovingArea() const;
+    void minMovingArea(int i);
+    double deltaWithoutMotion() const;
+    void deltaWithoutMotion(double d);
 
 private:
     ApplicationSettings();

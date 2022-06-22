@@ -32,6 +32,8 @@ constexpr auto GAUSSIAN_BLUR_CHECKED_ENTRY = "gaussian_blur_checked";
 constexpr auto GAUSSIAN_BLUR_VALUE_ENTRY = "gaussian_blur_value";
 constexpr auto FILE_ROTATION_PERIOD_VALUE_ENTRY = "file_rotation_period_value";
 constexpr auto FILE_ROTATION_PERIOD_UNIT_ENTRY = "file_rotation_period_unit";
+constexpr auto MIN_MOVING_AREA_ENTRY = "min_moving_area";
+constexpr auto DELTA_WITHOUT_MOTION_ENTRY = "delta_without_motion";
 
 const auto DEFAULT_SETTINGS = [] {
     std::map<QString, QVariant> result;
@@ -42,11 +44,13 @@ const auto DEFAULT_SETTINGS = [] {
     result[HISTORY_ENTRY] = 100;
     result[FRAME_BUFFER_SIZE_ENTRY] = 10;
     result[OUTPUT_FOLDER_ENTRY] = "video";
-    result[OUTPUT_EXTENSION_ENTRY] = ".mkv";
+    result[OUTPUT_EXTENSION_ENTRY] = ".avi";
     result[GAUSSIAN_BLUR_CHECKED_ENTRY] = true;
     result[GAUSSIAN_BLUR_VALUE_ENTRY] = 5;
     result[FILE_ROTATION_PERIOD_VALUE_ENTRY] = 1.0;
     result[FILE_ROTATION_PERIOD_UNIT_ENTRY] = "h";
+    result[MIN_MOVING_AREA_ENTRY] = 500;
+    result[DELTA_WITHOUT_MOTION_ENTRY] = 5.0;
     return result;
 }();
 
@@ -212,7 +216,7 @@ QString ApplicationSettings::fileRotationPeriodUnit() const
         .toString();
 }
 
-void ApplicationSettings::fileRotationPeriodUnit(QString s) const
+void ApplicationSettings::fileRotationPeriodUnit(QString s)
 {
     QMutexLocker lock{&pimpl->settingsMutex};
     pimpl->settings.setValue(FILE_ROTATION_PERIOD_UNIT_ENTRY, s);
@@ -234,4 +238,28 @@ double ApplicationSettings::fileRotationMsec() const
 std::vector<QString> ApplicationSettings::validFileRotationUnits() const
 {
     return {"s", "min", "h"};
+}
+
+int ApplicationSettings::minMovingArea() const
+{
+    QMutexLocker lock{&pimpl->settingsMutex};
+    return getSettingsValue(pimpl->settings, MIN_MOVING_AREA_ENTRY).toInt();
+}
+
+void ApplicationSettings::minMovingArea(int i)
+{
+    QMutexLocker lock{&pimpl->settingsMutex};
+    pimpl->settings.setValue(MIN_MOVING_AREA_ENTRY, i);
+}
+
+double ApplicationSettings::deltaWithoutMotion() const
+{
+    QMutexLocker lock{&pimpl->settingsMutex};
+    return getSettingsValue(pimpl->settings, DELTA_WITHOUT_MOTION_ENTRY).toDouble();
+}
+
+void ApplicationSettings::deltaWithoutMotion(double d)
+{
+    QMutexLocker lock{&pimpl->settingsMutex};
+    pimpl->settings.setValue(DELTA_WITHOUT_MOTION_ENTRY, d);
 }

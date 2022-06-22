@@ -7,13 +7,13 @@
     <x>0</x>
     <y>0</y>
     <width>459</width>
-    <height>321</height>
+    <height>385</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Dialog</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout">
+  <layout class="QVBoxLayout" name="verticalLayout_2">
    <item>
     <widget class="QGroupBox" name="groupBox">
      <property name="title">
@@ -76,20 +76,31 @@
       </widget>
      </item>
      <item row="0" column="1">
-      <widget class="QSpinBox" name="spinBoxHistory">
-       <property name="accelerated">
-        <bool>true</bool>
-       </property>
-       <property name="showGroupSeparator" stdset="0">
-        <bool>true</bool>
-       </property>
-       <property name="minimum">
-        <number>1</number>
-       </property>
-       <property name="maximum">
-        <number>100000</number>
-       </property>
-      </widget>
+      <layout class="QHBoxLayout" name="horizontalLayout_7">
+       <item>
+        <widget class="QSpinBox" name="spinBoxHistory">
+         <property name="accelerated">
+          <bool>true</bool>
+         </property>
+         <property name="showGroupSeparator" stdset="0">
+          <bool>true</bool>
+         </property>
+         <property name="minimum">
+          <number>1</number>
+         </property>
+         <property name="maximum">
+          <number>100000</number>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="label_3">
+         <property name="text">
+          <string>frames</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
      </item>
      <item row="1" column="0">
       <widget class="QLabel" name="labelFrameBufferSize">
@@ -99,20 +110,24 @@
       </widget>
      </item>
      <item row="1" column="1">
-      <widget class="QSpinBox" name="spinBoxFrameBufferSize">
-       <property name="accelerated">
-        <bool>true</bool>
-       </property>
-       <property name="showGroupSeparator" stdset="0">
-        <bool>true</bool>
-       </property>
-       <property name="minimum">
-        <number>1</number>
-       </property>
-       <property name="maximum">
-        <number>1000</number>
-       </property>
-      </widget>
+      <layout class="QHBoxLayout" name="horizontalLayout_6">
+       <item>
+        <widget class="QSpinBox" name="spinBoxFrameBufferSize">
+         <property name="accelerated">
+          <bool>true</bool>
+         </property>
+         <property name="showGroupSeparator" stdset="0">
+          <bool>true</bool>
+         </property>
+         <property name="minimum">
+          <number>1</number>
+         </property>
+         <property name="maximum">
+          <number>1000</number>
+         </property>
+        </widget>
+       </item>
+      </layout>
      </item>
      <item row="2" column="0">
       <widget class="QLabel" name="labelOutputFolder">
@@ -165,20 +180,31 @@
       </widget>
      </item>
      <item row="4" column="1">
-      <widget class="QSpinBox" name="spinBoxGaussianBlur">
-       <property name="accelerated">
-        <bool>true</bool>
-       </property>
-       <property name="showGroupSeparator" stdset="0">
-        <bool>true</bool>
-       </property>
-       <property name="minimum">
-        <number>1</number>
-       </property>
-       <property name="maximum">
-        <number>101</number>
-       </property>
-      </widget>
+      <layout class="QHBoxLayout" name="horizontalLayout_5">
+       <item>
+        <widget class="QSpinBox" name="spinBoxGaussianBlur">
+         <property name="accelerated">
+          <bool>true</bool>
+         </property>
+         <property name="showGroupSeparator" stdset="0">
+          <bool>true</bool>
+         </property>
+         <property name="minimum">
+          <number>1</number>
+         </property>
+         <property name="maximum">
+          <number>101</number>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="label_2">
+         <property name="text">
+          <string>px</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
      </item>
      <item row="5" column="0">
       <widget class="QLabel" name="labelFileRotationPeriod">
@@ -213,27 +239,108 @@
        </item>
       </layout>
      </item>
+     <item row="6" column="0">
+      <widget class="QLabel" name="labelMinMovingArea">
+       <property name="text">
+        <string>Min moving area</string>
+       </property>
+      </widget>
+     </item>
+     <item row="6" column="1">
+      <layout class="QHBoxLayout" name="horizontalLayout_4">
+       <item>
+        <widget class="QSpinBox" name="spinBoxMinMovingArea">
+         <property name="accelerated">
+          <bool>true</bool>
+         </property>
+         <property name="showGroupSeparator" stdset="0">
+          <bool>true</bool>
+         </property>
+         <property name="minimum">
+          <number>0</number>
+         </property>
+         <property name="maximum">
+          <number>10000000</number>
+         </property>
+         <property name="value">
+          <number>100</number>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="label">
+         <property name="text">
+          <string>px</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item row="7" column="0">
+      <widget class="QLabel" name="labelDeltaWithoutMotion">
+       <property name="text">
+        <string>Delta without motion</string>
+       </property>
+      </widget>
+     </item>
+     <item row="7" column="1">
+      <layout class="QHBoxLayout" name="horizontalLayout_8">
+       <item>
+        <widget class="QDoubleSpinBox" name="doubleSpinBoxDeltaWithoutMotion">
+         <property name="accelerated">
+          <bool>true</bool>
+         </property>
+         <property name="decimals">
+          <number>3</number>
+         </property>
+         <property name="minimum">
+          <double>0.010000000000000</double>
+         </property>
+         <property name="maximum">
+          <double>1000000.000000000000000</double>
+         </property>
+         <property name="singleStep">
+          <double>0.500000000000000</double>
+         </property>
+         <property name="value">
+          <double>5.000000000000000</double>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="label_4">
+         <property name="text">
+          <string>s</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
     </layout>
    </item>
    <item>
-    <widget class="QDialogButtonBox" name="buttonBox">
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-     <property name="standardButtons">
-      <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="QLabel" name="labelError">
-     <property name="styleSheet">
-      <string notr="true">color: rgb(255, 0, 0);</string>
-     </property>
-     <property name="text">
-      <string>TextLabel</string>
-     </property>
-    </widget>
+    <layout class="QVBoxLayout" name="verticalLayout">
+     <item>
+      <widget class="QLabel" name="labelError">
+       <property name="styleSheet">
+        <string notr="true">color: rgb(255, 0, 0);</string>
+       </property>
+       <property name="text">
+        <string>TextLabel</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QDialogButtonBox" name="buttonBox">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="standardButtons">
+        <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
+       </property>
+      </widget>
+     </item>
+    </layout>
    </item>
   </layout>
  </widget>
