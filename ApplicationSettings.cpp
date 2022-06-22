@@ -42,10 +42,10 @@ const auto DEFAULT_SETTINGS = [] {
     return result;
 }();
 
-QVariant getSettingsValue(QSettings& s, const QString& key, const QVariant& def = {})
+QVariant getSettingsValue(QSettings& s, const QString& key)
 {
     if(!s.contains(key))
-        s.setValue(key, def);
+        s.setValue(key, DEFAULT_SETTINGS.at(key));
     return s.value(key);
 }
 
@@ -67,8 +67,7 @@ ApplicationSettings& ApplicationSettings::i()
 bool ApplicationSettings::cameraChecked() const
 {
     QMutexLocker lock{&pimpl->settingsMutex};
-    const auto key = CAMERA_CHECKED_ENTRY;
-    return getSettingsValue(pimpl->settings, key, DEFAULT_SETTINGS.at(key)).toBool();
+    return getSettingsValue(pimpl->settings, CAMERA_CHECKED_ENTRY).toBool();
 }
 
 void ApplicationSettings::cameraChecked(bool b)
@@ -80,8 +79,7 @@ void ApplicationSettings::cameraChecked(bool b)
 bool ApplicationSettings::fileChecked() const
 {
     QMutexLocker lock{&pimpl->settingsMutex};
-    const auto key = FILE_CHECKED_ENTRY;
-    return getSettingsValue(pimpl->settings, key, DEFAULT_SETTINGS.at(key)).toBool();
+    return getSettingsValue(pimpl->settings, FILE_CHECKED_ENTRY).toBool();
 }
 
 void ApplicationSettings::fileChecked(bool b)
@@ -93,8 +91,7 @@ void ApplicationSettings::fileChecked(bool b)
 int ApplicationSettings::cameraIndex() const
 {
     QMutexLocker lock{&pimpl->settingsMutex};
-    const auto key = CAMERA_INDEX_ENTRY;
-    return getSettingsValue(pimpl->settings, key, DEFAULT_SETTINGS.at(key)).toInt();
+    return getSettingsValue(pimpl->settings, CAMERA_INDEX_ENTRY).toInt();
 }
 
 void ApplicationSettings::cameraIndex(int i)
@@ -106,9 +103,7 @@ void ApplicationSettings::cameraIndex(int i)
 QString ApplicationSettings::fname() const
 {
     QMutexLocker lock{&pimpl->settingsMutex};
-    const auto key = FNAME_ENTRY;
-    return getSettingsValue(pimpl->settings, key, DEFAULT_SETTINGS.at(key))
-        .toString();
+    return getSettingsValue(pimpl->settings, FNAME_ENTRY).toString();
 }
 
 void ApplicationSettings::fname(QString s)
@@ -120,8 +115,7 @@ void ApplicationSettings::fname(QString s)
 int ApplicationSettings::history() const
 {
     QMutexLocker lock{&pimpl->settingsMutex};
-    const auto key = HISTORY_ENTRY;
-    return getSettingsValue(pimpl->settings, key, DEFAULT_SETTINGS.at(key)).toInt();
+    return getSettingsValue(pimpl->settings, HISTORY_ENTRY).toInt();
 }
 
 void ApplicationSettings::history(int i)
@@ -133,8 +127,7 @@ void ApplicationSettings::history(int i)
 int ApplicationSettings::frameBufferSize() const
 {
     QMutexLocker lock{&pimpl->settingsMutex};
-    const auto key = FRAME_BUFFER_SIZE_ENTRY;
-    return getSettingsValue(pimpl->settings, key, DEFAULT_SETTINGS.at(key)).toInt();
+    return getSettingsValue(pimpl->settings, FRAME_BUFFER_SIZE_ENTRY).toInt();
 }
 
 void ApplicationSettings::frameBufferSize(int i)
@@ -146,9 +139,7 @@ void ApplicationSettings::frameBufferSize(int i)
 QString ApplicationSettings::outputFolder() const
 {
     QMutexLocker lock{&pimpl->settingsMutex};
-    const auto key = OUTPUT_FOLDER_ENTRY;
-    return getSettingsValue(pimpl->settings, key, DEFAULT_SETTINGS.at(key))
-        .toString();
+    return getSettingsValue(pimpl->settings, OUTPUT_FOLDER_ENTRY).toString();
 }
 
 void ApplicationSettings::outputFolder(QString s)
@@ -160,9 +151,7 @@ void ApplicationSettings::outputFolder(QString s)
 QString ApplicationSettings::outputExtension() const
 {
     QMutexLocker lock{&pimpl->settingsMutex};
-    const auto key = OUTPUT_EXTENSION_ENTRY;
-    return getSettingsValue(pimpl->settings, key, DEFAULT_SETTINGS.at(key))
-        .toString();
+    return getSettingsValue(pimpl->settings, OUTPUT_EXTENSION_ENTRY).toString();
 }
 
 void ApplicationSettings::outputExtension(QString s)
