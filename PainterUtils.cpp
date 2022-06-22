@@ -18,6 +18,7 @@ void drawTextWithBackground(QPixmap& img, const QString& text, int x, int y)
     QPainter painter{&img};
     QFont f = painter.font();
     f.setStyleStrategy(QFont::NoAntialias);
+    painter.setFont(f);
     QFontMetrics fm{f};
     painter.setBackgroundMode(Qt::OpaqueMode);
     painter.setBackground(Qt::white);
