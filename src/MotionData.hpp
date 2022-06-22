@@ -9,14 +9,14 @@ public:
         , m_fgmask{std::move(fgmask)}
     {}
 
-    cv::Mat frame() const
+    const cv::Mat& frame() const
     {
-        return m_frame.clone();
+        return m_frame;
     }
 
-    cv::Mat fgmask() const
+    const cv::Mat& fgmask() const
     {
-        return m_fgmask.clone();
+        return m_fgmask;
     }
 
 private:
