@@ -14,4 +14,6 @@ public:
 private:
     struct Impl;
     std::unique_ptr<Impl> pimpl;
+
+    void connectUiSlots();
 };
