@@ -20,8 +20,8 @@ FrameProducerThread::FrameProducerThread(QObject* parent)
 
 void FrameProducerThread::run()
 {
-    const std::string fname =
-        R"(K:\Road traffic video for object recognition.avi)";
+    emit logMessage(QString::fromStdString(cv::getBuildInformation()));
+    const std::string fname = R"(K:\Road traffic video for object recognition.avi)";
     if(!pimpl->cap.open(fname))
     {
         emit logMessage(
@@ -30,6 +30,18 @@ void FrameProducerThread::run()
     }
     emit logMessage(QString{"CAP_PROP_FRAME_WIDTH = %1"}.arg(
         pimpl->cap.get(cv::CAP_PROP_FRAME_WIDTH)));
+    emit logMessage(QString{"CAP_PROP_FRAME_HEIGHT = %1"}.arg(
+        pimpl->cap.get(cv::CAP_PROP_FRAME_HEIGHT)));
+    emit logMessage(QString{"CAP_PROP_FPS = %1"}.arg(pimpl->cap.get(cv::CAP_PROP_FPS)));
 
-    /* emit newFrame(utils::cvMat2QPixmap(mat)); */
+    while(true)
+    {
+        cv::Mat frame;
+        const bool ret = pimpl->cap.read(frame);
+        if(!ret)
+            break;
+
+        emit newFrame(utils::cvMat2QPixmap(frame));
+        break;
+    }
 }

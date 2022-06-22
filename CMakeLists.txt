@@ -27,7 +27,7 @@ if(NOT EXISTS "${CMAKE_BINARY_DIR}/conan.cmake")
   )
 endif()
 include(${CMAKE_BINARY_DIR}/conan.cmake)
-conan_cmake_run(REQUIRES opencv/4.3.0@conan/stable BASIC_SETUP BUILD missing)
+conan_cmake_run(REQUIRES opencv/4.3.0@conan/stable OPTIONS opencv:ffmpeg=True BASIC_SETUP BUILD missing)
 
 if(WIN32)
   set(GUI_TYPE WIN32)
