@@ -11,6 +11,16 @@ public:
     {
     }
 
+    cv::Mat frame() const
+    {
+        return m_frame.clone();
+    }
+
+    cv::Mat fgmask() const
+    {
+        return m_fgmask.clone();
+    }
+
 private:
     cv::Mat m_frame;
     cv::Mat m_fgmask;

@@ -10,6 +10,8 @@ find_package(Poco REQUIRED COMPONENTS Net Foundation Util)
 
 add_executable(
   ${PROJECT_NAME}
+  AppRequestHandlerFactory.cpp
+  AppRequestHandlerFactory.h
   IVideoCapture.h
   MotionData.h
   MotionDataWorker.cpp

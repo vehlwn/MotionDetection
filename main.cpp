@@ -1,3 +1,4 @@
+#include "AppRequestHandlerFactory.h"
 #include "MotionDataWorker.h"
 #include "OpencvBackgroundSubtractorFactory.h"
 #include "Poco/AutoPtr.h"
@@ -6,47 +7,15 @@
 #include "Poco/FormattingChannel.h"
 #include "Poco/Logger.h"
 #include "Poco/Message.h"
-#include "Poco/Net/HTTPRequestHandler.h"
 #include "Poco/Net/HTTPRequestHandlerFactory.h"
 #include "Poco/Net/HTTPServer.h"
-#include "Poco/Net/HTTPServerRequest.h"
-#include "Poco/Net/HTTPServerResponse.h"
 #include "Poco/Net/ServerSocket.h"
 #include "Poco/Net/SocketAddress.h"
 #include "Poco/PatternFormatter.h"
 #include "Poco/Util/ServerApplication.h"
 #include "VideoCaptureFactory.h"
 
-#include <cstdint>
-#include <iostream>
 #include <memory>
-
-class HelloRequestHandler : public Poco::Net::HTTPRequestHandler
-{
-public:
-    void handleRequest(
-        Poco::Net::HTTPServerRequest& request,
-        Poco::Net::HTTPServerResponse& response) override
-    {
-        response.setContentType("text/plain");
-
-        std::ostream& ostr = response.send();
-        ostr << "Hello from POCO!";
-    }
-};
-
-class AppRequestHandlerFactory : public Poco::Net::HTTPRequestHandlerFactory
-{
-public:
-    Poco::Net::HTTPRequestHandler*
-        createRequestHandler(const Poco::Net::HTTPServerRequest& request) override
-    {
-        if(request.getMethod() == "GET" && request.getURI() == "/")
-            return new HelloRequestHandler;
-        else
-            return nullptr;
-    }
-};
 
 class ServerApp : public Poco::Util::ServerApplication
 {
@@ -89,10 +58,12 @@ protected:
         auto params = new Poco::Net::HTTPServerParams;
         const std::string host_and_port =
             config().getString("http_server.host_and_port");
-        Poco::Net::HTTPServer srv(
-            new AppRequestHandlerFactory,
+        Poco::Net::HTTPServer srv{
+            new vehlwn::AppRequestHandlerFactory{
+                std::move(motion_data_worker),
+                logger()},
             Poco::Net::ServerSocket{Poco::Net::SocketAddress{host_and_port}},
-            new Poco::Net::HTTPServerParams);
+            new Poco::Net::HTTPServerParams};
         srv.start();
         poco_information(
             logger(),
