@@ -1,5 +1,6 @@
 #include "FrameProducerThread.h"
 
+#include "ApplicationSettings.h"
 #include "utils.h"
 
 #include <QDebug>
@@ -16,7 +17,6 @@ struct FrameProducerThread::Impl
 {
     cv::VideoCapture cap;
     std::atomic_bool stopped = false;
-    VideoCaptureOptions videoOptions;
 };
 
 FrameProducerThread::FrameProducerThread(QObject* parent)
@@ -30,28 +30,28 @@ FrameProducerThread::~FrameProducerThread()
     stopStreaming();
 }
 
-void FrameProducerThread::startStreaming(VideoCaptureOptions videoOptions)
+void FrameProducerThread::startStreaming()
 {
     stopStreaming();
-    pimpl->videoOptions = std::move(videoOptions);
     start();
 }
 
 void FrameProducerThread::run()
 {
-    if(auto fname = std::get_if<QString>(&pimpl->videoOptions.fname))
+    auto& i = ApplicationSettings::i();
+    if(i.fileChecked())
     {
-        if(!pimpl->cap.open(fname->toStdString()))
+        if(!pimpl->cap.open(i.fname().toStdString()))
         {
-            emit logMessage(QString{"Failed to open file '%1'"}.arg(*fname));
+            emit logMessage(QString{"Failed to open file '%1'"}.arg(i.fname()));
             return;
         }
     }
-    else if(auto index = std::get_if<int>(&pimpl->videoOptions.fname))
+    else if(i.cameraChecked())
     {
-        if(!pimpl->cap.open(*index))
+        if(!pimpl->cap.open(i.cameraIndex()))
         {
-            emit logMessage(QString{"Failed to open camera '%1'"}.arg(*index));
+            emit logMessage(QString{"Failed to open camera '%1'"}.arg(i.cameraIndex()));
             return;
         }
     }

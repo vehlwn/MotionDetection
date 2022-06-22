@@ -1,6 +1,5 @@
 #pragma once
 
-#include "VideoCaptureOptions.h"
 
 #include <QObject>
 #include <QPixmap>
@@ -25,7 +24,7 @@ signals:
     void logMessage(QString s);
 
 public slots:
-    void startStreaming(VideoCaptureOptions videoOptions);
+    void startStreaming();
     void stopStreaming();
 
 private:

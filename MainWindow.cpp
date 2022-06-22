@@ -1,10 +1,14 @@
 #include "MainWindow.h"
 
+#include "ApplicationSettings.h"
 #include "FrameProducerThread.h"
 #include "PixmapScene.h"
+#include "SettingsDialog.h"
 #include "ui_MainWindow.h"
 
 #include <QAbstractButton>
+#include <QAction>
+#include <QCoreApplication>
 #include <QDebug>
 #include <QFileDialog>
 #include <QGraphicsPixmapItem>
@@ -52,11 +56,19 @@ MainWindow::MainWindow(QWidget* parent)
         &FrameProducerThread::logMessage,
         this,
         &MainWindow::logMessage);
-
-    connectUiSlots();
-    pimpl->ui.radioButtonCamera->setChecked(true);
-    pimpl->ui.lineEditFname->setEnabled(false);
-    pimpl->ui.pushButtonOpenFile->setEnabled(false);
+    connect(
+        pimpl->ui.pushButtonStart,
+        &QAbstractButton::clicked,
+        &pimpl->frameProducerThread,
+        &FrameProducerThread::startStreaming);
+    connect(pimpl->ui.actionQuit, &QAction::triggered, this, &QCoreApplication::quit);
+    connect(pimpl->ui.actionSettings, &QAction::triggered, this, [] {
+        SettingsDialog dialog;
+        if(dialog.exec() != QDialog::Accepted)
+        {
+            return;
+        }
+    });
 }
 
 MainWindow::~MainWindow()
@@ -66,39 +78,4 @@ MainWindow::~MainWindow()
 void MainWindow::logMessage(QString s)
 {
     pimpl->ui.plainTextEdit->appendPlainText(std::move(s));
-}
-
-void MainWindow::connectUiSlots()
-{
-    connect(pimpl->ui.radioButtonCamera, &QAbstractButton::toggled, this, [this](bool b) {
-        pimpl->ui.spinBoxCameraIndex->setEnabled(b);
-    });
-    connect(pimpl->ui.radioButtonFile, &QAbstractButton::toggled, this, [this](bool b) {
-        pimpl->ui.lineEditFname->setEnabled(b);
-        pimpl->ui.pushButtonOpenFile->setEnabled(b);
-    });
-    connect(pimpl->ui.pushButtonOpenFile, &QAbstractButton::clicked, this, [this]() {
-        const QString fileName = QFileDialog::getOpenFileName(
-            this,
-            "Open video file",
-            "",
-            "AVI files (*.avi);;MP4 files (*.mp4);;All files (*.*)");
-
-        if(fileName.isEmpty())
-            return;
-        pimpl->ui.lineEditFname->setText(fileName);
-    });
-    connect(pimpl->ui.pushButtonStart, &QAbstractButton::clicked, this, [this]() {
-        VideoCaptureOptions op;
-        if(pimpl->ui.radioButtonCamera->isChecked())
-            op.fname = int{pimpl->ui.spinBoxCameraIndex->value()};
-        else if(pimpl->ui.radioButtonFile->isChecked())
-            op.fname = QString{pimpl->ui.lineEditFname->text()};
-        else
-        {
-            logMessage("Unknown video source");
-            return;
-        }
-        pimpl->frameProducerThread.startStreaming(op);
-    });
 }
