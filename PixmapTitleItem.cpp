@@ -4,6 +4,7 @@
 #include <QColor>
 #include <QFont>
 #include <QFontMetrics>
+#include <QGraphicsScene>
 #include <QLinearGradient>
 #include <QPainter>
 #include <QPixmap>
@@ -49,6 +50,8 @@ void PixmapTitleItem::paint(
 
 void PixmapTitleItem::setPixmap(QPixmap pixmap)
 {
+    if(pimpl->pixmap.size() != pixmap.size())
+        prepareGeometryChange();
     pimpl->pixmap = std::move(pixmap);
     update();
 }
