@@ -3,4 +3,4 @@
 compile_commands.json
 /.clangd/
 /.mypy_cache/
-*.py
+.cache/
