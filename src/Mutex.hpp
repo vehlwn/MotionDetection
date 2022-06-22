@@ -65,11 +65,14 @@ class Mutex {
     friend class detail::ConstMutexGuard<T>;
 
 public:
-    Mutex(const Mutex&) = delete;
-    Mutex(Mutex&&) = delete;
+    Mutex()
+        : m_value{}
+    {}
     explicit Mutex(T value)
         : m_value{std::move(value)}
     {}
+    Mutex(const Mutex&) = delete;
+    Mutex(Mutex&&) = delete;
     Mutex& operator=(const Mutex&) = delete;
     Mutex& operator=(Mutex&&) = delete;
     detail::MutexGuard<T> lock()

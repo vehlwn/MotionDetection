@@ -14,7 +14,7 @@ MotionDataWorker::MotionDataWorker(
     : m_back_subtractor_factory{std::move(back_subtractor_factory)}
     , m_video_capture_factory{std::move(video_capture_factory)}
     , m_preprocess_image_factory{std::move(preprocess_image_factory)}
-    , m_motion_data{std::make_shared<Mutex<MotionData>>(MotionData{{}, {}})}
+    , m_motion_data{std::make_shared<Mutex<MotionData>>()}
     , m_stopped{false}
     , m_logger{logger}
 {
@@ -50,7 +50,9 @@ void MotionDataWorker::start()
             cv::Mat frame = std::move(*opt_frame);
             cv::Mat processed = preprocess_filter->apply(frame);
             cv::Mat fgmask = back_subtractor->apply(processed);
-            *m_motion_data->lock() = {std::move(frame), std::move(fgmask)};
+            (*m_motion_data->lock())
+                .set_frame(std::move(frame))
+                .set_fgmask(std::move(fgmask));
         }
     }};
 }
@@ -64,7 +66,6 @@ void MotionDataWorker::stop()
         m_working_thread.join();
         poco_information(m_logger, "Joined");
     }
-    *m_motion_data->lock() = {{}, {}};
 }
 
 double MotionDataWorker::get_fps() const
