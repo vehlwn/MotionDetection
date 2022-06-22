@@ -5,7 +5,7 @@
 namespace vehlwn {
 class IImageFilter {
 public:
-    IImageFilter() = default;
     virtual cv::Mat apply(const cv::Mat& input) = 0;
+    virtual ~IImageFilter() = default;
 };
 } // namespace vehlwn
