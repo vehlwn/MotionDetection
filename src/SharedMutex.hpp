@@ -5,15 +5,15 @@
 
 namespace vehlwn {
 template<class T>
-class Mutex;
+class SharedMutex;
 
 namespace detail {
 template<class T>
 class MutexGuard {
-    friend class Mutex<T>;
+    friend class SharedMutex<T>;
 
 private:
-    MutexGuard(Mutex<T>& mutex)
+    MutexGuard(SharedMutex<T>& mutex)
         : m_mutex{mutex}
         , m_lock{m_mutex.m_inner}
     {}
@@ -29,16 +29,16 @@ public:
     }
 
 private:
-    Mutex<T>& m_mutex;
+    SharedMutex<T>& m_mutex;
     std::unique_lock<std::shared_mutex> m_lock;
 };
 
 template<class T>
 class ConstMutexGuard {
-    friend class Mutex<T>;
+    friend class SharedMutex<T>;
 
 private:
-    ConstMutexGuard(const Mutex<T>& mutex)
+    ConstMutexGuard(const SharedMutex<T>& mutex)
         : m_mutex{mutex}
         , m_lock{m_mutex.m_inner}
     {}
@@ -54,27 +54,27 @@ public:
     }
 
 private:
-    const Mutex<T>& m_mutex;
+    const SharedMutex<T>& m_mutex;
     std::shared_lock<std::shared_mutex> m_lock;
 };
 } // namespace detail
 
 template<class T>
-class Mutex {
+class SharedMutex {
     friend class detail::MutexGuard<T>;
     friend class detail::ConstMutexGuard<T>;
 
 public:
-    Mutex()
+    SharedMutex()
         : m_value{}
     {}
-    explicit Mutex(T value)
-        : m_value{std::move(value)}
+    explicit SharedMutex(T&& value)
+        : m_value(std::move(value))
     {}
-    Mutex(const Mutex&) = delete;
-    Mutex(Mutex&&) = delete;
-    Mutex& operator=(const Mutex&) = delete;
-    Mutex& operator=(Mutex&&) = delete;
+    SharedMutex(const SharedMutex&) = delete;
+    SharedMutex(SharedMutex&&) = delete;
+    SharedMutex& operator=(const SharedMutex&) = delete;
+    SharedMutex& operator=(SharedMutex&&) = delete;
     detail::MutexGuard<T> lock()
     {
         return detail::MutexGuard<T>{*this};

@@ -13,8 +13,11 @@ void CurrentFrameHandler::handleRequest(
     Poco::Net::HTTPServerRequest& /*request*/,
     Poco::Net::HTTPServerResponse& response)
 {
-    const cv::Mat frame
-        = m_motion_data_worker->get_motion_data()->lock()->frame().clone();
+    cv::Mat frame;
+    {
+        const auto lock = m_motion_data_worker->get_motion_data()->lock();
+        frame = lock->frame().get().clone();
+    }
     m_imencode_handler.send_encoded_image(frame, response);
 }
 

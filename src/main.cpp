@@ -1,24 +1,26 @@
+#include <iostream>
+#include <memory>
+
+#include <Poco/AutoPtr.h>
+#include <Poco/ConsoleChannel.h>
+#include <Poco/FormattingChannel.h>
+#include <Poco/Logger.h>
+#include <Poco/Message.h>
+#include <Poco/Net/HTTPRequestHandlerFactory.h>
+#include <Poco/Net/HTTPServer.h>
+#include <Poco/Net/ServerSocket.h>
+#include <Poco/Net/SocketAddress.h>
+#include <Poco/PatternFormatter.h>
+#include <Poco/Util/ServerApplication.h>
+#include <PreprocessImageFactory.hpp>
+#include <fmt/core.h>
+
 #include "AppRequestHandlerFactory.hpp"
 #include "ApplicationSettings.hpp"
 #include "BackgroundSubtractorFactory.hpp"
+#include "FileNameFactory.hpp"
 #include "MotionDataWorker.hpp"
-#include "Poco/AutoPtr.h"
-#include "Poco/ConsoleChannel.h"
-#include "Poco/FormattingChannel.h"
-#include "Poco/Logger.h"
-#include "Poco/Message.h"
-#include "Poco/Net/HTTPRequestHandlerFactory.h"
-#include "Poco/Net/HTTPServer.h"
-#include "Poco/Net/ServerSocket.h"
-#include "Poco/Net/SocketAddress.h"
-#include "Poco/PatternFormatter.h"
-#include "Poco/Util/ServerApplication.h"
-#include "PreprocessImageFactory.hpp"
-#include "VideoCaptureFactory.hpp"
-#include "fmt/core.h"
-
-#include <iostream>
-#include <memory>
+#include "ffmpeg/InputDevice.hpp"
 
 class ServerApp : public Poco::Util::ServerApplication {
     using base = Poco::Util::ServerApplication;
@@ -52,16 +54,27 @@ protected:
             = std::make_shared<vehlwn::BackgroundSubtractorFactory>(
                 application_settings->background_subtractor,
                 logger());
-        auto video_capture_factory = std::make_shared<vehlwn::VideoCaptureFactory>(
-            application_settings->video_capture,
-            logger());
+
+        auto demuxer_options = vehlwn::ffmpeg::ScopedAvDictionary();
+        demuxer_options.set_str("framerate", "30");
+        demuxer_options.set_str("video_size", "1280x720");
+        demuxer_options.set_str("input_format", "mjpeg");
+        auto input_device = vehlwn::ffmpeg::open_input_device(
+            application_settings->video_capture.filename.data(),
+            demuxer_options);
+
+        auto out_filename_factory = std::make_shared<vehlwn::DateFolderFactory>();
+        out_filename_factory->set_prefix("");
+        out_filename_factory->set_extension(".mp4");
+
         auto preprocess_image_factory
             = std::make_shared<vehlwn::PreprocessImageFactory>(
                 application_settings->preprocess,
                 logger());
         auto motion_data_worker = std::make_shared<vehlwn::MotionDataWorker>(
             std::move(back_subtractor_factory),
-            std::move(video_capture_factory),
+            std::move(input_device),
+            std::move(out_filename_factory),
             std::move(preprocess_image_factory),
             logger());
         motion_data_worker->start();

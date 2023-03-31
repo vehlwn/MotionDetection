@@ -1,8 +1,8 @@
 #include "IdentityFilter.hpp"
 
 namespace vehlwn {
-cv::Mat IdentityFilter::apply(const cv::Mat& input)
+CvMatRaiiAdapter IdentityFilter::apply(CvMatRaiiAdapter&& input)
 {
-    return input.clone();
+    return std::move(input);
 }
 } // namespace vehlwn

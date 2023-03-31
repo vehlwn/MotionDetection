@@ -1,21 +1,20 @@
 #include "ImageFilterChain.hpp"
 
-#include <algorithm>
+#include <boost/range/algorithm/for_each.hpp>
 
 namespace vehlwn {
 
-void ImageFilterChain::add_filter(std::shared_ptr<IImageFilter> filter)
+void ImageFilterChain::add_filter(std::shared_ptr<IImageFilter>&& filter)
 {
-    m_filters.push_back(std::move(filter));
+    m_filters.emplace_back(std::move(filter));
 }
 
-cv::Mat ImageFilterChain::apply(const cv::Mat& input)
+CvMatRaiiAdapter ImageFilterChain::apply(CvMatRaiiAdapter&& input)
 {
-    cv::Mat ret = input.clone();
-    std::for_each(m_filters.cbegin(), m_filters.cend(), [&ret](const auto& filter) {
-        ret = filter->apply(ret);
+    boost::for_each(m_filters, [&](const auto& filter) {
+        input = filter->apply(std::move(input));
     });
-    return ret;
+    return std::move(input);
 }
 
 } // namespace vehlwn

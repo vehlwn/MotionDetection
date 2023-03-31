@@ -6,7 +6,7 @@ namespace vehlwn {
 class ResizeFilter : public IImageFilter {
 public:
     ResizeFilter(double scale_factor);
-    virtual cv::Mat apply(const cv::Mat& input) override;
+    virtual CvMatRaiiAdapter apply(CvMatRaiiAdapter&& input) override;
 
 private:
     const double m_scale_factor;

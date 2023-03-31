@@ -1,16 +1,15 @@
 #include "NormalizedBoxFilter.hpp"
 
-#include "opencv2/imgproc.hpp"
+#include <opencv2/imgproc.hpp>
 
 namespace vehlwn {
 NormalizedBoxFilter::NormalizedBoxFilter(int kernel_size)
     : m_kernel_size{kernel_size}
 {}
 
-cv::Mat NormalizedBoxFilter::apply(const cv::Mat& input)
+CvMatRaiiAdapter NormalizedBoxFilter::apply(CvMatRaiiAdapter&& input)
 {
-    cv::Mat ret;
-    cv::blur(input, ret, {m_kernel_size, m_kernel_size});
-    return ret;
+    cv::blur(input.get(), input.get(), {m_kernel_size, m_kernel_size});
+    return std::move(input);
 }
 } // namespace vehlwn

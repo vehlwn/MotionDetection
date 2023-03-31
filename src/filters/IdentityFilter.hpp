@@ -5,6 +5,6 @@
 namespace vehlwn {
 class IdentityFilter : public IImageFilter {
 public:
-    virtual cv::Mat apply(const cv::Mat& input) override;
+    virtual CvMatRaiiAdapter apply(CvMatRaiiAdapter&& input) override;
 };
 } // namespace vehlwn

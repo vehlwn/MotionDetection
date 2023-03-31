@@ -7,6 +7,7 @@ common_flags = [
     '-Werror=format',
     '-Werror=format-nonliteral',
     '-Werror=implicit-fallthrough',
+    '-Werror=infinite-recursion',
     '-Werror=parentheses',
     '-Werror=pedantic',
     '-Werror=return-type',
