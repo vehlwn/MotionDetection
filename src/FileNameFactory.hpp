@@ -33,17 +33,17 @@ public:
         const auto now = boost::chrono::system_clock::now();
         std::ostringstream os;
         using boost::chrono::time_fmt, boost::chrono::timezone;
-        os << time_fmt(timezone::utc, "%Y-%m-%d") << now;
+        os << time_fmt(timezone::local, "%Y-%m-%d") << now;
         const auto date_component = os.str();
         os.str("");
-        os << time_fmt(timezone::utc, "%TZ") << now;
+        os << time_fmt(timezone::local, "%H.%M.%S") << now;
         const auto time_component = os.str();
 
         std::filesystem::path ret = m_prefix;
         ret /= date_component;
+        std::filesystem::create_directories(ret);
         ret /= time_component;
         ret += m_extension;
-        std::filesystem::create_directories(ret);
         return ret.string();
     }
 };

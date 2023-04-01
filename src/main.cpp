@@ -64,8 +64,10 @@ protected:
             demuxer_options);
 
         auto out_filename_factory = std::make_shared<vehlwn::DateFolderFactory>();
-        out_filename_factory->set_prefix("");
-        out_filename_factory->set_extension(".mp4");
+        out_filename_factory->set_prefix(
+            std::string(application_settings->output_files.prefix));
+        out_filename_factory->set_extension(
+            std::string(application_settings->output_files.extension));
 
         auto preprocess_image_factory
             = std::make_shared<vehlwn::PreprocessImageFactory>(

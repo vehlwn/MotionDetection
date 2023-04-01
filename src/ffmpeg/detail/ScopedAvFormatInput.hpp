@@ -37,7 +37,7 @@ public:
             }
         }
         const int errnum
-            = avformat_open_input(&m_raw, url, nullptr, options.double_ptr());
+            = avformat_open_input(&m_raw, url, format, options.double_ptr());
         if(errnum < 0)
             throw ErrorWithContext("avformat_open_input failed: ", AvError(errnum));
     }

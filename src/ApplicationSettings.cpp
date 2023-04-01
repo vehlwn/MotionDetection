@@ -66,6 +66,18 @@ public:
             std::move(framerate),
             std::move(input_format)};
     }
+    vehlwn::ApplicationSettings::OutputFiles parse_output_files() const
+    {
+        std::string prefix;
+        if(m_config.hasProperty("output_files.prefix")) {
+            prefix = m_config.getString("output_files.prefix");
+        }
+        std::string extension;
+        if(m_config.hasProperty("output_files.extension")) {
+            extension = m_config.getString("output_files.extension");
+        }
+        return {std::move(prefix), std::move(extension)};
+    }
     vehlwn::ApplicationSettings::BackgroundSubtractor::Knn parse_knn() const
     {
         vehlwn::ApplicationSettings::BackgroundSubtractor::Knn ret;
@@ -306,11 +318,13 @@ ApplicationSettings read_settings(
     ConfigParser p{config, logger};
     auto host_and_port = p.parse_host_and_port();
     auto video_capture = p.parse_video_capture();
+    auto output_files = p.parse_output_files();
     auto background_subtractor = p.parse_background_subtractor();
     auto preprocess = p.parse_preprocess();
     return {
         host_and_port,
         std::move(video_capture),
+        std::move(output_files),
         background_subtractor,
         preprocess};
 }

@@ -44,6 +44,8 @@ void MotionDataWorker::start()
     m_stopped = false;
     auto back_subtractor = m_back_subtractor_factory->create();
     auto preprocess_filter = m_preprocess_image_factory->create();
+    const auto fname = m_out_filename_factory->generate();
+    m_input_device.start_recording(fname.data());
     m_working_thread = std::thread{[=] {
         while(!m_stopped) {
             auto frame = m_input_device.get_video_frame();

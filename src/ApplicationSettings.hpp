@@ -21,6 +21,11 @@ struct ApplicationSettings {
         std::optional<std::string> input_format;
     } video_capture;
 
+    struct OutputFiles {
+        std::string prefix;
+        std::string extension;
+    } output_files;
+
     struct BackgroundSubtractor {
         struct Knn {
             int history;
