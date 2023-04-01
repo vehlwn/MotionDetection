@@ -29,6 +29,7 @@ executable(
     'AppRequestHandlerFactory.hpp',
     'BackgroundSubtractorFactory.cpp',
     'BackgroundSubtractorFactory.hpp',
+    'DemuxerOptionsFactory.hpp',
     'ffmpeg/detail/AvError.hpp',
     'ffmpeg/detail/AvFrameAdapters.hpp',
     'ffmpeg/detail/AvPacketAdapters.hpp',

@@ -1,6 +1,9 @@
 #pragma once
 
 #include <iostream>
+#include <optional>
+#include <stdexcept>
+#include <string>
 
 extern "C" {
 #include <libavformat/avformat.h>
@@ -19,9 +22,20 @@ class ScopedAvFormatInput {
     AVFormatContext* m_raw = nullptr;
 
 public:
-    ScopedAvFormatInput(const char* const url, ScopedAvDictionary& options)
+    ScopedAvFormatInput(
+        const char* const url,
+        const std::optional<std::string>& file_format,
+        ScopedAvDictionary& options)
     {
         m_raw = nullptr;
+        const AVInputFormat* format = nullptr;
+        if(file_format) {
+            format = av_find_input_format(file_format.value().data());
+            if(!format) {
+                throw std::runtime_error(
+                    "av_find_input_format couldn't find specified format");
+            }
+        }
         const int errnum
             = avformat_open_input(&m_raw, url, nullptr, options.double_ptr());
         if(errnum < 0)

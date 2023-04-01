@@ -16,6 +16,7 @@
 
 extern "C" {
 #include <libavutil/mathematics.h>
+#include <libavutil/pixdesc.h>
 #include <libavutil/rational.h>
 }
 
@@ -328,22 +329,29 @@ OutputFile open_output_file(
                     ret = {start, end};
                     return ret;
                 }();
+                std::clog << "Encoder supported pixel formats: ";
+                for(const auto& x : enc_pix_fmts) {
+                    std::clog << av_get_pix_fmt_name(x) << ' ';
+                }
+                std::clog << std::endl;
                 if(const auto it
                    = boost::find(enc_pix_fmts, decoder_context.pix_fmt());
-                   it != enc_pix_fmts.end() && *it != decoder_context.pix_fmt()) {
+                   it != enc_pix_fmts.end()) {
                     encoder_context.set_pix_fmt(*it);
+                } else {
                     if(video_pix_converter)
                         std::cout << "Found more than one video stream! "
                                      "Ignoring others"
                                   << std::endl;
-                    else
+                    else {
+                        const auto dst_format = enc_pix_fmts[0];
                         video_pix_converter = SwsPixelConverter(
                             decoder_context.width(),
                             decoder_context.height(),
                             decoder_context.pix_fmt(),
-                            encoder->pix_fmts[0]);
-                } else {
-                    encoder_context.set_pix_fmt(decoder_context.pix_fmt());
+                            dst_format);
+                        encoder_context.set_pix_fmt(dst_format);
+                    }
                 }
                 // video time_base can be set to whatever is handy and supported
                 // by encoder

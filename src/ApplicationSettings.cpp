@@ -18,9 +18,9 @@ public:
     Poco::Net::SocketAddress parse_host_and_port() const
     {
         std::string tmp_value;
-        try {
+        if(m_config.hasProperty("http_server.host_and_port")) {
             tmp_value = m_config.getString("http_server.host_and_port");
-        } catch(const Poco::NotFoundException&) {
+        } else {
             poco_fatal(m_logger, "http_server.host_and_port key not found");
             std::exit(1);
         }
@@ -34,118 +34,37 @@ public:
             std::exit(1);
         }
     }
-    vehlwn::ApplicationSettings::VideoCapture::ApiPreference
-        parse_api_preference() const
-    {
-        using ApiPreference
-            = vehlwn::ApplicationSettings::VideoCapture::ApiPreference;
-        ApiPreference ret;
-        try {
-            const std::string tmp
-                = m_config.getString("video_capture.api_preference");
-            if(tmp == "CAP_FFMPEG")
-                ret = ApiPreference::CAP_FFMPEG;
-            else if(tmp == "CAP_V4L2")
-                ret = ApiPreference::CAP_V4L2;
-            else if(tmp == "CAP_ANY")
-                ret = ApiPreference::CAP_ANY;
-            else {
-                poco_fatal(m_logger, "Unknown api_preference");
-                std::exit(1);
-            }
-        } catch(const Poco::NotFoundException&) {
-            ret = ApiPreference::CAP_ANY;
-        }
-        return ret;
-    }
-    std::optional<vehlwn::ApplicationSettings::VideoCapture::FourccType>
-        parse_fourcc() const
-    {
-        using FourccType = vehlwn::ApplicationSettings::VideoCapture::FourccType;
-        std::optional<FourccType> ret;
-        try {
-            const std::string tmp = m_config.getString("video_capture.fourcc");
-            if(tmp.size() == 4) {
-                ret = FourccType{};
-                std::copy(tmp.begin(), tmp.end(), ret->begin());
-            } else {
-                poco_fatal(m_logger, "Invalid fourcc format");
-                std::exit(1);
-            }
-        } catch(const Poco::NotFoundException&) {
-            ret = std::nullopt;
-        }
-        return ret;
-    }
-    std::optional<vehlwn::ApplicationSettings::VideoCapture::Size>
-        parse_video_size() const
-    {
-        using Size = vehlwn::ApplicationSettings::VideoCapture::Size;
-        std::string tmp;
-        try {
-            tmp = m_config.getString("video_capture.size");
-        } catch(const Poco::NotFoundException&) {
-            return std::nullopt;
-        }
-        const auto x_pos = tmp.find('x');
-        if(x_pos == 0 || x_pos == tmp.size() || x_pos == std::string::npos) {
-            poco_fatal(m_logger, "Invalid fourcc format");
-            std::exit(1);
-        }
-        const std::string width_s{
-            tmp.begin(),
-            tmp.begin() + static_cast<std::ptrdiff_t>(x_pos)};
-        const std::string height_s{
-            tmp.begin() + static_cast<std::ptrdiff_t>(x_pos + 1),
-            tmp.end()};
-        int width{};
-        if(!Poco::NumberParser::tryParse(width_s, width)) {
-            poco_fatal(m_logger, "Invalid number format for width");
-            std::exit(1);
-        }
-        if(width <= 0) {
-            poco_fatal(m_logger, "Width must be positive integer");
-            std::exit(1);
-        }
-        int height{};
-        if(!Poco::NumberParser::tryParse(height_s, height)) {
-            poco_fatal(m_logger, "Invalid number for height");
-            std::exit(1);
-        }
-        if(height <= 0) {
-            poco_fatal(m_logger, "height must be positive integer");
-            std::exit(1);
-        }
-        return Size{width, height};
-    }
-    std::optional<double> parse_framerate() const
-    try {
-        const double ret = m_config.getDouble("video_capture.framerate");
-        if(ret <= 0.0) {
-            poco_fatal(m_logger, "Invalid valid for video_capture.framerate");
-            std::exit(1);
-        }
-        return std::optional{ret};
-    } catch(const Poco::NotFoundException&) {
-        return std::nullopt;
-    } catch(const Poco::SyntaxException&) {
-        poco_fatal(m_logger, "Invalid number format for video_capture.framerate");
-        std::exit(1);
-    }
     vehlwn::ApplicationSettings::VideoCapture parse_video_capture() const
     {
         std::string filename;
-        try {
+        if(m_config.hasProperty("video_capture.filename")) {
             filename = m_config.getString("video_capture.filename");
-        } catch(const Poco::NotFoundException&) {
+        } else {
             poco_fatal(m_logger, "video_capture.filename key not found");
             std::exit(1);
         }
-        auto api_preference = parse_api_preference();
-        auto fourcc = parse_fourcc();
-        auto size = parse_video_size();
-        auto framerate = parse_framerate();
-        return {std::move(filename), api_preference, fourcc, size, framerate};
+        std::optional<std::string> file_format;
+        if(m_config.hasProperty("video_capture.file_format")) {
+            file_format = m_config.getString("video_capture.file_format");
+        }
+        std::optional<std::string> video_size;
+        if(m_config.hasProperty("video_capture.video_size")) {
+            video_size = m_config.getString("video_capture.video_size");
+        }
+        std::optional<std::string> framerate;
+        if(m_config.hasProperty("video_capture.framerate")) {
+            framerate = m_config.getString("video_capture.framerate");
+        }
+        std::optional<std::string> input_format;
+        if(m_config.hasProperty("video_capture.input_format")) {
+            input_format = m_config.getString("video_capture.input_format");
+        }
+        return {
+            std::move(filename),
+            std::move(file_format),
+            std::move(video_size),
+            std::move(framerate),
+            std::move(input_format)};
     }
     vehlwn::ApplicationSettings::BackgroundSubtractor::Knn parse_knn() const
     {
@@ -235,9 +154,9 @@ public:
     {
         vehlwn::ApplicationSettings::BackgroundSubtractor ret;
         std::string algorithm_name;
-        try {
+        if(m_config.hasProperty("background_subtractor.algorithm")) {
             algorithm_name = m_config.getString("background_subtractor.algorithm");
-        } catch(const Poco::NotFoundException&) {
+        } else {
             poco_fatal(m_logger, "background_subtractor.algorithm key not found");
             std::exit(1);
         }

@@ -18,6 +18,7 @@
 #include "AppRequestHandlerFactory.hpp"
 #include "ApplicationSettings.hpp"
 #include "BackgroundSubtractorFactory.hpp"
+#include "DemuxerOptionsFactory.hpp"
 #include "FileNameFactory.hpp"
 #include "MotionDataWorker.hpp"
 #include "ffmpeg/InputDevice.hpp"
@@ -55,12 +56,11 @@ protected:
                 application_settings->background_subtractor,
                 logger());
 
-        auto demuxer_options = vehlwn::ffmpeg::ScopedAvDictionary();
-        demuxer_options.set_str("framerate", "30");
-        demuxer_options.set_str("video_size", "1280x720");
-        demuxer_options.set_str("input_format", "mjpeg");
+        auto demuxer_options = vehlwn::DemuxerOptionsFactory().create_options(
+            application_settings->video_capture);
         auto input_device = vehlwn::ffmpeg::open_input_device(
             application_settings->video_capture.filename.data(),
+            application_settings->video_capture.file_format,
             demuxer_options);
 
         auto out_filename_factory = std::make_shared<vehlwn::DateFolderFactory>();

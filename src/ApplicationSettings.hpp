@@ -15,22 +15,10 @@ struct ApplicationSettings {
 
     struct VideoCapture {
         std::string filename;
-        enum class ApiPreference {
-            CAP_ANY,
-            CAP_FFMPEG,
-            CAP_V4L2,
-        } api_preference;
-        using FourccType = std::array<char, 4>;
-        std::optional<FourccType> fourcc;
-        struct Size {
-            int width, height;
-            Size(int width, int height)
-                : width{width}
-                , height{height}
-            {}
-        };
-        std::optional<Size> size;
-        std::optional<double> framerate;
+        std::optional<std::string> file_format;
+        std::optional<std::string> video_size;
+        std::optional<std::string> framerate;
+        std::optional<std::string> input_format;
     } video_capture;
 
     struct BackgroundSubtractor {

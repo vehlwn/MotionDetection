@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <optional>
 #include <string>
 
 #include <opencv2/core/mat.hpp>
@@ -28,5 +29,8 @@ private:
     std::unique_ptr<Impl> pimpl;
 };
 
-InputDevice open_input_device(const char* const url, ScopedAvDictionary& options);
+InputDevice open_input_device(
+    const char* const url,
+    const std::optional<std::string>& file_format,
+    ScopedAvDictionary& options);
 } // namespace vehlwn::ffmpeg

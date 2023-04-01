@@ -171,7 +171,10 @@ bool InputDevice::is_recording() const
     return pimpl->output_file.has_value();
 }
 
-InputDevice open_input_device(const char* const url, ScopedAvDictionary& options)
+InputDevice open_input_device(
+    const char* const url,
+    const std::optional<std::string>& file_format,
+    ScopedAvDictionary& options)
 {
     {
         static bool register_devices_flag = [] {
@@ -184,7 +187,7 @@ InputDevice open_input_device(const char* const url, ScopedAvDictionary& options
     }
 
     std::clog << "Demuxer options = " << options << std::endl;
-    detail::ScopedAvFormatInput input_format_context(url, options);
+    detail::ScopedAvFormatInput input_format_context(url, file_format, options);
     std::clog << "Unsupported options = " << options << std::endl;
     input_format_context.find_stream_info();
     input_format_context.dump_format();
