@@ -100,10 +100,6 @@ public:
     {
         m_raw->pkt_timebase = x;
     }
-    void set_bit_rate(const std::int64_t x) const
-    {
-        m_raw->bit_rate = x;
-    }
     void set_flags(const int x) const
     {
         m_raw->flags = x;

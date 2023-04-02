@@ -76,7 +76,19 @@ public:
         if(m_config.hasProperty("output_files.extension")) {
             extension = m_config.getString("output_files.extension");
         }
-        return {std::move(prefix), std::move(extension)};
+        std::optional<std::string> video_bitrate;
+        if(m_config.hasProperty("output_files.video_bitrate")) {
+            video_bitrate = m_config.getString("output_files.video_bitrate");
+        }
+        std::optional<std::string> audio_bitrate;
+        if(m_config.hasProperty("output_files.audio_bitrate")) {
+            audio_bitrate = m_config.getString("output_files.audio_bitrate");
+        }
+        return {
+            std::move(prefix),
+            std::move(extension),
+            std::move(video_bitrate),
+            std::move(audio_bitrate)};
     }
     vehlwn::ApplicationSettings::BackgroundSubtractor::Knn parse_knn() const
     {

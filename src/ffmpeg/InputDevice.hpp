@@ -25,6 +25,9 @@ public:
     void stop_recording() const;
     bool is_recording() const;
 
+    void set_out_video_bitrate(std::optional<std::string>&& x) const;
+    void set_out_audio_bitrate(std::optional<std::string>&& x) const;
+
 private:
     std::unique_ptr<Impl> pimpl;
 };

@@ -2,6 +2,7 @@
 
 #include <map>
 #include <memory>
+#include <optional>
 #include <string>
 
 #include "AvFrameAdapters.hpp"
@@ -26,5 +27,7 @@ private:
 OutputFile open_output_file(
     const char* const url,
     const std::map<int, ScopedDecoderContext>& decoder_contexts,
-    const ScopedAvFormatInput::StreamsView in_streams);
+    const ScopedAvFormatInput::StreamsView in_streams,
+    const std::optional<std::string>& video_bitrate,
+    const std::optional<std::string>& audio_bitrate);
 } // namespace vehlwn::ffmpeg::detail

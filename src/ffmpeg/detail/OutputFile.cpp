@@ -31,11 +31,6 @@ extern "C" {
 #include "SwrResampler.hpp"
 #include "SwsPixelConverter.hpp"
 
-namespace {
-constexpr std::int64_t out_audio_bit_rate = 128'000;
-constexpr std::int64_t out_video_bit_rate = 12'000'000;
-} // namespace
-
 namespace vehlwn::ffmpeg::detail {
 struct OutputFile::Impl {
     ScopedAvFormatOutput out_format_context;
@@ -273,7 +268,9 @@ void OutputFile::encode_write_frame(
 OutputFile open_output_file(
     const char* const url,
     const std::map<int, ScopedDecoderContext>& decoder_contexts,
-    const ScopedAvFormatInput::StreamsView in_streams)
+    const ScopedAvFormatInput::StreamsView in_streams,
+    const std::optional<std::string>& video_bitrate,
+    const std::optional<std::string>& audio_bitrate)
 {
     ScopedAvFormatOutput out_format_context(url);
     std::vector<ScopedEncoderContext> encoder_contexts;
@@ -356,7 +353,6 @@ OutputFile open_output_file(
                 // video time_base can be set to whatever is handy and supported
                 // by encoder
                 encoder_context.set_time_base(av_inv_q(decoder_context.framerate()));
-                encoder_context.set_bit_rate(out_video_bit_rate);
                 // https://support.google.com/youtube/answer/1722171?hl=en
                 encoder_context.set_max_b_frames(2);
                 encoder_context.set_gop_size(
@@ -364,6 +360,8 @@ OutputFile open_output_file(
                 encoder_options.set_str("preset", "fast");
                 encoder_options.set_str("tune", "zerolatency");
                 encoder_options.set_str("flags", "+cgop");
+                if(video_bitrate)
+                    encoder_options.set_str("b", video_bitrate.value().data());
             } else {
                 encoder_context.set_sample_rate(decoder_context.sample_rate());
                 encoder_context.set_ch_layout(decoder_context.ch_layout());
@@ -371,7 +369,8 @@ OutputFile open_output_file(
                 encoder_context.set_sample_fmt(encoder->sample_fmts[0]);
                 encoder_context.set_time_base(
                     av_make_q(1, encoder_context.sample_rate()));
-                encoder_context.set_bit_rate(out_audio_bit_rate);
+                if(audio_bitrate)
+                    encoder_options.set_str("b", audio_bitrate.value().data());
 
                 ScopedSwrResampler resampler
                     = SwrResamplerBuiler()

@@ -46,6 +46,9 @@ struct InputDevice::Impl {
     std::queue<detail::OwningAvframe> video_frames_queue;
     std::int64_t last_video_pts;
 
+    std::optional<std::string> video_bitrate;
+    std::optional<std::string> audio_bitrate;
+
     Impl(
         detail::ScopedAvFormatInput&& input_format_context_,
         DecoderContextsMap&& decoder_contexts_,
@@ -158,7 +161,9 @@ void InputDevice::start_recording(const char* const path) const
     pimpl->output_file.emplace(open_output_file(
         path,
         pimpl->decoder_contexts,
-        pimpl->input_format_context.streams()));
+        pimpl->input_format_context.streams(),
+        pimpl->video_bitrate,
+        pimpl->audio_bitrate));
 }
 
 void InputDevice::stop_recording() const
@@ -169,6 +174,16 @@ void InputDevice::stop_recording() const
 bool InputDevice::is_recording() const
 {
     return pimpl->output_file.has_value();
+}
+
+void InputDevice::set_out_video_bitrate(std::optional<std::string>&& x) const
+{
+    pimpl->video_bitrate = std::move(x);
+}
+
+void InputDevice::set_out_audio_bitrate(std::optional<std::string>&& x) const
+{
+    pimpl->audio_bitrate = std::move(x);
 }
 
 InputDevice open_input_device(

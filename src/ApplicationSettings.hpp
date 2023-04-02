@@ -24,6 +24,8 @@ struct ApplicationSettings {
     struct OutputFiles {
         std::string prefix;
         std::string extension;
+        std::optional<std::string> video_bitrate;
+        std::optional<std::string> audio_bitrate;
     } output_files;
 
     struct BackgroundSubtractor {

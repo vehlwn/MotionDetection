@@ -62,6 +62,10 @@ protected:
             application_settings->video_capture.filename.data(),
             application_settings->video_capture.file_format,
             demuxer_options);
+        input_device.set_out_video_bitrate(
+            std::optional(application_settings->output_files.video_bitrate));
+        input_device.set_out_audio_bitrate(
+            std::optional(application_settings->output_files.audio_bitrate));
 
         auto out_filename_factory = std::make_shared<vehlwn::DateFolderFactory>();
         out_filename_factory->set_prefix(
