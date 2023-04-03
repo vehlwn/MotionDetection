@@ -19,9 +19,9 @@
 #include "ApplicationSettings.hpp"
 #include "BackgroundSubtractorFactory.hpp"
 #include "DemuxerOptionsFactory.hpp"
+#include "FfmpegInputDeviceFactory.hpp"
 #include "FileNameFactory.hpp"
 #include "MotionDataWorker.hpp"
-#include "ffmpeg/InputDevice.hpp"
 
 class ServerApp : public Poco::Util::ServerApplication {
     using base = Poco::Util::ServerApplication;
@@ -56,16 +56,8 @@ protected:
                 application_settings->background_subtractor,
                 logger());
 
-        auto demuxer_options = vehlwn::DemuxerOptionsFactory().create_options(
-            application_settings->video_capture);
-        auto input_device = vehlwn::ffmpeg::open_input_device(
-            application_settings->video_capture.filename.data(),
-            application_settings->video_capture.file_format,
-            demuxer_options);
-        input_device.set_out_video_bitrate(
-            std::optional(application_settings->output_files.video_bitrate));
-        input_device.set_out_audio_bitrate(
-            std::optional(application_settings->output_files.audio_bitrate));
+        auto input_device
+            = vehlwn::FfmpegInputDeviceFactory(*application_settings).create();
 
         auto out_filename_factory = std::make_shared<vehlwn::DateFolderFactory>();
         out_filename_factory->set_prefix(
