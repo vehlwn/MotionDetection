@@ -4,8 +4,11 @@ poco_dep = dependency('Poco',
   include_type: 'system'
 )
 opencv_dep = dependency('OpenCV', include_type: 'system')
-fmt_dep = dependency('fmt', include_type: 'system')
-boost_dep = dependency('boost', modules: ['chrono'], include_type: 'system')
+boost_dep = dependency(
+  'boost',
+  modules: ['chrono', 'log', 'thread'],
+  include_type: 'system'
+)
 
 libav_deps = []
 foreach name : [
@@ -84,6 +87,8 @@ executable(
     'handlers/NotFoundHandler.cpp',
     'handlers/NotFoundHandler.hpp',
     'IBackgroundSubtractor.hpp',
+    'init_logging.cpp',
+    'init_logging.hpp',
     'main.cpp',
     'MotionData.cpp',
     'MotionData.hpp',
@@ -93,6 +98,6 @@ executable(
     'PreprocessImageFactory.hpp',
     'SharedMutex.hpp',
   ],
-  dependencies: [poco_dep, opencv_dep, fmt_dep, boost_dep, libav_deps],
+  dependencies: [poco_dep, opencv_dep, boost_dep, libav_deps],
   cpp_args: HARDEN_CXX_OPTIONS
 )

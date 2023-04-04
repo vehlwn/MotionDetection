@@ -1,6 +1,5 @@
 #pragma once
 
-#include <iostream>
 #include <optional>
 #include <stdexcept>
 #include <string>
@@ -48,7 +47,6 @@ public:
     }
     ~ScopedAvFormatInput()
     {
-        std::cerr << "~ScopedAvFormatInput" << std::endl;
         avformat_close_input(&m_raw);
     }
     void swap(ScopedAvFormatInput& rhs) noexcept

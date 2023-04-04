@@ -1,7 +1,8 @@
 #pragma once
 
-#include "../MotionDataWorker.hpp"
-#include "Poco/Net/HTTPRequestHandler.h"
+#include <Poco/Net/HTTPRequestHandler.h>
+
+#include "MotionDataWorker.hpp"
 #include "common/ImencodeHandler.hpp"
 
 namespace vehlwn::handlers {
@@ -9,8 +10,7 @@ namespace vehlwn::handlers {
 class MotionMaskHandler : public Poco::Net::HTTPRequestHandler {
 public:
     MotionMaskHandler(
-        std::shared_ptr<const vehlwn::MotionDataWorker> motion_data_worker,
-        Poco::Logger& logger);
+        std::shared_ptr<const vehlwn::MotionDataWorker>&& motion_data_worker);
 
     virtual void handleRequest(
         Poco::Net::HTTPServerRequest& request,

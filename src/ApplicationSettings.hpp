@@ -1,8 +1,7 @@
 #pragma once
 
-#include "Poco/Logger.h"
-#include "Poco/Net/SocketAddress.h"
-#include "Poco/Util/AbstractConfiguration.h"
+#include <Poco/Net/SocketAddress.h>
+#include <Poco/Util/AbstractConfiguration.h>
 
 #include <array>
 #include <optional>
@@ -27,6 +26,10 @@ struct ApplicationSettings {
         std::optional<std::string> video_bitrate;
         std::optional<std::string> audio_bitrate;
     } output_files;
+
+    struct Logging {
+        std::string log_level;
+    } logging;
 
     struct BackgroundSubtractor {
         struct Knn {
@@ -78,7 +81,6 @@ struct ApplicationSettings {
     } preprocess;
 };
 
-ApplicationSettings read_settings(
-    const Poco::Util::AbstractConfiguration& config,
-    Poco::Logger& logger) noexcept;
+ApplicationSettings
+    read_settings(const Poco::Util::AbstractConfiguration& config) noexcept;
 } // namespace vehlwn

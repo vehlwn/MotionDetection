@@ -3,8 +3,8 @@
 #include <cstdlib>
 #include <memory>
 
-#include <Poco/Format.h>
-#include <Poco/Logger.h>
+#include <boost/log/attributes/named_scope.hpp>
+#include <boost/log/trivial.hpp>
 
 #include "CvMatRaiiAdapter.hpp"
 
@@ -13,22 +13,22 @@ MotionDataWorker::MotionDataWorker(
     std::shared_ptr<BackgroundSubtractorFactory>&& back_subtractor_factory,
     ffmpeg::InputDevice&& input_device,
     std::shared_ptr<FileNameFactory>&& out_filename_factory,
-    std::shared_ptr<PreprocessImageFactory>&& preprocess_image_factory,
-    Poco::Logger& logger)
+    std::shared_ptr<PreprocessImageFactory>&& preprocess_image_factory)
     : m_back_subtractor_factory{std::move(back_subtractor_factory)}
     , m_input_device(std::move(input_device))
     , m_out_filename_factory(std::move(out_filename_factory))
     , m_preprocess_image_factory(std::move(preprocess_image_factory))
     , m_motion_data{std::make_shared<SharedMutex<MotionData>>()}
     , m_stopped{false}
-    , m_logger{logger}
 {
-    poco_information(m_logger, "constructor MotionDataWorker");
+    BOOST_LOG_FUNCTION();
+    BOOST_LOG_TRIVIAL(debug) << "constructor MotionDataWorker";
 }
 
 MotionDataWorker::~MotionDataWorker()
 {
-    poco_information(m_logger, "destructor ~MotionDataWorker");
+    BOOST_LOG_FUNCTION();
+    BOOST_LOG_TRIVIAL(debug) << "destructor ~MotionDataWorker";
     if(!m_stopped)
         stop();
 }
@@ -61,12 +61,13 @@ void MotionDataWorker::start()
 
 void MotionDataWorker::stop()
 {
-    poco_information(m_logger, "Stopping...");
+    BOOST_LOG_FUNCTION();
+    BOOST_LOG_TRIVIAL(debug) << "Stopping...";
     m_stopped = true;
     if(m_working_thread.joinable()) {
-        poco_information(m_logger, "Joining working thread...");
+        BOOST_LOG_TRIVIAL(debug) << "Joining working thread...";
         m_working_thread.join();
-        poco_information(m_logger, "Joined");
+        BOOST_LOG_TRIVIAL(debug) << "Joined";
     }
 }
 

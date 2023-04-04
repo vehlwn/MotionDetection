@@ -3,10 +3,8 @@
 namespace vehlwn::handlers {
 
 MotionMaskHandler::MotionMaskHandler(
-    std::shared_ptr<const vehlwn::MotionDataWorker> motion_data_worker,
-    Poco::Logger& logger)
-    : m_imencode_handler{logger}
-    , m_motion_data_worker{std::move(motion_data_worker)}
+    std::shared_ptr<const vehlwn::MotionDataWorker>&& motion_data_worker)
+    : m_motion_data_worker(std::move(motion_data_worker))
 {}
 
 void MotionMaskHandler::handleRequest(

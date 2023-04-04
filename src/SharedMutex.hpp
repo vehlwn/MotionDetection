@@ -66,7 +66,7 @@ class SharedMutex {
 
 public:
     SharedMutex()
-        : m_value{}
+        : m_value()
     {}
     explicit SharedMutex(T&& value)
         : m_value(std::move(value))

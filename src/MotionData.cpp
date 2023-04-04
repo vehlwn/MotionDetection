@@ -2,7 +2,7 @@
 
 #include <utility>
 
-#include "opencv2/core.hpp"
+#include <opencv2/core.hpp>
 
 namespace vehlwn {
 MotionData::MotionData()

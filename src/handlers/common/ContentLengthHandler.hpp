@@ -1,9 +1,9 @@
 #pragma once
 
-#include "Poco/Net/HTTPServerResponse.h"
-
 #include <string>
 #include <vector>
+
+#include <Poco/Net/HTTPServerResponse.h>
 
 namespace vehlwn::handlers::common {
 class ContentLengthHandler {

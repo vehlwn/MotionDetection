@@ -10,6 +10,8 @@
 #include <vector>
 
 #include <boost/core/span.hpp>
+#include <boost/log/attributes/named_scope.hpp>
+#include <boost/log/trivial.hpp>
 #include <boost/range/adaptor/indexed.hpp>
 #include <boost/range/algorithm/find.hpp>
 #include <boost/range/algorithm/for_each.hpp>
@@ -63,6 +65,7 @@ struct OutputFile::Impl {
         , next_pts(std::move(next_pts_))
         , orig_stream_time_bases(std::move(orig_stream_time_bases_))
     {
+        BOOST_LOG_FUNCTION();
         if(!(out_format_context.oformat_flags() & AVFMT_NOFILE))
             out_format_context.avio_open();
         // init muxer, write output file header
@@ -70,9 +73,9 @@ struct OutputFile::Impl {
         boost::for_each(
             boost::adaptors::index(out_format_context.streams()),
             [&](auto&& elem) {
-                std::clog << "out stream " << elem.index()
-                          << ": time_base = " << elem.value()->time_base
-                          << std::endl;
+                BOOST_LOG_TRIVIAL(debug)
+                    << "out stream " << elem.index()
+                    << ": time_base = " << elem.value()->time_base;
             });
     }
 
@@ -109,7 +112,10 @@ struct OutputFile::Impl {
 
     void process_audio_frame(const OwningAvframe& frame, const int out_stream_index)
     {
-        std::clog << "audio frame nb_samples = " << frame.nb_samples() << std::endl;
+        BOOST_LOG_FUNCTION();
+        BOOST_LOG_TRIVIAL(debug)
+            << "astream " << out_stream_index
+            << ": audio frame nb_samples = " << frame.nb_samples();
         const auto& encoder_context
             = encoder_contexts.at(static_cast<std::size_t>(out_stream_index));
         const auto& fifo = audio_fifos.at(out_stream_index);
@@ -169,6 +175,7 @@ struct OutputFile::Impl {
 
     void calc_pts(const OwningAvframe& frame, const int out_stream_index)
     {
+        BOOST_LOG_FUNCTION();
         const auto& encoder_context
             = encoder_contexts.at(static_cast<std::size_t>(out_stream_index));
         const auto frame_type = encoder_context.codec_type();
@@ -180,8 +187,7 @@ struct OutputFile::Impl {
         switch(frame_type) {
         case AVMEDIA_TYPE_VIDEO:
             if(frame.pts() == AV_NOPTS_VALUE) {
-                std::clog << "Error: video frame does not have pts value"
-                          << std::endl;
+                BOOST_LOG_TRIVIAL(error) << "Video frame does not have pts value";
             } else {
                 const auto new_pts = frame.pts() - start_times.at(out_stream_index);
                 const auto rescaled_pts
@@ -198,8 +204,8 @@ struct OutputFile::Impl {
                 frame.set_pts(rescaled_pts);
                 next_pts[out_stream_index] = new_pts + frame.nb_samples();
             } else {
-                std::clog << "Unexpected! Audio resampler returned valid pts!"
-                          << std::endl;
+                BOOST_LOG_TRIVIAL(error)
+                    << "Unexpected! Audio resampler returned valid pts!";
                 const auto new_pts = frame.pts() - start_times.at(out_stream_index);
                 const auto rescaled_pts
                     = av_rescale_q(new_pts, in_stream_tb, out_stream_tb);
@@ -272,6 +278,7 @@ OutputFile open_output_file(
     const std::optional<std::string>& video_bitrate,
     const std::optional<std::string>& audio_bitrate)
 {
+    BOOST_LOG_FUNCTION();
     ScopedAvFormatOutput out_format_context(url);
     std::vector<ScopedEncoderContext> encoder_contexts;
     std::map<int, int> in_out_stream_mapping;
@@ -292,9 +299,9 @@ OutputFile open_output_file(
             const AVMediaType input_codec_type = decoder_context.codec_type();
             if(input_codec_type != AVMEDIA_TYPE_VIDEO
                && input_codec_type != AVMEDIA_TYPE_AUDIO) {
-                std::cout << "Ignoring input stream " << in_stream_index
-                          << " of type "
-                          << av_get_media_type_string(input_codec_type) << std::endl;
+                BOOST_LOG_TRIVIAL(warning)
+                    << "Ignoring input stream " << in_stream_index << " of type "
+                    << av_get_media_type_string(input_codec_type);
                 return;
             }
             const AVCodec* encoder = nullptr;
@@ -326,20 +333,15 @@ OutputFile open_output_file(
                     ret = {start, end};
                     return ret;
                 }();
-                std::clog << "Encoder supported pixel formats: ";
-                for(const auto& x : enc_pix_fmts) {
-                    std::clog << av_get_pix_fmt_name(x) << ' ';
-                }
-                std::clog << std::endl;
                 if(const auto it
                    = boost::find(enc_pix_fmts, decoder_context.pix_fmt());
                    it != enc_pix_fmts.end()) {
                     encoder_context.set_pix_fmt(*it);
                 } else {
                     if(video_pix_converter)
-                        std::cout << "Found more than one video stream! "
-                                     "Ignoring others"
-                                  << std::endl;
+                        BOOST_LOG_TRIVIAL(warning)
+                            << "Found more than one video stream! "
+                               "Ignoring others";
                     else {
                         const auto dst_format = enc_pix_fmts[0];
                         video_pix_converter = SwsPixelConverter(
@@ -396,9 +398,12 @@ OutputFile open_output_file(
             AVStream* const out_stream = out_format_context.new_stream();
             out_stream->time_base = encoder_context.time_base();
 
-            std::clog << "Encoder options = " << encoder_options << std::endl;
+            BOOST_LOG_TRIVIAL(debug) << "out stream " << out_stream_counter
+                                     << ": encoder options = " << encoder_options;
             encoder_context.open(out_stream->codecpar, encoder_options);
-            std::clog << "Unsupported options = " << encoder_options << std::endl;
+            BOOST_LOG_TRIVIAL(debug)
+                << "out stream " << out_stream_counter
+                << ": unsupported options = " << encoder_options << std::endl;
             encoder_contexts.emplace_back(std::move(encoder_context));
             in_out_stream_mapping.emplace(in_stream_index, out_stream_counter);
             next_pts.emplace(out_stream_counter, 0);

@@ -1,9 +1,8 @@
 #include "BackgroundSubtractorFactory.hpp"
 
-#include "fmt/core.h"
-#include "opencv2/video/background_segm.hpp"
-
-#include <cstdlib>
+#include <boost/log/attributes/named_scope.hpp>
+#include <boost/log/trivial.hpp>
+#include <opencv2/video/background_segm.hpp>
 
 namespace vehlwn {
 namespace {
@@ -25,14 +24,13 @@ private:
 } // namespace
 
 BackgroundSubtractorFactory::BackgroundSubtractorFactory(
-    const ApplicationSettings::BackgroundSubtractor& config,
-    Poco::Logger& logger)
+    const ApplicationSettings::BackgroundSubtractor& config)
     : m_config{config}
-    , m_logger{logger}
 {}
 
 std::shared_ptr<IBackgroundSubtractor> BackgroundSubtractorFactory::create()
 {
+    BOOST_LOG_FUNCTION();
     if(const auto* const knn
        = std::get_if<vehlwn::ApplicationSettings::BackgroundSubtractor::Knn>(
            &m_config.algorithm)) {
@@ -51,7 +49,7 @@ std::shared_ptr<IBackgroundSubtractor> BackgroundSubtractorFactory::create()
                 mog2->var_threshold,
                 mog2->detect_shadows));
     }
-    poco_fatal(m_logger, "Unreachable!");
+    BOOST_LOG_TRIVIAL(fatal) << "Unreachable!";
     std::exit(1);
 }
 

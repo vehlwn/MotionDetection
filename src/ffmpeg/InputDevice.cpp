@@ -15,11 +15,12 @@ extern "C" {
 #include <libavformat/avformat.h>
 #include <libavutil/avutil.h>
 #include <libavutil/hwcontext.h>
-#include <libavutil/log.h>
 #include <libavutil/pixdesc.h>
 #include <libavutil/rational.h>
 }
 
+#include <boost/log/attributes/named_scope.hpp>
+#include <boost/log/trivial.hpp>
 #include <boost/range/adaptor/indexed.hpp>
 #include <boost/range/adaptor/map.hpp>
 #include <boost/range/algorithm/find_if.hpp>
@@ -44,7 +45,6 @@ struct InputDevice::Impl {
     std::optional<detail::OutputFile> output_file;
 
     std::queue<detail::OwningAvframe> video_frames_queue;
-    std::int64_t last_video_pts;
 
     std::optional<std::string> video_bitrate;
     std::optional<std::string> audio_bitrate;
@@ -56,19 +56,20 @@ struct InputDevice::Impl {
         : input_format_context(std::move(input_format_context_))
         , decoder_contexts(std::move(decoder_contexts_))
         , pixel_converter(std::move(pixel_converter_))
-        , last_video_pts(0)
     {}
 
     detail::OwningAvPacket read_packet()
     {
+        BOOST_LOG_FUNCTION();
         while(true) {
             detail::OwningAvPacket ret = input_format_context.read_packet();
             const int in_stream_index = ret.stream_index();
             const auto decoder = decoder_contexts.find(in_stream_index);
             // Ignoge all non video and non audio streams
             if(decoder != decoder_contexts.end()) {
-                std::clog << "packet: pts = " << ret.pts() << " dts = " << ret.dts()
-                          << std::endl;
+                BOOST_LOG_TRIVIAL(trace)
+                    << "packet: stream = " << in_stream_index
+                    << " pts = " << ret.pts() << " dts = " << ret.dts();
                 return ret;
             }
         }
@@ -76,6 +77,7 @@ struct InputDevice::Impl {
 
     void decode_packet_to_queue(const detail::OwningAvPacket& packet)
     {
+        BOOST_LOG_FUNCTION();
         const int in_stream_index = packet.stream_index();
         auto& decoder_context = decoder_contexts.at(in_stream_index);
         decoder_context.send_packet(packet);
@@ -89,27 +91,22 @@ struct InputDevice::Impl {
                = std::get_if<detail::OwningAvframe>(&decoded_result)) {
                 const double d_pts = (double)decoded_frame->best_effort_timestamp()
                     * av_q2d(in_stream_timebase);
-                std::cerr << "frame: stream = " << in_stream_index
-                          << " pts = " << decoded_frame->pts() << " best_effort = "
-                          << decoded_frame->best_effort_timestamp()
-                          << " d_pts = " << std::setprecision(10) << d_pts
-                          << " pict_type = "
-                          << av_get_picture_type_char(decoded_frame->pict_type())
-                          << std::endl;
+                BOOST_LOG_TRIVIAL(trace)
+                    << "frame: stream = " << in_stream_index
+                    << " pts = " << decoded_frame->pts()
+                    << " best_effort = " << decoded_frame->best_effort_timestamp()
+                    << " d_pts = " << d_pts << " pict_type = "
+                    << av_get_picture_type_char(decoded_frame->pict_type());
                 decoded_frame->set_pts(decoded_frame->best_effort_timestamp());
-                const double interval
-                    = (double)(decoded_frame->pts() - last_video_pts)
-                    * av_q2d(in_stream_timebase);
-                const auto tmp_pts = decoded_frame->pts();
+                // Write frame to a file
                 if(output_file) {
                     output_file.value().encode_write_frame(
                         *decoded_frame,
                         in_stream_index);
                 }
+                // Save it to queue
                 if(decoder_context.codec_type() == AVMEDIA_TYPE_VIDEO) {
-                    last_video_pts = tmp_pts;
                     video_frames_queue.emplace(std::move(*decoded_frame));
-                    std::clog << "interval = " << interval << std::endl;
                 }
             } else if(std::holds_alternative<detail::ScopedDecoderContext::Again>(
                           decoded_result)) {
@@ -135,8 +132,6 @@ CvMatRaiiAdapter InputDevice::get_video_frame() const
         const auto packet = pimpl->read_packet();
         pimpl->decode_packet_to_queue(packet);
     }
-    std::clog << "video_frames_queue.size = " << pimpl->video_frames_queue.size()
-              << std::endl;
     auto next_frame = std::move(pimpl->video_frames_queue.front());
     pimpl->video_frames_queue.pop();
     auto ret = pimpl->pixel_converter.frame_to_cv_mat(next_frame);
@@ -191,19 +186,18 @@ InputDevice open_input_device(
     const std::optional<std::string>& file_format,
     ScopedAvDictionary& options)
 {
+    BOOST_LOG_FUNCTION();
     {
         static bool register_devices_flag = [] {
             avdevice_register_all();
             return true;
         }();
         (void)register_devices_flag;
-        /* av_log_set_level(AV_LOG_TRACE); */
-        std::cout << "av_log_get_level = " << av_log_get_level() << std::endl;
     }
 
-    std::clog << "Demuxer options = " << options << std::endl;
+    BOOST_LOG_TRIVIAL(debug) << "Demuxer options = " << options;
     detail::ScopedAvFormatInput input_format_context(url, file_format, options);
-    std::clog << "Unsupported options = " << options << std::endl;
+    BOOST_LOG_TRIVIAL(debug) << "Unsupported options = " << options;
     input_format_context.find_stream_info();
     input_format_context.dump_format();
 
@@ -225,8 +219,8 @@ InputDevice open_input_device(
             const AVCodec* const local_decoder
                 = avcodec_find_decoder(local_codec_par->codec_id);
             if(!local_decoder) {
-                std::cerr << "ERROR! Failed to find decoder for stream #"
-                          << stream_index << "!" << std::endl;
+                BOOST_LOG_TRIVIAL(error)
+                    << "Failed to find decoder for stream #" << stream_index;
                 throw std::runtime_error("Failed to find decoder");
             }
             detail::ScopedDecoderContext decoder_context(
@@ -243,18 +237,19 @@ InputDevice open_input_device(
                         AV_PIX_FMT_BGR24);
                     video_stream_index = stream_index;
                 } else {
-                    std::clog << "INFO: Found another video stream: " << stream_index
-                              << ". Using only " << video_stream_index << "-th"
-                              << '\n';
+                    BOOST_LOG_TRIVIAL(warning)
+                        << "Found another video stream: " << stream_index
+                        << ". Using only " << video_stream_index << "-th";
                     return;
                 }
-                std::clog << "VIDEO codec name = " << local_decoder->name
-                          << ", stream " << stream_index << '\n';
+                BOOST_LOG_TRIVIAL(debug)
+                    << "VIDEO codec name = " << local_decoder->name << ", stream "
+                    << stream_index;
                 const AVRational framerate = decoder_context.framerate();
-                std::cout << "decoder: guess_frame_rate = " << framerate.num << '/'
-                          << framerate.den << " = " << av_q2d(framerate)
-                          << " time_base = " << decoder_context.time_base().num
-                          << '/' << decoder_context.time_base().den << '\n';
+                BOOST_LOG_TRIVIAL(debug)
+                    << "decoder: guess_frame_rate = " << framerate << " = "
+                    << av_q2d(framerate)
+                    << " time_base = " << decoder_context.time_base();
                 break;
             }
             case AVMEDIA_TYPE_AUDIO: {
@@ -263,14 +258,6 @@ InputDevice open_input_device(
                         &decoder_context.ch_layout(),
                         decoder_context.ch_layout().nb_channels);
                 }
-                std::string buf;
-                buf.resize(1000);
-                av_channel_layout_describe(
-                    &decoder_context.ch_layout(),
-                    buf.data(),
-                    buf.size());
-                std::clog << "stream " << stream_index << " ch_layout = " << buf
-                          << std::endl;
                 break;
             }
             default:
@@ -278,10 +265,11 @@ InputDevice open_input_device(
             }
             // Set the packet timebase for the decoder.
             decoder_context.set_pkt_timebase(local_stream->time_base);
-            std::clog << "stream " << stream_index << ":"
-                      << " timebase = " << local_stream->time_base
-                      << " r_frame_rate = " << local_stream->r_frame_rate
-                      << " start_time = " << local_stream->start_time << std::endl;
+            BOOST_LOG_TRIVIAL(debug)
+                << "stream " << stream_index << ":"
+                << " timebase = " << local_stream->time_base
+                << " r_frame_rate = " << local_stream->r_frame_rate
+                << " start_time = " << local_stream->start_time;
 
             decoder_contexts.emplace(stream_index, std::move(decoder_context));
         });
