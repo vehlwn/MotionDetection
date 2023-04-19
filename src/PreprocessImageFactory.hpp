@@ -8,7 +8,7 @@
 namespace vehlwn {
 class PreprocessImageFactory {
 public:
-    PreprocessImageFactory(const ApplicationSettings::Preprocess& config);
+    explicit PreprocessImageFactory(const ApplicationSettings::Preprocess& config);
     std::shared_ptr<IImageFilter> create();
 
 private:

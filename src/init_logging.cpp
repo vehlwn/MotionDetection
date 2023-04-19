@@ -57,36 +57,38 @@ void init_boost_log(const std::string_view log_level)
     core->add_global_attribute("Scope", attrs::named_scope());
     core->add_global_attribute("ThreadID", attrs::current_thread_id());
     auto level = boost::log::trivial::info;
-    if(log_level == "trace")
+    if(log_level == "trace") {
         level = boost::log::trivial::trace;
-    else if(log_level == "debug")
+    } else if(log_level == "debug") {
         level = boost::log::trivial::debug;
-    else if(log_level == "info")
+    } else if(log_level == "info") {
         level = boost::log::trivial::info;
-    else if(log_level == "warning")
+    } else if(log_level == "warning") {
         level = boost::log::trivial::warning;
-    else if(log_level == "error")
+    } else if(log_level == "error") {
         level = boost::log::trivial::error;
-    else if(log_level == "fatal")
+    } else if(log_level == "fatal") {
         level = boost::log::trivial::fatal;
+    }
     core->set_filter(boost::log::trivial::severity >= level);
 }
 
 void init_ffmpeg_log(const std::string_view log_level)
 {
     auto level = AV_LOG_INFO;
-    if(log_level == "trace")
+    if(log_level == "trace") {
         level = AV_LOG_TRACE;
-    else if(log_level == "debug")
+    } else if(log_level == "debug") {
         level = AV_LOG_DEBUG;
-    else if(log_level == "info")
+    } else if(log_level == "info") {
         level = AV_LOG_INFO;
-    else if(log_level == "warning")
+    } else if(log_level == "warning") {
         level = AV_LOG_WARNING;
-    else if(log_level == "error")
+    } else if(log_level == "error") {
         level = AV_LOG_ERROR;
-    else if(log_level == "fatal")
+    } else if(log_level == "fatal") {
         level = AV_LOG_FATAL;
+    }
     av_log_set_level(level);
 }
 } // namespace

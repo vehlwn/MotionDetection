@@ -13,7 +13,7 @@ class MutexGuard {
     friend class SharedMutex<T>;
 
 private:
-    MutexGuard(SharedMutex<T>& mutex)
+    explicit MutexGuard(SharedMutex<T>& mutex)
         : m_mutex{mutex}
         , m_lock{m_mutex.m_inner}
     {}
@@ -38,7 +38,7 @@ class ConstMutexGuard {
     friend class SharedMutex<T>;
 
 private:
-    ConstMutexGuard(const SharedMutex<T>& mutex)
+    explicit ConstMutexGuard(const SharedMutex<T>& mutex)
         : m_mutex{mutex}
         , m_lock{m_mutex.m_inner}
     {}
@@ -73,6 +73,7 @@ public:
     {}
     SharedMutex(const SharedMutex&) = delete;
     SharedMutex(SharedMutex&&) = delete;
+    ~SharedMutex() = default;
     SharedMutex& operator=(const SharedMutex&) = delete;
     SharedMutex& operator=(SharedMutex&&) = delete;
     detail::MutexGuard<T> lock()

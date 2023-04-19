@@ -124,7 +124,9 @@ InputDevice::InputDevice(std::unique_ptr<Impl>&& pimpl_)
 
 InputDevice::~InputDevice() = default;
 
-InputDevice::InputDevice(InputDevice&&) = default;
+InputDevice::InputDevice(InputDevice&&) noexcept = default;
+
+InputDevice& InputDevice::operator=(InputDevice&&) noexcept = default;
 
 CvMatRaiiAdapter InputDevice::get_video_frame() const
 {
@@ -146,9 +148,8 @@ double InputDevice::fps() const
     });
     if(it != values.end()) {
         return av_q2d(it->framerate());
-    } else {
-        return 0.0;
     }
+    return 0.0;
 }
 
 void InputDevice::start_recording(const char* const path) const
@@ -188,7 +189,7 @@ InputDevice open_input_device(
 {
     BOOST_LOG_FUNCTION();
     {
-        static bool register_devices_flag = [] {
+        static const bool register_devices_flag = [] {
             avdevice_register_all();
             return true;
         }();
@@ -213,8 +214,10 @@ InputDevice open_input_device(
 
             const AVCodecParameters* const local_codec_par = local_stream->codecpar;
             const AVMediaType codec_type = local_codec_par->codec_type;
-            if(codec_type != AVMEDIA_TYPE_VIDEO && codec_type != AVMEDIA_TYPE_AUDIO)
+            if(codec_type != AVMEDIA_TYPE_VIDEO
+               && codec_type != AVMEDIA_TYPE_AUDIO) {
                 return;
+            }
 
             const AVCodec* const local_decoder
                 = avcodec_find_decoder(local_codec_par->codec_id);
@@ -273,12 +276,13 @@ InputDevice open_input_device(
 
             decoder_contexts.emplace(stream_index, std::move(decoder_context));
         });
-    if(video_stream_index == -1)
+    if(video_stream_index == -1 || !pixel_converter) {
         throw std::runtime_error("Input file does not contain video streams");
+    }
 
-    return std::make_unique<InputDevice::Impl>(
+    return InputDevice(std::make_unique<InputDevice::Impl>(
         std::move(input_format_context),
         std::move(decoder_contexts),
-        std::move(pixel_converter.value()));
+        std::move(pixel_converter.value())));
 }
 } // namespace vehlwn::ffmpeg

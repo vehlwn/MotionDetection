@@ -10,10 +10,10 @@ public:
     MotionData();
 
     MotionData& set_frame(CvMatRaiiAdapter&& frame);
-    const CvMatRaiiAdapter& frame() const;
+    [[nodiscard]] const CvMatRaiiAdapter& frame() const;
 
     MotionData& set_fgmask(CvMatRaiiAdapter&& fgmask);
-    const CvMatRaiiAdapter& fgmask() const;
+    [[nodiscard]] const CvMatRaiiAdapter& fgmask() const;
 
 private:
     void fgmask_changed();

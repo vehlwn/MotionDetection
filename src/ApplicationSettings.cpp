@@ -7,14 +7,15 @@
 #include <Poco/NumberParser.h>
 #include <boost/log/attributes/named_scope.hpp>
 #include <boost/log/trivial.hpp>
+#include <exception>
 
 namespace {
 class ConfigParser {
 public:
-    ConfigParser(const Poco::Util::AbstractConfiguration& config)
+    explicit ConfigParser(const Poco::Util::AbstractConfiguration& config)
         : m_config{config}
     {}
-    Poco::Net::SocketAddress parse_host_and_port() const
+    [[nodiscard]] Poco::Net::SocketAddress parse_host_and_port() const
     {
         BOOST_LOG_FUNCTION();
         std::string tmp_value;
@@ -33,7 +34,8 @@ public:
             std::exit(1);
         }
     }
-    vehlwn::ApplicationSettings::VideoCapture parse_video_capture() const
+    [[nodiscard]] vehlwn::ApplicationSettings::VideoCapture
+        parse_video_capture() const
     {
         BOOST_LOG_FUNCTION();
         std::string filename;
@@ -66,7 +68,7 @@ public:
             std::move(framerate),
             std::move(input_format)};
     }
-    vehlwn::ApplicationSettings::OutputFiles parse_output_files() const
+    [[nodiscard]] vehlwn::ApplicationSettings::OutputFiles parse_output_files() const
     {
         std::string prefix;
         if(m_config.hasProperty("output_files.prefix")) {
@@ -90,15 +92,16 @@ public:
             std::move(video_bitrate),
             std::move(audio_bitrate)};
     }
-    vehlwn::ApplicationSettings::Logging parse_logging() const
+    [[nodiscard]] vehlwn::ApplicationSettings::Logging parse_logging() const
     {
         std::string log_level = m_config.getString("logging.log_level", "info");
         return {std::move(log_level)};
     }
-    vehlwn::ApplicationSettings::BackgroundSubtractor::Knn parse_knn() const
+    [[nodiscard]] vehlwn::ApplicationSettings::BackgroundSubtractor::Knn
+        parse_knn() const
     {
         BOOST_LOG_FUNCTION();
-        vehlwn::ApplicationSettings::BackgroundSubtractor::Knn ret;
+        vehlwn::ApplicationSettings::BackgroundSubtractor::Knn ret{};
         try {
             ret.history = m_config.getInt("background_subtractor.history", 500);
         } catch(const Poco::SyntaxException&) {
@@ -135,10 +138,11 @@ public:
         }
         return ret;
     }
-    vehlwn::ApplicationSettings::BackgroundSubtractor::Mog2 parse_mog2() const
+    [[nodiscard]] vehlwn::ApplicationSettings::BackgroundSubtractor::Mog2
+        parse_mog2() const
     {
         BOOST_LOG_FUNCTION();
-        vehlwn::ApplicationSettings::BackgroundSubtractor::Mog2 ret;
+        vehlwn::ApplicationSettings::BackgroundSubtractor::Mog2 ret{};
         try {
             ret.history = m_config.getInt("background_subtractor.history", 500);
         } catch(const Poco::SyntaxException&) {
@@ -174,7 +178,7 @@ public:
         }
         return ret;
     }
-    vehlwn::ApplicationSettings::BackgroundSubtractor
+    [[nodiscard]] vehlwn::ApplicationSettings::BackgroundSubtractor
         parse_background_subtractor() const
     {
         BOOST_LOG_FUNCTION();
@@ -202,11 +206,11 @@ public:
         }
         return ret;
     }
-    vehlwn::ApplicationSettings::Preprocess::NormalizedBox
+    [[nodiscard]] vehlwn::ApplicationSettings::Preprocess::NormalizedBox
         parse_normalized_filter() const
     {
         BOOST_LOG_FUNCTION();
-        vehlwn::ApplicationSettings::Preprocess::NormalizedBox ret;
+        vehlwn::ApplicationSettings::Preprocess::NormalizedBox ret{};
         try {
             ret.kernel_size = m_config.getInt("preprocess.smoothing.kernel_size");
             if(ret.kernel_size <= 0) {
@@ -223,10 +227,11 @@ public:
         }
         return ret;
     }
-    vehlwn::ApplicationSettings::Preprocess::Gaussian parse_gaussian_filter() const
+    [[nodiscard]] vehlwn::ApplicationSettings::Preprocess::Gaussian
+        parse_gaussian_filter() const
     {
         BOOST_LOG_FUNCTION();
-        vehlwn::ApplicationSettings::Preprocess::Gaussian ret;
+        vehlwn::ApplicationSettings::Preprocess::Gaussian ret{};
         try {
             ret.kernel_size = m_config.getInt("preprocess.smoothing.kernel_size");
             if(ret.kernel_size <= 0 || ret.kernel_size % 2 == 0) {
@@ -255,10 +260,11 @@ public:
         }
         return ret;
     }
-    vehlwn::ApplicationSettings::Preprocess::Median parse_median_filter() const
+    [[nodiscard]] vehlwn::ApplicationSettings::Preprocess::Median
+        parse_median_filter() const
     {
         BOOST_LOG_FUNCTION();
-        vehlwn::ApplicationSettings::Preprocess::Median ret;
+        vehlwn::ApplicationSettings::Preprocess::Median ret{};
         try {
             ret.kernel_size = m_config.getInt("preprocess.smoothing.kernel_size");
             if(ret.kernel_size <= 2 || ret.kernel_size % 2 == 0) {
@@ -276,7 +282,7 @@ public:
         }
         return ret;
     }
-    vehlwn::ApplicationSettings::Preprocess parse_preprocess() const
+    [[nodiscard]] vehlwn::ApplicationSettings::Preprocess parse_preprocess() const
     {
         BOOST_LOG_FUNCTION();
         vehlwn::ApplicationSettings::Preprocess ret;
@@ -324,8 +330,9 @@ private:
 namespace vehlwn {
 ApplicationSettings
     read_settings(const Poco::Util::AbstractConfiguration& config) noexcept
-{
-    ConfigParser p{config};
+try {
+    BOOST_LOG_FUNCTION();
+    const ConfigParser p{config};
     auto host_and_port = p.parse_host_and_port();
     auto video_capture = p.parse_video_capture();
     auto output_files = p.parse_output_files();
@@ -339,6 +346,9 @@ ApplicationSettings
         std::move(logging),
         background_subtractor,
         preprocess};
+} catch(const std::exception& ex) {
+    BOOST_LOG_TRIVIAL(fatal) << "Unexpected error in read_settings: " << ex.what();
+    std::exit(1);
 }
 
 } // namespace vehlwn

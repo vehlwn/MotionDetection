@@ -9,7 +9,7 @@ public:
     ErrorWithContext(std::string&& context, const std::exception& rhs)
         : m_msg(std::move(context += rhs.what()))
     {}
-    virtual const char* what() const noexcept override
+    [[nodiscard]] const char* what() const noexcept override
     {
         return m_msg.c_str();
     }

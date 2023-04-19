@@ -27,7 +27,7 @@ class ServerApp : public Poco::Util::ServerApplication {
     std::shared_ptr<vehlwn::MotionDataWorker> m_motion_data_worker;
 
 protected:
-    virtual void initialize(Poco::Util::Application& self) override
+    void initialize(Poco::Util::Application& self) override
     {
         BOOST_LOG_FUNCTION();
         const int count = loadConfiguration();
@@ -61,7 +61,7 @@ protected:
             std::move(preprocess_image_factory));
     }
 
-    virtual int main(const std::vector<std::string>& /*args*/) override
+    int main(const std::vector<std::string>& /*args*/) override
     {
         BOOST_LOG_FUNCTION();
 

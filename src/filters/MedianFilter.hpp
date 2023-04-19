@@ -5,8 +5,8 @@
 namespace vehlwn {
 class MedianFilter : public IImageFilter {
 public:
-    MedianFilter(int kernel_size);
-    virtual CvMatRaiiAdapter apply(CvMatRaiiAdapter&& input) override;
+    explicit MedianFilter(int kernel_size);
+    CvMatRaiiAdapter apply(CvMatRaiiAdapter&& input) override;
 
 private:
     const int m_kernel_size;

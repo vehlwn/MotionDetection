@@ -29,8 +29,9 @@ MotionDataWorker::~MotionDataWorker()
 {
     BOOST_LOG_FUNCTION();
     BOOST_LOG_TRIVIAL(debug) << "destructor ~MotionDataWorker";
-    if(!m_stopped)
+    if(!m_stopped) {
         stop();
+    }
 }
 
 std::shared_ptr<const SharedMutex<MotionData>>

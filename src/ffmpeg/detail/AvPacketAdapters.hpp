@@ -1,11 +1,16 @@
 #pragma once
 
+#include <exception>
+#include <iostream>
 #include <stdexcept>
 
 extern "C" {
 #include <libavcodec/avcodec.h>
 #include <libavutil/rational.h>
 }
+
+#include <boost/log/attributes/named_scope.hpp>
+#include <boost/log/trivial.hpp>
 
 namespace vehlwn::ffmpeg::detail {
 class OwningAvPacket {
@@ -14,8 +19,9 @@ class OwningAvPacket {
     void alloc()
     {
         m_raw = av_packet_alloc();
-        if(!m_raw)
+        if(m_raw == nullptr) {
             throw std::runtime_error("failed to allocate memory for AVPacket");
+        }
     }
 
 public:
@@ -25,15 +31,24 @@ public:
     }
     OwningAvPacket(const OwningAvPacket&) = delete;
     OwningAvPacket(OwningAvPacket&& rhs) noexcept
-    {
+    try {
+        BOOST_LOG_FUNCTION();
         alloc();
         av_packet_move_ref(m_raw, rhs.m_raw);
+    } catch(const std::exception& ex) {
+        BOOST_LOG_TRIVIAL(error) << ex.what();
     }
     ~OwningAvPacket()
     {
         av_packet_free(&m_raw);
     }
-    const AVPacket* raw() const
+    OwningAvPacket& operator=(const OwningAvPacket&) = delete;
+    OwningAvPacket& operator=(OwningAvPacket&& rhs) noexcept
+    {
+        av_packet_move_ref(m_raw, rhs.m_raw);
+        return *this;
+    }
+    [[nodiscard]] const AVPacket* raw() const
     {
         return m_raw;
     }
@@ -45,15 +60,15 @@ public:
     {
         m_raw->stream_index = x;
     }
-    int stream_index() const
+    [[nodiscard]] int stream_index() const
     {
         return m_raw->stream_index;
     }
-    std::int64_t pts() const
+    [[nodiscard]] std::int64_t pts() const
     {
         return m_raw->pts;
     }
-    std::int64_t dts() const
+    [[nodiscard]] std::int64_t dts() const
     {
         return m_raw->dts;
     }

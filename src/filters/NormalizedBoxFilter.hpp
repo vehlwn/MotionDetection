@@ -5,8 +5,8 @@
 namespace vehlwn {
 class NormalizedBoxFilter : public IImageFilter {
 public:
-    NormalizedBoxFilter(int kernel_size);
-    virtual CvMatRaiiAdapter apply(CvMatRaiiAdapter&& input) override;
+    explicit NormalizedBoxFilter(int kernel_size);
+    CvMatRaiiAdapter apply(CvMatRaiiAdapter&& input) override;
 
 private:
     const int m_kernel_size;

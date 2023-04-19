@@ -36,21 +36,11 @@ struct ApplicationSettings {
             int history;
             double dist_2_threshold;
             bool detect_shadows;
-            Knn()
-                : history{}
-                , dist_2_threshold{}
-                , detect_shadows{}
-            {}
         };
         struct Mog2 {
             int history;
             double var_threshold;
             bool detect_shadows;
-            Mog2()
-                : history{}
-                , var_threshold{}
-                , detect_shadows{}
-            {}
         };
         std::variant<Knn, Mog2> algorithm;
     } background_subtractor;
@@ -59,23 +49,13 @@ struct ApplicationSettings {
         std::optional<double> resize_factor;
         struct NormalizedBox {
             int kernel_size;
-            NormalizedBox()
-                : kernel_size{}
-            {}
         };
         struct Gaussian {
             int kernel_size;
             double sigma;
-            Gaussian()
-                : kernel_size{}
-                , sigma{}
-            {}
         };
         struct Median {
             int kernel_size;
-            Median()
-                : kernel_size{}
-            {}
         };
         std::optional<std::variant<NormalizedBox, Gaussian, Median>> smoothing;
     } preprocess;

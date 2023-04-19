@@ -8,10 +8,11 @@ namespace vehlwn {
 namespace {
 class OpencvBackgroundSubtractorAdapter : public IBackgroundSubtractor {
 public:
-    OpencvBackgroundSubtractorAdapter(cv::Ptr<cv::BackgroundSubtractor>&& impl)
+    explicit OpencvBackgroundSubtractorAdapter(
+        cv::Ptr<cv::BackgroundSubtractor>&& impl)
         : m_impl(std::move(impl))
     {}
-    virtual CvMatRaiiAdapter apply(CvMatRaiiAdapter&& image) override
+    CvMatRaiiAdapter apply(CvMatRaiiAdapter&& image) override
     {
         CvMatRaiiAdapter fgmask;
         m_impl->apply(image.get(), fgmask.get());
@@ -39,10 +40,10 @@ std::shared_ptr<IBackgroundSubtractor> BackgroundSubtractorFactory::create()
                 knn->history,
                 knn->dist_2_threshold,
                 knn->detect_shadows));
-    } else if(
-        const auto* const mog2
-        = std::get_if<vehlwn::ApplicationSettings::BackgroundSubtractor::Mog2>(
-            &m_config.algorithm)) {
+    }
+    if(const auto* const mog2
+       = std::get_if<vehlwn::ApplicationSettings::BackgroundSubtractor::Mog2>(
+           &m_config.algorithm)) {
         return std::make_shared<OpencvBackgroundSubtractorAdapter>(
             cv::createBackgroundSubtractorMOG2(
                 mog2->history,

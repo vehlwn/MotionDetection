@@ -13,20 +13,21 @@ inline std::string av_error_to_string(const int errnum)
 {
     std::array<char, AV_ERROR_MAX_STRING_SIZE> msg_buf = {};
     const int ret_code = av_strerror(errnum, msg_buf.data(), msg_buf.size());
-    if(ret_code < 0)
+    if(ret_code < 0) {
         return "Description for errnum cannot be found";
-    return std::string(msg_buf.begin(), msg_buf.end());
+    }
+    return {msg_buf.begin(), msg_buf.end()};
 }
 
 class AvError : public std::exception {
 public:
-    AvError(const int code)
+    explicit AvError(const int code)
     {
         std::ostringstream os;
         os << code << ": " << detail::av_error_to_string(code);
         m_msg = os.str();
     }
-    virtual const char* what() const noexcept override
+    [[nodiscard]] const char* what() const noexcept override
     {
         return m_msg.c_str();
     }

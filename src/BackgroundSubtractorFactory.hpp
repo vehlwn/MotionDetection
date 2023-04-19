@@ -8,7 +8,7 @@
 namespace vehlwn {
 class BackgroundSubtractorFactory {
 public:
-    BackgroundSubtractorFactory(
+    explicit BackgroundSubtractorFactory(
         const ApplicationSettings::BackgroundSubtractor& config);
     std::shared_ptr<IBackgroundSubtractor> create();
 

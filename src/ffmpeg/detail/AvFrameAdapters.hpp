@@ -8,6 +8,9 @@ extern "C" {
 #include <libavutil/hwcontext.h>
 }
 
+#include <boost/log/attributes/named_scope.hpp>
+#include <boost/log/trivial.hpp>
+
 #include "AvError.hpp"
 #include "ErrorWithContext.hpp"
 
@@ -18,8 +21,9 @@ class OwningAvframe {
     void init()
     {
         m_raw = av_frame_alloc();
-        if(!m_raw)
+        if(m_raw == nullptr) {
             throw std::runtime_error("failed to allocate memory for AVFrame");
+        }
     }
 
 public:
@@ -29,24 +33,33 @@ public:
     }
     OwningAvframe(const OwningAvframe&) = delete;
     OwningAvframe(OwningAvframe&& rhs) noexcept
-    {
+    try {
+        BOOST_LOG_FUNCTION();
         init();
         av_frame_move_ref(m_raw, rhs.m_raw);
+    } catch(const std::exception& ex) {
+        BOOST_LOG_TRIVIAL(error) << ex.what();
     }
     ~OwningAvframe()
     {
         av_frame_free(&m_raw);
+    }
+    OwningAvframe& operator=(const OwningAvframe&) = delete;
+    OwningAvframe& operator=(OwningAvframe&& rhs) noexcept
+    {
+        av_frame_move_ref(m_raw, rhs.m_raw);
+        return *this;
     }
 
     AVFrame* raw()
     {
         return m_raw;
     }
-    AVFrame const* raw() const
+    [[nodiscard]] AVFrame const* raw() const
     {
         return m_raw;
     }
-    AVPictureType pict_type() const
+    [[nodiscard]] AVPictureType pict_type() const
     {
         return m_raw->pict_type;
     }
@@ -58,19 +71,20 @@ public:
     {
         m_raw->pts = x;
     }
-    std::int64_t pts() const
+    [[nodiscard]] std::int64_t pts() const
     {
         return m_raw->pts;
     }
-    std::int64_t best_effort_timestamp() const
+    [[nodiscard]] std::int64_t best_effort_timestamp() const
     {
         return m_raw->best_effort_timestamp;
     }
-    const std::uint8_t** extended_data() const
+    [[nodiscard]] const std::uint8_t** extended_data() const
     {
+        // NOLINTNEXTLINE: adding const to non const data
         return const_cast<const std::uint8_t**>(m_raw->extended_data);
     }
-    int nb_samples() const
+    [[nodiscard]] int nb_samples() const
     {
         return m_raw->nb_samples;
     }
@@ -93,19 +107,19 @@ public:
     {
         m_raw->sample_rate = x;
     }
-    const std::uint8_t* const* data() const
+    [[nodiscard]] const std::uint8_t* const* data() const
     {
-        return m_raw->data;
+        return static_cast<const std::uint8_t* const*>(m_raw->data);
     }
     std::uint8_t** data()
     {
-        return m_raw->data;
+        return static_cast<std::uint8_t**>(m_raw->data);
     }
-    const int* linesize() const
+    [[nodiscard]] const int* linesize() const
     {
-        return m_raw->linesize;
+        return static_cast<const int*>(m_raw->linesize);
     }
-    int height() const
+    [[nodiscard]] int height() const
     {
         return m_raw->height;
     }
@@ -113,7 +127,7 @@ public:
     {
         m_raw->height = x;
     }
-    int width() const
+    [[nodiscard]] int width() const
     {
         return m_raw->width;
     }
@@ -145,27 +159,31 @@ public:
         return *this;
     }
 
-    OwningAvframe get_buffer() const
+    [[nodiscard]] OwningAvframe get_buffer() const
     {
         OwningAvframe ret;
-        if(m_format)
+        if(m_format) {
             ret.set_format(m_format.value());
-        else
+        } else {
             throw std::runtime_error(
                 "VideoAvFrameBuilder::get_buffer: format is not set");
-        if(m_width)
+        }
+        if(m_width) {
             ret.set_width(m_width.value());
-        else
+        } else {
             throw std::runtime_error(
                 "VideoAvFrameBuilder::get_buffer: width is not set");
-        if(m_height)
+        }
+        if(m_height) {
             ret.set_height(m_height.value());
-        else
+        } else {
             throw std::runtime_error(
                 "VideoAvFrameBuilder::get_buffer: height is not set");
+        }
         const int errnum = av_frame_get_buffer(ret.raw(), 0);
-        if(errnum < 0)
+        if(errnum < 0) {
             throw ErrorWithContext("av_frame_get_buffer failed: ", AvError(errnum));
+        }
         return ret;
     }
 };
@@ -195,27 +213,31 @@ public:
         }
         return *this;
     }
-    OwningAvframe get_buffer() const
+    [[nodiscard]] OwningAvframe get_buffer() const
     {
         OwningAvframe ret;
-        if(m_format)
+        if(m_format) {
             ret.set_format(m_format.value());
-        else
+        } else {
             throw std::runtime_error(
                 "AudioAvFrameBuilder::get_buffer: format is not set");
-        if(m_nb_samples)
+        }
+        if(m_nb_samples) {
             ret.set_nb_samples(m_nb_samples.value());
-        else
+        } else {
             throw std::runtime_error(
                 "VideoAvFrameBuilder::get_buffer: nb_samples is not set");
-        if(m_ch_layout)
+        }
+        if(m_ch_layout) {
             ret.set_ch_layout(m_ch_layout.value());
-        else
+        } else {
             throw std::runtime_error(
                 "VideoAvFrameBuilder::get_buffer: ch_layout is not set");
+        }
         const int errnum = av_frame_get_buffer(ret.raw(), 0);
-        if(errnum < 0)
+        if(errnum < 0) {
             throw ErrorWithContext("av_frame_get_buffer failed: ", AvError(errnum));
+        }
         return ret;
     }
 };

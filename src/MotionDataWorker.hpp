@@ -19,11 +19,16 @@ public:
         ffmpeg::InputDevice&& input_device,
         std::shared_ptr<FileNameFactory>&& out_filename_factory,
         std::shared_ptr<PreprocessImageFactory>&& preprocess_image_factory);
+    MotionDataWorker(const MotionDataWorker&) = delete;
+    MotionDataWorker(MotionDataWorker&&) = delete;
+    MotionDataWorker& operator=(const MotionDataWorker&) = delete;
+    MotionDataWorker& operator=(MotionDataWorker&&) = delete;
     ~MotionDataWorker();
-    std::shared_ptr<const SharedMutex<MotionData>> get_motion_data() const;
+    [[nodiscard]] std::shared_ptr<const SharedMutex<MotionData>>
+        get_motion_data() const;
     void start();
     void stop();
-    double get_fps() const;
+    [[nodiscard]] double get_fps() const;
 
 private:
     std::shared_ptr<BackgroundSubtractorFactory> m_back_subtractor_factory;

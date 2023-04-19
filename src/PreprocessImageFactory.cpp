@@ -53,9 +53,9 @@ std::shared_ptr<IImageFilter> PreprocessImageFactory::create()
             std::exit(1);
         }
     }
-    if(has_any_filter)
+    if(has_any_filter) {
         return ret;
-    else
-        return std::make_shared<IdentityFilter>();
+    }
+    return std::make_shared<IdentityFilter>();
 }
 } // namespace vehlwn

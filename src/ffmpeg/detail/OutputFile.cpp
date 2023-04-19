@@ -2,6 +2,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <exception>
 #include <iostream>
 #include <memory>
 #include <optional>
@@ -66,8 +67,10 @@ struct OutputFile::Impl {
         , orig_stream_time_bases(std::move(orig_stream_time_bases_))
     {
         BOOST_LOG_FUNCTION();
-        if(!(out_format_context.oformat_flags() & AVFMT_NOFILE))
+        if((out_format_context.oformat_flags() & static_cast<unsigned>(AVFMT_NOFILE))
+           == 0) {
             out_format_context.avio_open();
+        }
         // init muxer, write output file header
         out_format_context.write_header();
         boost::for_each(
@@ -80,19 +83,29 @@ struct OutputFile::Impl {
     }
 
     ~Impl()
-    {
+    try {
+        BOOST_LOG_FUNCTION();
         flush_audio_fifos();
         flush_encoders();
         out_format_context.write_trailer();
+    } catch(const std::exception& ex) {
+        BOOST_LOG_TRIVIAL(error) << "~Impl dtor: " << ex.what();
     }
+
+    Impl(const Impl&) = delete;
+    Impl(Impl&&) = default;
+    Impl& operator=(const Impl&) = delete;
+    Impl& operator=(Impl&&) = default;
 
     void flush_encoders()
     {
         boost::for_each(boost::adaptors::index(encoder_contexts), [&](auto&& elem) {
             const auto out_stream_index = static_cast<int>(elem.index());
             const auto& encoder_context = elem.value();
-            if(!(encoder_context.codec_capabilities() & AV_CODEC_CAP_DELAY))
+            if(!(encoder_context.codec_capabilities()
+                 & static_cast<unsigned>(AV_CODEC_CAP_DELAY))) {
                 return;
+            }
             encode_write_frame_impl(std::nullopt, out_stream_index);
         });
     }
@@ -158,6 +171,7 @@ struct OutputFile::Impl {
                                       .ch_layout(encoder_context.ch_layout())
                                       .get_buffer();
         tmp_frame.set_sample_rate(encoder_context.sample_rate());
+        // NOLINTNEXTLINE: cast uint8_t** to void**
         fifo.read(reinterpret_cast<void**>(tmp_frame.data()), fifo_frame_size);
         encode_write_frame_impl(std::cref(tmp_frame), out_stream_index);
     }
@@ -252,7 +266,7 @@ OutputFile::OutputFile(std::unique_ptr<Impl>&& impl)
     : pimpl(std::move(impl))
 {}
 
-OutputFile::OutputFile(OutputFile&& rhs) = default;
+OutputFile::OutputFile(OutputFile&& rhs) noexcept = default;
 
 OutputFile::~OutputFile() = default;
 
@@ -260,15 +274,17 @@ void OutputFile::encode_write_frame(
     const OwningAvframe& frame,
     const int in_stream_index)
 {
+    BOOST_LOG_FUNCTION();
     const int out_stream_index = pimpl->in_out_stream_mapping.at(in_stream_index);
     const auto& encoder_context
         = pimpl->encoder_contexts.at(static_cast<std::size_t>(out_stream_index));
-    if(encoder_context.codec_type() == AVMEDIA_TYPE_AUDIO)
+    if(encoder_context.codec_type() == AVMEDIA_TYPE_AUDIO) {
         pimpl->process_audio_frame(frame, out_stream_index);
-    else if(encoder_context.codec_type() == AVMEDIA_TYPE_VIDEO)
+    } else if(encoder_context.codec_type() == AVMEDIA_TYPE_VIDEO) {
         pimpl->process_video_frame(frame, out_stream_index);
-    else
+    } else {
         throw std::runtime_error("Unreachable!");
+    }
 }
 
 OutputFile open_output_file(
@@ -305,12 +321,14 @@ OutputFile open_output_file(
                 return;
             }
             const AVCodec* encoder = nullptr;
-            if(input_codec_type == AVMEDIA_TYPE_VIDEO)
+            if(input_codec_type == AVMEDIA_TYPE_VIDEO) {
                 encoder = avcodec_find_encoder(out_vcodec);
-            else
+            } else {
                 encoder = avcodec_find_encoder(out_acodec);
-            if(!encoder)
+            }
+            if(!encoder) {
                 throw std::runtime_error("Encoder not found");
+            }
 
             ScopedEncoderContext encoder_context(encoder);
             ScopedAvDictionary encoder_options;
@@ -323,10 +341,11 @@ OutputFile open_output_file(
                     decoder_context.sample_aspect_ratio());
                 const auto enc_pix_fmts = [&] {
                     boost::span<const AVPixelFormat> ret;
-                    if(!encoder->pix_fmts)
+                    if(!encoder->pix_fmts) {
                         return ret;
-                    const auto start = encoder->pix_fmts;
-                    auto end = start;
+                    }
+                    const auto* const start = encoder->pix_fmts;
+                    const auto* end = start;
                     while(static_cast<int>(*end) != -1) {
                         end++;
                     }
@@ -338,11 +357,11 @@ OutputFile open_output_file(
                    it != enc_pix_fmts.end()) {
                     encoder_context.set_pix_fmt(*it);
                 } else {
-                    if(video_pix_converter)
+                    if(video_pix_converter) {
                         BOOST_LOG_TRIVIAL(warning)
                             << "Found more than one video stream! "
                                "Ignoring others";
-                    else {
+                    } else {
                         const auto dst_format = enc_pix_fmts[0];
                         video_pix_converter = SwsPixelConverter(
                             decoder_context.width(),
@@ -362,8 +381,9 @@ OutputFile open_output_file(
                 encoder_options.set_str("preset", "fast");
                 encoder_options.set_str("tune", "zerolatency");
                 encoder_options.set_str("flags", "+cgop");
-                if(video_bitrate)
+                if(video_bitrate) {
                     encoder_options.set_str("b", video_bitrate.value().data());
+                }
             } else {
                 encoder_context.set_sample_rate(decoder_context.sample_rate());
                 encoder_context.set_ch_layout(decoder_context.ch_layout());
@@ -371,8 +391,9 @@ OutputFile open_output_file(
                 encoder_context.set_sample_fmt(encoder->sample_fmts[0]);
                 encoder_context.set_time_base(
                     av_make_q(1, encoder_context.sample_rate()));
-                if(audio_bitrate)
+                if(audio_bitrate) {
                     encoder_options.set_str("b", audio_bitrate.value().data());
+                }
 
                 ScopedSwrResampler resampler
                     = SwrResamplerBuiler()
@@ -391,9 +412,12 @@ OutputFile open_output_file(
                         encoder_context.sample_fmt(),
                         encoder_context.ch_layout().nb_channels));
             }
-            if(out_format_context.oformat_flags() & AVFMT_GLOBALHEADER)
-                encoder_context.set_flags(
-                    encoder_context.flags() | AV_CODEC_FLAG_GLOBAL_HEADER);
+            if(out_format_context.oformat_flags()
+               & static_cast<unsigned>(AVFMT_GLOBALHEADER)) {
+                encoder_context.set_flags(static_cast<int>(
+                    encoder_context.flags()
+                    | static_cast<unsigned>(AV_CODEC_FLAG_GLOBAL_HEADER)));
+            }
 
             AVStream* const out_stream = out_format_context.new_stream();
             out_stream->time_base = encoder_context.time_base();
@@ -425,13 +449,14 @@ OutputFile open_output_file(
         const auto stream = elem.value();
         const std::int64_t start_time = stream->start_time;
         std::int64_t ret = 0;
-        if(start_time != AV_NOPTS_VALUE)
+        if(start_time != AV_NOPTS_VALUE) {
             ret = start_time;
+        }
         start_times.emplace(out_stream_index, ret);
         orig_stream_time_bases.emplace(out_stream_index, stream->time_base);
     });
 
-    return std::make_unique<OutputFile::Impl>(
+    return OutputFile(std::make_unique<OutputFile::Impl>(
         std::move(out_format_context),
         std::move(encoder_contexts),
         std::move(in_out_stream_mapping),
@@ -440,6 +465,6 @@ OutputFile open_output_file(
         std::move(video_pix_converter),
         std::move(start_times),
         std::move(next_pts),
-        std::move(orig_stream_time_bases));
+        std::move(orig_stream_time_bases)));
 }
 } // namespace vehlwn::ffmpeg::detail

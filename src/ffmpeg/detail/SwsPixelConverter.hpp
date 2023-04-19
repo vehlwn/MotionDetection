@@ -30,8 +30,7 @@ public:
         const int h,
         const AVPixelFormat srcFormat,
         const AVPixelFormat dstFormat)
-    {
-        m_raw = sws_getContext(
+        : m_raw(sws_getContext(
             w,
             h,
             srcFormat,
@@ -41,9 +40,11 @@ public:
             0,
             nullptr,
             nullptr,
-            nullptr);
-        if(!m_raw)
+            nullptr))
+    {
+        if(m_raw == nullptr) {
             throw std::runtime_error("Failed to create SwsContext");
+        }
         m_dst_format = dstFormat;
     }
     SwsPixelConverter(const SwsPixelConverter&) = delete;
@@ -67,10 +68,11 @@ public:
         as_tuple().swap(tmp);
     }
 
-    OwningAvframe scale_video(const OwningAvframe& frame) const
+    [[nodiscard]] OwningAvframe scale_video(const OwningAvframe& frame) const
     {
-        if(frame.height() == 0 || frame.width() == 0)
+        if(frame.height() == 0 || frame.width() == 0) {
             throw std::runtime_error("scale_video accepts only VIDEO frames!");
+        }
         OwningAvframe ret = VideoAvFrameBuilder()
                                 .format(m_dst_format)
                                 .width(frame.width())
@@ -86,10 +88,11 @@ public:
         return ret;
     }
 
-    cv::Mat frame_to_cv_mat(const OwningAvframe& frame) const
+    [[nodiscard]] cv::Mat frame_to_cv_mat(const OwningAvframe& frame) const
     {
-        if(frame.height() == 0 || frame.width() == 0)
+        if(frame.height() == 0 || frame.width() == 0) {
             throw std::runtime_error("frame_to_cv_mat accepts only VIDEO frames!");
+        }
         auto tmp = scale_video(frame);
         int type = 0;
         switch(m_dst_format) {
@@ -126,8 +129,9 @@ private:
             srcSliceH,
             dst,
             dstStride);
-        if(errnum < 0)
+        if(errnum < 0) {
             throw ErrorWithContext("sws_scale failed: ", AvError(errnum));
+        }
     }
 };
 } // namespace vehlwn::ffmpeg::detail

@@ -29,8 +29,9 @@ public:
             frame_size,
             sample_fmt,
             0);
-        if(errnum < 0)
+        if(errnum < 0) {
             throw ErrorWithContext("av_samples_alloc failed: ", AvError(errnum));
+        }
     }
     ScopedAvSAmplesBuffer(const ScopedAvSAmplesBuffer&) = delete;
     ScopedAvSAmplesBuffer(ScopedAvSAmplesBuffer&& rhs) noexcept
@@ -39,8 +40,16 @@ public:
     }
     ~ScopedAvSAmplesBuffer()
     {
-        if(!m_raw.empty())
-            av_freep(&m_raw[0]);
+        if(!m_raw.empty()) {
+            av_freep(m_raw.data());
+        }
+    }
+    ScopedAvSAmplesBuffer& operator=(const ScopedAvSAmplesBuffer&) = delete;
+    ScopedAvSAmplesBuffer& operator=(ScopedAvSAmplesBuffer&& rhs) noexcept
+    {
+        swap(rhs);
+        return *this;
+        ;
     }
     void swap(ScopedAvSAmplesBuffer& rhs) noexcept
     {

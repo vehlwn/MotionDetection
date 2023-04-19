@@ -8,121 +8,128 @@ extern "C" {
 
 namespace vehlwn::ffmpeg ::detail {
 class BaseAvCodecContextProperties {
-protected:
-    AVCodecContext* m_raw = nullptr;
-    BaseAvCodecContextProperties() = default;
-
 public:
+    BaseAvCodecContextProperties() = default;
+    BaseAvCodecContextProperties(const BaseAvCodecContextProperties&) = default;
+    BaseAvCodecContextProperties(BaseAvCodecContextProperties&&) = default;
+    BaseAvCodecContextProperties& operator=(const BaseAvCodecContextProperties&)
+        = default;
+    BaseAvCodecContextProperties& operator=(BaseAvCodecContextProperties&&)
+        = default;
+    virtual ~BaseAvCodecContextProperties() = default;
+
+    [[nodiscard]] virtual AVCodecContext* raw() const = 0;
+
     void guess_frame_rate(ScopedAvFormatInput& ctx, AVStream* stream) const
     {
-        m_raw->framerate = ctx.guess_frame_rate(stream);
+        raw()->framerate = ctx.guess_frame_rate(stream);
     }
-    AVRational framerate() const
+    [[nodiscard]] AVRational framerate() const
     {
-        return m_raw->framerate;
+        return raw()->framerate;
     }
     void set_width(const int x) const
     {
-        m_raw->width = x;
+        raw()->width = x;
     }
-    int width() const
+    [[nodiscard]] int width() const
     {
-        return m_raw->width;
+        return raw()->width;
     }
     void set_height(const int x) const
     {
-        m_raw->height = x;
+        raw()->height = x;
     }
-    int height() const
+    [[nodiscard]] int height() const
     {
-        return m_raw->height;
+        return raw()->height;
     }
     void set_pix_fmt(const AVPixelFormat x) const
     {
-        m_raw->pix_fmt = x;
+        raw()->pix_fmt = x;
     }
-    AVPixelFormat pix_fmt() const
+    [[nodiscard]] AVPixelFormat pix_fmt() const
     {
-        return m_raw->pix_fmt;
+        return raw()->pix_fmt;
     }
-    AVMediaType codec_type() const
+    [[nodiscard]] AVMediaType codec_type() const
     {
-        return m_raw->codec_type;
+        return raw()->codec_type;
     }
     void set_time_base(const AVRational x) const
     {
-        m_raw->time_base = x;
+        raw()->time_base = x;
     }
-    AVRational time_base() const
+    [[nodiscard]] AVRational time_base() const
     {
-        return m_raw->time_base;
+        return raw()->time_base;
     }
-    AVCodecID codec_id() const
+    [[nodiscard]] AVCodecID codec_id() const
     {
-        return m_raw->codec_id;
+        return raw()->codec_id;
     }
     void set_sample_aspect_ratio(const AVRational x) const
     {
-        m_raw->sample_aspect_ratio = x;
+        raw()->sample_aspect_ratio = x;
     }
-    AVRational sample_aspect_ratio() const
+    [[nodiscard]] AVRational sample_aspect_ratio() const
     {
-        return m_raw->sample_aspect_ratio;
+        return raw()->sample_aspect_ratio;
     }
     void set_sample_rate(const int x) const
     {
-        m_raw->sample_rate = x;
+        raw()->sample_rate = x;
     }
-    int sample_rate() const
+    [[nodiscard]] int sample_rate() const
     {
-        return m_raw->sample_rate;
+        return raw()->sample_rate;
     }
     void set_ch_layout(const AVChannelLayout& x) const
     {
-        const int errnum = av_channel_layout_copy(&m_raw->ch_layout, &x);
+        const int errnum = av_channel_layout_copy(&raw()->ch_layout, &x);
         if(errnum != 0) {
             throw ErrorWithContext("av_channel_layout_copy: ", AvError(errnum));
         }
     }
-    AVChannelLayout& ch_layout() const
+    [[nodiscard]] AVChannelLayout& ch_layout() const
     {
-        return m_raw->ch_layout;
+        return raw()->ch_layout;
     }
     void set_sample_fmt(AVSampleFormat x) const
     {
-        m_raw->sample_fmt = x;
+        raw()->sample_fmt = x;
     }
-    AVSampleFormat sample_fmt() const
+    [[nodiscard]] AVSampleFormat sample_fmt() const
     {
-        return m_raw->sample_fmt;
+        return raw()->sample_fmt;
     }
     void set_pkt_timebase(const AVRational x) const
     {
-        m_raw->pkt_timebase = x;
+        raw()->pkt_timebase = x;
     }
     void set_flags(const int x) const
     {
-        m_raw->flags = x;
+        raw()->flags = x;
     }
-    int flags() const
+    [[nodiscard]] unsigned flags() const
     {
-        return m_raw->flags;
+        return static_cast<unsigned>(raw()->flags);
     }
-    int codec_capabilities() const
+    [[nodiscard]] unsigned codec_capabilities() const
     {
-        return m_raw->codec->capabilities;
+        return static_cast<unsigned>(raw()->codec->capabilities);
     }
-    int frame_size() const
+    [[nodiscard]] int frame_size() const
     {
-        return m_raw->frame_size;
+        return raw()->frame_size;
     }
     void set_max_b_frames(const int x) const
     {
-        m_raw->max_b_frames = x;
+        raw()->max_b_frames = x;
     }
     void set_gop_size(const int x) const
     {
-        m_raw->gop_size = x;
+        raw()->gop_size = x;
     }
 };
 } // namespace vehlwn::ffmpeg::detail
