@@ -1,196 +1,206 @@
 #include "ApplicationSettings.hpp"
 
-#include <algorithm>
 #include <cstdlib>
+#include <exception>
+#include <fstream>
+#include <optional>
+#include <sstream>
+#include <string>
+#include <string_view>
 
-#include <Poco/Exception.h>
-#include <Poco/NumberParser.h>
+#include <boost/json/parse.hpp>
+#include <boost/json/value.hpp>
 #include <boost/log/attributes/named_scope.hpp>
 #include <boost/log/trivial.hpp>
-#include <exception>
+
+#include "ErrorWithContext.hpp"
 
 namespace {
+constexpr std::string_view CONFIG_FILE_NAME = "MotionDetection.json";
+
 class ConfigParser {
+    const boost::json::value& m_config;
+
 public:
-    explicit ConfigParser(const Poco::Util::AbstractConfiguration& config)
-        : m_config{config}
+    explicit ConfigParser(const boost::json::value& config)
+        : m_config(config)
     {}
-    [[nodiscard]] Poco::Net::SocketAddress parse_host_and_port() const
-    {
-        BOOST_LOG_FUNCTION();
-        std::string tmp_value;
-        if(m_config.hasProperty("http_server.host_and_port")) {
-            tmp_value = m_config.getString("http_server.host_and_port");
-        } else {
-            BOOST_LOG_TRIVIAL(fatal) << "http_server.host_and_port key not found";
-            std::exit(1);
-        }
-        try {
-            Poco::Net::SocketAddress ret{tmp_value};
-            return ret;
-        } catch(const Poco::Exception& ex) {
-            BOOST_LOG_TRIVIAL(fatal)
-                << "Cannot create socket address: " << ex.what();
-            std::exit(1);
-        }
-    }
     [[nodiscard]] vehlwn::ApplicationSettings::VideoCapture
         parse_video_capture() const
     {
-        BOOST_LOG_FUNCTION();
-        std::string filename;
-        if(m_config.hasProperty("video_capture.filename")) {
-            filename = m_config.getString("video_capture.filename");
-        } else {
-            BOOST_LOG_TRIVIAL(fatal) << "video_capture.filename key not found";
-            std::exit(1);
-        }
-        std::optional<std::string> file_format;
-        if(m_config.hasProperty("video_capture.file_format")) {
-            file_format = m_config.getString("video_capture.file_format");
-        }
-        std::optional<std::string> video_size;
-        if(m_config.hasProperty("video_capture.video_size")) {
-            video_size = m_config.getString("video_capture.video_size");
-        }
-        std::optional<std::string> framerate;
-        if(m_config.hasProperty("video_capture.framerate")) {
-            framerate = m_config.getString("video_capture.framerate");
-        }
-        std::optional<std::string> input_format;
-        if(m_config.hasProperty("video_capture.input_format")) {
-            input_format = m_config.getString("video_capture.input_format");
-        }
+        auto filename = vehlwn::invoke_with_error_context_str(
+            [&] {
+                return m_config.at_pointer("/video_capture/filename").as_string();
+            },
+            "video_capture.filename key not found");
+        auto file_format = vehlwn::invoke_with_error_context_str(
+            [&] {
+                return m_config.at_pointer("/video_capture/file_format").as_string();
+            },
+            "video_capture.file_format key not found");
+        auto video_size = vehlwn::invoke_with_error_context_str(
+            [&] {
+                return m_config.at_pointer("/video_capture/video_size").as_string();
+            },
+            "video_capture.video_size key not found");
+        auto framerate = vehlwn::invoke_with_error_context_str(
+            [&] {
+                return m_config.at_pointer("/video_capture/framerate").as_string();
+            },
+            "video_capture.framerate key not found");
+        auto input_format = vehlwn::invoke_with_error_context_str(
+            [&] {
+                return m_config.at_pointer("/video_capture/input_format")
+                    .as_string();
+            },
+            "video_capture.input_format key not found");
         return {
-            std::move(filename),
-            std::move(file_format),
-            std::move(video_size),
-            std::move(framerate),
-            std::move(input_format)};
+            {filename.begin(), filename.end()},
+            std::string(file_format.begin(), file_format.end()),
+            std::string(video_size.begin(), video_size.end()),
+            std::string(framerate.begin(), framerate.end()),
+            std::string(input_format.begin(), input_format.end())};
     }
     [[nodiscard]] vehlwn::ApplicationSettings::OutputFiles parse_output_files() const
     {
-        std::string prefix;
-        if(m_config.hasProperty("output_files.prefix")) {
-            prefix = m_config.getString("output_files.prefix");
+        BOOST_LOG_FUNCTION();
+        auto prefix = vehlwn::invoke_with_error_context_str(
+            [&] { return m_config.at_pointer("/output_files/prefix").as_string(); },
+            "output_files.prefix key not found");
+
+        auto extension = vehlwn::invoke_with_error_context_str(
+            [&] {
+                return m_config.at_pointer("/output_files/extension").as_string();
+            },
+            "output_files.extension key not found");
+        if(extension.empty()) {
+            BOOST_LOG_TRIVIAL(fatal) << "output_files.extension is empty";
+            std::exit(1);
         }
-        std::string extension;
-        if(m_config.hasProperty("output_files.extension")) {
-            extension = m_config.getString("output_files.extension");
-        }
-        std::optional<std::string> video_bitrate;
-        if(m_config.hasProperty("output_files.video_bitrate")) {
-            video_bitrate = m_config.getString("output_files.video_bitrate");
-        }
-        std::optional<std::string> audio_bitrate;
-        if(m_config.hasProperty("output_files.audio_bitrate")) {
-            audio_bitrate = m_config.getString("output_files.audio_bitrate");
-        }
+
+        auto video_bitrate = [&]() -> std::optional<std::string> {
+            const auto* tmp
+                = m_config.at_pointer("/output_files/video_bitrate").if_string();
+            if(tmp != nullptr) {
+                return std::string(tmp->begin(), tmp->end());
+            }
+            return std::nullopt;
+        }();
+        auto audio_bitrate = [&]() -> std::optional<std::string> {
+            const auto* tmp
+                = m_config.at_pointer("/output_files/audio_bitrate").if_string();
+            if(tmp != nullptr) {
+                return std::string(tmp->begin(), tmp->end());
+            }
+            return std::nullopt;
+        }();
         return {
-            std::move(prefix),
-            std::move(extension),
+            std::string(prefix.begin(), prefix.end()),
+            std::string(extension.begin(), extension.end()),
             std::move(video_bitrate),
             std::move(audio_bitrate)};
     }
     [[nodiscard]] vehlwn::ApplicationSettings::Logging parse_logging() const
     {
-        std::string log_level = m_config.getString("logging.log_level", "info");
+        std::string log_level = "info";
+        if(const auto* tmp = m_config.at_pointer("/logging/log_level").if_string()) {
+            log_level = {tmp->begin(), tmp->end()};
+        }
         return {std::move(log_level)};
     }
     [[nodiscard]] vehlwn::ApplicationSettings::BackgroundSubtractor::Knn
         parse_knn() const
     {
         BOOST_LOG_FUNCTION();
-        vehlwn::ApplicationSettings::BackgroundSubtractor::Knn ret{};
-        try {
-            ret.history = m_config.getInt("background_subtractor.history", 500);
-        } catch(const Poco::SyntaxException&) {
-            BOOST_LOG_TRIVIAL(fatal)
-                << "Invalid number for background_subtractor.history";
-            std::exit(1);
-        }
-        if(ret.history <= 0) {
-            BOOST_LOG_TRIVIAL(fatal)
-                << "background_subtractor.history must be positive int";
-            std::exit(1);
-        }
-        try {
-            ret.dist_2_threshold = m_config.getDouble(
-                "background_subtractor.dist_2_threshold",
-                400.0);
-        } catch(const Poco::SyntaxException&) {
-            BOOST_LOG_TRIVIAL(fatal)
-                << "Invalid number for background_subtractor.dist_2_threshold";
-            std::exit(1);
-        }
-        if(ret.dist_2_threshold <= 0) {
-            BOOST_LOG_TRIVIAL(fatal)
-                << "background_subtractor.dist_2_threshold must be positive double";
-            std::exit(1);
-        }
-        try {
-            ret.detect_shadows
-                = m_config.getBool("background_subtractor.detect_shadows", true);
-        } catch(const Poco::SyntaxException&) {
-            BOOST_LOG_TRIVIAL(fatal)
-                << "Invalid bool for background_subtractor.detect_shadows";
-            std::exit(1);
-        }
+        auto ret = vehlwn::ApplicationSettings::BackgroundSubtractor::Knn();
+        ret.history = [&] {
+            if(const auto* tmp
+               = m_config.at_pointer("/background_subtractor/history").if_int64()) {
+                if(*tmp <= 0) {
+                    BOOST_LOG_TRIVIAL(fatal)
+                        << "background_subtractor.history must be positive int";
+                    std::exit(1);
+                }
+                return static_cast<int>(*tmp);
+            }
+            return 500;
+        }();
+        ret.dist_2_threshold = [&] {
+            if(const auto* tmp
+               = m_config.at_pointer("/background_subtractor/dist_2_threshold")
+                     .if_double()) {
+                if(*tmp <= 0.0) {
+                    BOOST_LOG_TRIVIAL(fatal) << "background_subtractor.dist_2_"
+                                                "threshold must be positive double";
+                    std::exit(1);
+                }
+                return *tmp;
+            }
+            return 400.0;
+        }();
+        ret.detect_shadows = [&] {
+            if(const auto* tmp
+               = m_config.at_pointer("/background_subtractor/detect_shadows")
+                     .if_bool()) {
+                return *tmp;
+            }
+            return true;
+        }();
         return ret;
     }
     [[nodiscard]] vehlwn::ApplicationSettings::BackgroundSubtractor::Mog2
         parse_mog2() const
     {
         BOOST_LOG_FUNCTION();
-        vehlwn::ApplicationSettings::BackgroundSubtractor::Mog2 ret{};
-        try {
-            ret.history = m_config.getInt("background_subtractor.history", 500);
-        } catch(const Poco::SyntaxException&) {
-            BOOST_LOG_TRIVIAL(fatal)
-                << "Invalid number for background_subtractor.history";
-            std::exit(1);
-        }
-        if(ret.history <= 0) {
-            BOOST_LOG_TRIVIAL(fatal)
-                << "background_subtractor.history must be positive int";
-            std::exit(1);
-        }
-        try {
-            ret.var_threshold
-                = m_config.getDouble("background_subtractor.var_threshold", 16.0);
-        } catch(const Poco::SyntaxException&) {
-            BOOST_LOG_TRIVIAL(fatal)
-                << "Invalid number for background_subtractor.var_threshold";
-            std::exit(1);
-        }
-        if(ret.var_threshold <= 0.0) {
-            BOOST_LOG_TRIVIAL(fatal)
-                << "background_subtractor.var_threshold must be positive double";
-            std::exit(1);
-        }
-        try {
-            ret.detect_shadows
-                = m_config.getBool("background_subtractor.detect_shadows", true);
-        } catch(const Poco::SyntaxException&) {
-            BOOST_LOG_TRIVIAL(fatal)
-                << "Invalid bool for background_subtractor.detect_shadows";
-            std::exit(1);
-        }
+        auto ret = vehlwn::ApplicationSettings::BackgroundSubtractor::Mog2();
+        ret.history = [&] {
+            if(const auto* tmp
+               = m_config.at_pointer("/background_subtractor/history").if_int64()) {
+                if(*tmp <= 0) {
+                    BOOST_LOG_TRIVIAL(fatal)
+                        << "background_subtractor.history must be positive int";
+                    std::exit(1);
+                }
+                return static_cast<int>(*tmp);
+            }
+            return 500;
+        }();
+        ret.var_threshold = [&] {
+            if(const auto* tmp
+               = m_config.at_pointer("/background_subtractor/var_threshold")
+                     .if_double()) {
+                if(*tmp <= 0.0) {
+                    BOOST_LOG_TRIVIAL(fatal) << "background_subtractor.var_"
+                                                "threshold must be positive double";
+                    std::exit(1);
+                }
+                return *tmp;
+            }
+            return 16.0;
+        }();
+        ret.detect_shadows = [&] {
+            if(const auto* tmp
+               = m_config.at_pointer("/background_subtractor/detect_shadows")
+                     .if_bool()) {
+                return *tmp;
+            }
+            return true;
+        }();
         return ret;
     }
     [[nodiscard]] vehlwn::ApplicationSettings::BackgroundSubtractor
         parse_background_subtractor() const
     {
         BOOST_LOG_FUNCTION();
-        vehlwn::ApplicationSettings::BackgroundSubtractor ret;
-        std::string algorithm_name;
-        if(m_config.hasProperty("background_subtractor.algorithm")) {
-            algorithm_name = m_config.getString("background_subtractor.algorithm");
-        } else {
-            BOOST_LOG_TRIVIAL(fatal)
-                << "background_subtractor.algorithm key not found";
-            std::exit(1);
-        }
+        const auto algorithm_name = vehlwn::invoke_with_error_context_str(
+            [&] {
+                auto tmp = m_config.at_pointer("/background_subtractor/algorithm")
+                               .as_string();
+                return std::string(tmp.begin(), tmp.end());
+            },
+            "background_subtractor.algorithm key not found");
+
+        auto ret = vehlwn::ApplicationSettings::BackgroundSubtractor();
         // https://docs.opencv.org/4.5.3/de/de1/group__video__motion.html
         if(algorithm_name == "KNN") {
             ret.algorithm = parse_knn();
@@ -210,137 +220,144 @@ public:
         parse_normalized_filter() const
     {
         BOOST_LOG_FUNCTION();
-        vehlwn::ApplicationSettings::Preprocess::NormalizedBox ret{};
-        try {
-            ret.kernel_size = m_config.getInt("preprocess.smoothing.kernel_size");
-            if(ret.kernel_size <= 0) {
-                BOOST_LOG_TRIVIAL(fatal) << "kernel_size must be positive";
-                std::exit(1);
-            }
-        } catch(const Poco::SyntaxException&) {
-            BOOST_LOG_TRIVIAL(fatal)
-                << "Invalid number format for normalized kernel_size";
-            std::exit(1);
-        } catch(const Poco::NotFoundException&) {
-            BOOST_LOG_TRIVIAL(fatal) << "Normalized kernel_size key not found";
-            std::exit(1);
-        }
+        auto ret = vehlwn::ApplicationSettings::Preprocess::NormalizedBox();
+        ret.kernel_size = vehlwn::invoke_with_error_context_str(
+            [&] {
+                auto tmp = m_config.at_pointer("/preprocess/smoothing/kernel_size")
+                               .as_int64();
+                if(tmp <= 0) {
+                    BOOST_LOG_TRIVIAL(fatal) << "kernel_size must be positive";
+                    std::exit(1);
+                }
+                return static_cast<int>(tmp);
+            },
+            "Invalid number for normalized kernel_size");
         return ret;
     }
     [[nodiscard]] vehlwn::ApplicationSettings::Preprocess::Gaussian
         parse_gaussian_filter() const
     {
         BOOST_LOG_FUNCTION();
-        vehlwn::ApplicationSettings::Preprocess::Gaussian ret{};
-        try {
-            ret.kernel_size = m_config.getInt("preprocess.smoothing.kernel_size");
-            if(ret.kernel_size <= 0 || ret.kernel_size % 2 == 0) {
-                BOOST_LOG_TRIVIAL(fatal)
-                    << "Gaussian kernel_size must be positive and odd";
-                std::exit(1);
+        auto ret = vehlwn::ApplicationSettings::Preprocess::Gaussian();
+        ret.kernel_size = vehlwn::invoke_with_error_context_str(
+            [&] {
+                auto tmp = m_config.at_pointer("/preprocess/smoothing/kernel_size")
+                               .as_int64();
+                if(tmp <= 0 || tmp % 2 == 0) {
+                    BOOST_LOG_TRIVIAL(fatal)
+                        << "Gaussian kernel_size must be positive and odd";
+                    std::exit(1);
+                }
+                return static_cast<int>(tmp);
+            },
+            "Invalid number format for Gaussian kernel_size");
+        ret.sigma = [&] {
+            if(const auto* tmp
+               = m_config.at_pointer("/preprocess/smoothing/sigma").if_double()) {
+                if(*tmp < 0.0) {
+                    BOOST_LOG_TRIVIAL(fatal) << "Gaussian kernel standard deviation "
+                                                "must non negative double";
+                    std::exit(1);
+                }
+                return *tmp;
             }
-        } catch(const Poco::SyntaxException&) {
-            BOOST_LOG_TRIVIAL(fatal)
-                << "Invalid number format for preprocess.smoothing.kernel_size";
-            std::exit(1);
-        } catch(const Poco::NotFoundException&) {
-            BOOST_LOG_TRIVIAL(fatal) << "Gaussian kernel_size key not found";
-            std::exit(1);
-        }
-        try {
-            ret.sigma = m_config.getDouble("preprocess.smoothing.sigma", 0.0);
-            if(ret.sigma < 0.0) {
-                BOOST_LOG_TRIVIAL(fatal)
-                    << "Gaussian kernel standard deviation must be positive double";
-                std::exit(1);
-            }
-        } catch(const Poco::SyntaxException&) {
-            BOOST_LOG_TRIVIAL(fatal) << "Invalid number format for Gaussian sigma";
-            std::exit(1);
-        }
+            return 0.0;
+        }();
         return ret;
     }
     [[nodiscard]] vehlwn::ApplicationSettings::Preprocess::Median
         parse_median_filter() const
     {
         BOOST_LOG_FUNCTION();
-        vehlwn::ApplicationSettings::Preprocess::Median ret{};
-        try {
-            ret.kernel_size = m_config.getInt("preprocess.smoothing.kernel_size");
-            if(ret.kernel_size <= 2 || ret.kernel_size % 2 == 0) {
-                BOOST_LOG_TRIVIAL(fatal)
-                    << "Median kernel_size must be odd and greater than 1";
-                std::exit(1);
-            }
-        } catch(const Poco::SyntaxException&) {
-            BOOST_LOG_TRIVIAL(fatal)
-                << "Invalid number format for median kernel_size";
-            std::exit(1);
-        } catch(const Poco::NotFoundException&) {
-            BOOST_LOG_TRIVIAL(fatal) << "Median kernel_size key not found";
-            std::exit(1);
-        }
+        auto ret = vehlwn::ApplicationSettings::Preprocess::Median();
+        ret.kernel_size = vehlwn::invoke_with_error_context_str(
+            [&] {
+                auto tmp = m_config.at_pointer("/preprocess/smoothing/kernel_size")
+                               .as_int64();
+                if(tmp <= 2 || tmp % 2 == 0) {
+                    BOOST_LOG_TRIVIAL(fatal)
+                        << "Median kernel_size must be odd and greater than 1";
+                    std::exit(1);
+                }
+                return static_cast<int>(tmp);
+            },
+            "Invalid number format for median kernel_size");
         return ret;
     }
     [[nodiscard]] vehlwn::ApplicationSettings::Preprocess parse_preprocess() const
     {
         BOOST_LOG_FUNCTION();
-        vehlwn::ApplicationSettings::Preprocess ret;
-        try {
-            ret.resize_factor = m_config.getDouble("preprocess.resize.factor");
-            if(*ret.resize_factor <= 0.0) {
+        auto ret = vehlwn::ApplicationSettings::Preprocess();
+        ret.resize_factor = [&]() -> std::optional<double> {
+            const auto* tmp
+                = m_config.at_pointer("/preprocess/resize/factor").if_double();
+            if(tmp != nullptr) {
+                if(*tmp <= 0.0) {
+                    BOOST_LOG_TRIVIAL(fatal)
+                        << "preprocess.resize.factor must be positive double";
+                    std::exit(1);
+                }
+                return *tmp;
+            }
+            return std::nullopt;
+        }();
+
+        auto algorithm_name = [&]() -> std::optional<std::string> {
+            const auto* tmp
+                = m_config.at_pointer("/preprocess/smoothing/algorithm").if_string();
+            if(tmp != nullptr) {
+                return std::string(tmp->begin(), tmp->end());
+            }
+            return std::nullopt;
+        }();
+        if(algorithm_name) {
+            const auto value = algorithm_name.value();
+            if(value == "normalized_box") {
+                ret.smoothing = parse_normalized_filter();
+            } else if(value == "gaussian") {
+                ret.smoothing = parse_gaussian_filter();
+            } else if(value == "median") {
+                ret.smoothing = parse_median_filter();
+            } else {
                 BOOST_LOG_TRIVIAL(fatal)
-                    << "preprocess.resize.factor must be positive double";
+                    << "Unknown smoothing filter algorithm: " << value;
                 std::exit(1);
             }
-        } catch(const Poco::NotFoundException&) {
-            ret.resize_factor = std::nullopt;
-        } catch(const Poco::SyntaxException&) {
-            BOOST_LOG_TRIVIAL(fatal)
-                << "Invalid number format for preprocess.resize.factor";
-            std::exit(1);
-        }
-        std::string algorithm_name;
-        try {
-            algorithm_name = m_config.getString("preprocess.smoothing.algorithm");
-        } catch(const Poco::NotFoundException&) {
-            ret.smoothing = std::nullopt;
-            return ret;
-        }
-        if(algorithm_name == "normalized_box") {
-            ret.smoothing = parse_normalized_filter();
-        } else if(algorithm_name == "gaussian") {
-            ret.smoothing = parse_gaussian_filter();
-        } else if(algorithm_name == "median") {
-            ret.smoothing = parse_median_filter();
-        } else {
-            BOOST_LOG_TRIVIAL(fatal)
-                << "Unknown smoothing filter algorithm: " << algorithm_name;
-            std::exit(1);
         }
         return ret;
     }
-
-private:
-    const Poco::Util::AbstractConfiguration& m_config;
 };
 
 } // namespace
 
 namespace vehlwn {
-ApplicationSettings
-    read_settings(const Poco::Util::AbstractConfiguration& config) noexcept
+ApplicationSettings read_settings() noexcept
 try {
     BOOST_LOG_FUNCTION();
-    const ConfigParser p{config};
-    auto host_and_port = p.parse_host_and_port();
+    auto is = invoke_with_error_context_fun(
+        [] {
+            return std::ifstream(std::string(CONFIG_FILE_NAME), std::ios::binary);
+        },
+        [] {
+            std::ostringstream os;
+            os << "Failed to open config file " << CONFIG_FILE_NAME;
+            return os.str();
+        });
+    const auto v = invoke_with_error_context_fun(
+        [&] { return boost::json::parse(is); },
+        [] {
+            std::ostringstream os;
+            os << "Failed to parse config file " << CONFIG_FILE_NAME;
+            return os.str();
+        });
+
+    const auto p = ConfigParser(v);
     auto video_capture = p.parse_video_capture();
     auto output_files = p.parse_output_files();
     auto logging = p.parse_logging();
     auto background_subtractor = p.parse_background_subtractor();
     auto preprocess = p.parse_preprocess();
     return {
-        host_and_port,
         std::move(video_capture),
         std::move(output_files),
         std::move(logging),

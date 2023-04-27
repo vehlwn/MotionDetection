@@ -1,17 +1,11 @@
 #pragma once
 
-#include <Poco/Net/SocketAddress.h>
-#include <Poco/Util/AbstractConfiguration.h>
-
-#include <array>
 #include <optional>
 #include <string>
 #include <variant>
 
 namespace vehlwn {
 struct ApplicationSettings {
-    Poco::Net::SocketAddress http_server_host_and_port;
-
     struct VideoCapture {
         std::string filename;
         std::optional<std::string> file_format;
@@ -61,6 +55,5 @@ struct ApplicationSettings {
     } preprocess;
 };
 
-ApplicationSettings
-    read_settings(const Poco::Util::AbstractConfiguration& config) noexcept;
+ApplicationSettings read_settings() noexcept;
 } // namespace vehlwn

@@ -34,7 +34,7 @@ protected:
         base::initialize(self);
 
         m_application_settings = std::make_shared<const vehlwn::ApplicationSettings>(
-            vehlwn::read_settings(config()));
+            vehlwn::read_settings());
         vehlwn::init_logging(m_application_settings->logging.log_level);
         BOOST_LOG_TRIVIAL(info) << "Loaded " << count << " configuration files";
 
@@ -70,14 +70,12 @@ protected:
         auto srv = Poco::Net::HTTPServer(
             new vehlwn::AppRequestHandlerFactory(
                 std::shared_ptr(m_motion_data_worker)),
-            Poco::Net::ServerSocket(
-                m_application_settings->http_server_host_and_port),
+            Poco::Net::ServerSocket(Poco::Net::SocketAddress("[::1]:8080")),
             new Poco::Net::HTTPServerParams);
         srv.start();
 
         BOOST_LOG_TRIVIAL(info)
-            << "Server listening "
-            << m_application_settings->http_server_host_and_port.toString();
+            << "Server listening " << srv.socket().address().toString();
         waitForTerminationRequest();
         srv.stopAll(true);
 

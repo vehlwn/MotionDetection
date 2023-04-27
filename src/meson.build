@@ -6,7 +6,7 @@ poco_dep = dependency('Poco',
 opencv_dep = dependency('OpenCV', include_type: 'system')
 boost_dep = dependency(
   'boost',
-  modules: ['chrono', 'log', 'thread'],
+  modules: ['chrono', 'log', 'thread', 'json'],
   include_type: 'system'
 )
 
