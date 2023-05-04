@@ -18,6 +18,7 @@ common_flags = [
     '-Werror=uninitialized',
     '-Wextra',
     '-Wnull-dereference',
+    '-Wold-style-cast',
     '-Wshadow',
     '-Wundef',
 ]

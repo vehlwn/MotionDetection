@@ -1,14 +1,9 @@
-poco_dep = dependency('Poco',
-  components: ['Net', 'Foundation', 'Util'],
-  modules: ['Poco::Net', 'Poco::Foundation', 'Poco::Util'],
-  include_type: 'system'
-)
 opencv_dep = dependency('OpenCV', include_type: 'system')
-boost_dep = dependency(
-  'boost',
-  modules: ['chrono', 'log', 'thread', 'json'],
-  include_type: 'system'
-)
+
+drogon_dep = dependency('drogon', include_type: 'system')
+
+boost_modules = ['chrono', 'log', 'thread', 'json']
+boost_deps = dependency('boost', modules: boost_modules, include_type: 'system')
 
 libav_deps = []
 foreach name : [
@@ -26,10 +21,10 @@ endforeach
 executable(
   meson.project_name(),
   [
+    'Api.cpp',
+    'Api.hpp',
     'ApplicationSettings.cpp',
     'ApplicationSettings.hpp',
-    'AppRequestHandlerFactory.cpp',
-    'AppRequestHandlerFactory.hpp',
     'BackgroundSubtractorFactory.cpp',
     'BackgroundSubtractorFactory.hpp',
     'CvMatRaiiAdapter.hpp',
@@ -68,24 +63,6 @@ executable(
     'filters/NormalizedBoxFilter.hpp',
     'filters/ResizeFilter.cpp',
     'filters/ResizeFilter.hpp',
-    'handlers/common/ContentLengthHandler.cpp',
-    'handlers/common/ContentLengthHandler.hpp',
-    'handlers/common/ImencodeHandler.cpp',
-    'handlers/common/ImencodeHandler.hpp',
-    'handlers/common/OkHandler.cpp',
-    'handlers/common/OkHandler.hpp',
-    'handlers/CurrentFrameHandler.cpp',
-    'handlers/CurrentFrameHandler.hpp',
-    'handlers/FpsHandler.cpp',
-    'handlers/FpsHandler.hpp',
-    'handlers/HealthyHandler.cpp',
-    'handlers/HealthyHandler.hpp',
-    'handlers/IndexHandler.cpp',
-    'handlers/IndexHandler.hpp',
-    'handlers/MotionMaskHandler.cpp',
-    'handlers/MotionMaskHandler.hpp',
-    'handlers/NotFoundHandler.cpp',
-    'handlers/NotFoundHandler.hpp',
     'IBackgroundSubtractor.hpp',
     'init_logging.cpp',
     'init_logging.hpp',
@@ -98,6 +75,5 @@ executable(
     'PreprocessImageFactory.hpp',
     'SharedMutex.hpp',
   ],
-  dependencies: [poco_dep, opencv_dep, boost_dep, libav_deps],
-  cpp_args: HARDEN_CXX_OPTIONS
+  dependencies: [drogon_dep, opencv_dep, boost_deps, libav_deps],
 )

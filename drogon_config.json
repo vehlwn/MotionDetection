@@ -1,0 +1,26 @@
+{
+  "listeners": [
+    {
+      "address": "::1",
+      "port": 8080
+    },
+    {
+      "address": "127.0.0.1",
+      "port": 8080
+    }
+  ],
+  "app": {
+    "log": {
+      "log_level": "WARN"
+    },
+    "server_header_field": "drogon"
+  },
+  "plugins": [
+    {
+      "name": "drogon::plugin::AccessLogger",
+      "config": {
+        "log_format": "$request_date $remote_addr $method $url $status $body_bytes_sent $processing_time"
+      }
+    }
+  ]
+}

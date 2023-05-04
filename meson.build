@@ -7,4 +7,6 @@ project(
 )
 
 subdir('meson')
+add_project_arguments(HARDEN_CXX_OPTIONS, language: 'cpp')
+
 subdir('src')

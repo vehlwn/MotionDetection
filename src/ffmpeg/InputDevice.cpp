@@ -89,7 +89,8 @@ struct InputDevice::Impl {
             auto decoded_result = decoder_context.receive_frame();
             if(auto* const decoded_frame
                = std::get_if<detail::OwningAvframe>(&decoded_result)) {
-                const double d_pts = (double)decoded_frame->best_effort_timestamp()
+                const auto d_pts
+                    = static_cast<double>(decoded_frame->best_effort_timestamp())
                     * av_q2d(in_stream_timebase);
                 BOOST_LOG_TRIVIAL(trace)
                     << "frame: stream = " << in_stream_index
