@@ -3,7 +3,10 @@ opencv_dep = dependency('OpenCV', include_type: 'system')
 drogon_dep = dependency('drogon', include_type: 'system')
 
 boost_modules = ['chrono', 'log', 'thread', 'json']
-boost_deps = dependency('boost', modules: boost_modules, include_type: 'system')
+boost_deps = []
+foreach name : boost_modules
+  boost_deps += dependency('boost-' + name, include_type: 'system')
+endforeach
 
 libav_deps = []
 foreach name : [
