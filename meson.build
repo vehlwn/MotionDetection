@@ -9,4 +9,10 @@ project(
 subdir('meson')
 add_project_arguments(HARDEN_CXX_OPTIONS, language: 'cpp')
 
+data_dir = get_option('prefix') / get_option('datadir') / meson.project_name()
+config_dir = get_option('prefix') / get_option('sysconfdir') / meson.project_name()
+
 subdir('src')
+
+install_data(['drogon_config.json', 'MotionDetection.json'], install_dir: config_dir)
+install_subdir('front', install_dir: data_dir)

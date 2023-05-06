@@ -13,6 +13,7 @@
 #include <boost/log/attributes/named_scope.hpp>
 #include <boost/log/trivial.hpp>
 
+#include "Config.hpp"
 #include "ErrorWithContext.hpp"
 
 namespace {
@@ -334,20 +335,20 @@ namespace vehlwn {
 ApplicationSettings read_settings() noexcept
 try {
     BOOST_LOG_FUNCTION();
+    const auto config_path
+        = std::string(CONFIG_DIR) + "/" + std::string(CONFIG_FILE_NAME);
     auto is = invoke_with_error_context_fun(
-        [] {
-            return std::ifstream(std::string(CONFIG_FILE_NAME), std::ios::binary);
-        },
-        [] {
+        [&] { return std::ifstream(config_path, std::ios::binary); },
+        [&] {
             std::ostringstream os;
-            os << "Failed to open config file " << CONFIG_FILE_NAME;
+            os << "Failed to open config file " << config_path;
             return os.str();
         });
     const auto v = invoke_with_error_context_fun(
         [&] { return boost::json::parse(is); },
-        [] {
+        [&] {
             std::ostringstream os;
-            os << "Failed to parse config file " << CONFIG_FILE_NAME;
+            os << "Failed to parse config file " << config_path;
             return os.str();
         });
 

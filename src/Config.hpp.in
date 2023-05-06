@@ -1,0 +1,4 @@
+#pragma once
+
+#mesondefine CONFIG_DIR
+#mesondefine DATA_DIR

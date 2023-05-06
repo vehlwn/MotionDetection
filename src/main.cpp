@@ -11,6 +11,7 @@
 #include "Api.hpp"
 #include "ApplicationSettings.hpp"
 #include "BackgroundSubtractorFactory.hpp"
+#include "Config.hpp"
 #include "DemuxerOptionsFactory.hpp"
 #include "FfmpegInputDeviceFactory.hpp"
 #include "FileNameFactory.hpp"
@@ -48,7 +49,8 @@ int main()
     motion_data_worker->start();
 
     drogon::app()
-        .loadConfigFile("drogon_config.json")
+        .loadConfigFile(std::string(CONFIG_DIR) + "/drogon_config.json")
+        .setDocumentRoot(std::string(DATA_DIR) + "/front")
         .registerController(
             std::make_shared<vehlwn::api::Controller>(std::move(motion_data_worker)))
         .registerBeginningAdvice([] {

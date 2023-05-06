@@ -21,6 +21,15 @@ foreach name : [
   libav_deps += dep
 endforeach
 
+conf_data = configuration_data()
+conf_data.set('CONFIG_DIR', '"@0@"'.format(config_dir))
+conf_data.set('DATA_DIR', '"@0@"'.format(data_dir))
+configure_file(
+  input: 'Config.hpp.in',
+  output: 'Config.hpp',
+  configuration: conf_data
+)
+
 executable(
   meson.project_name(),
   [
@@ -79,4 +88,5 @@ executable(
     'SharedMutex.hpp',
   ],
   dependencies: [drogon_dep, opencv_dep, boost_deps, libav_deps],
+  install: true,
 )
