@@ -1,3 +1,4 @@
+#include <exception>
 #include <iostream>
 #include <memory>
 
@@ -20,7 +21,8 @@
 #include "init_logging.hpp"
 
 int main()
-{
+try {
+    BOOST_LOG_FUNCTION();
     const auto application_settings
         = std::make_shared<const vehlwn::ApplicationSettings>(
             vehlwn::read_settings());
@@ -66,4 +68,6 @@ int main()
         })
         .run();
     return 0;
+} catch(const std::exception& ex) {
+    BOOST_LOG_TRIVIAL(fatal) << ex.what();
 }
