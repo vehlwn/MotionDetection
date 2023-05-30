@@ -183,110 +183,140 @@ void InputDevice::set_out_audio_bitrate(std::optional<std::string>&& x) const
     pimpl->audio_bitrate = std::move(x);
 }
 
+namespace {
+void unique_register_all_ffmpeg_devices()
+{
+    static const bool register_devices_flag = [] {
+        avdevice_register_all();
+        return true;
+    }();
+    (void)register_devices_flag;
+}
+
+detail::ScopedAvFormatInput create_input_format_context(
+    const char* const url,
+    const std::optional<std::string>& file_format,
+    ScopedAvDictionary& options)
+{
+    BOOST_LOG_TRIVIAL(debug) << "Demuxer options = " << options;
+    auto ret = detail::ScopedAvFormatInput(url, file_format, options);
+    BOOST_LOG_TRIVIAL(debug) << "Unsupported options = " << options;
+    ret.find_stream_info();
+    ret.dump_format();
+    return ret;
+}
+
+DecoderContextsMap
+    create_decoder_contexts(detail::ScopedAvFormatInput& input_format_context)
+{
+    auto ret = DecoderContextsMap();
+    for(auto&& [index, stream] :
+        boost::adaptors::index(input_format_context.streams())) {
+        const AVCodecParameters* const local_codec_par = stream->codecpar;
+        const AVMediaType codec_type = local_codec_par->codec_type;
+        if(codec_type != AVMEDIA_TYPE_VIDEO && codec_type != AVMEDIA_TYPE_AUDIO) {
+            continue;
+        }
+
+        const AVCodec* const local_decoder
+            = avcodec_find_decoder(local_codec_par->codec_id);
+        if(local_decoder == nullptr) {
+            BOOST_LOG_TRIVIAL(error)
+                << "Failed to find decoder for stream #" << index;
+            throw std::runtime_error("Failed to find decoder");
+        }
+        auto decoder_context
+            = detail::ScopedDecoderContext(local_decoder, local_codec_par);
+        switch(codec_type) {
+            case AVMEDIA_TYPE_VIDEO: {
+                decoder_context.guess_frame_rate(input_format_context, stream);
+                BOOST_LOG_TRIVIAL(debug)
+                    << "VIDEO codec name = " << local_decoder->name << ", stream "
+                    << index;
+                const AVRational framerate = decoder_context.framerate();
+                BOOST_LOG_TRIVIAL(debug)
+                    << "decoder: guess_frame_rate = " << framerate << " = "
+                    << av_q2d(framerate)
+                    << " time_base = " << decoder_context.time_base();
+                break;
+            }
+            case AVMEDIA_TYPE_AUDIO: {
+                if(decoder_context.ch_layout().order == AV_CHANNEL_ORDER_UNSPEC) {
+                    av_channel_layout_default(
+                        &decoder_context.ch_layout(),
+                        decoder_context.ch_layout().nb_channels);
+                }
+                break;
+            }
+            default:
+                BOOST_LOG_TRIVIAL(fatal)
+                    << "Unexpected stream type in input file: "
+                    << "index = " << index
+                    << ", type = " << av_get_media_type_string(codec_type);
+                throw std::runtime_error("Unreachable!");
+        }
+        // Set the packet timebase for the decoder.
+        decoder_context.set_pkt_timebase(stream->time_base);
+        BOOST_LOG_TRIVIAL(debug) << "stream " << index << ":"
+                                 << " timebase = " << stream->time_base
+                                 << " r_frame_rate = " << stream->r_frame_rate
+                                 << " start_time = " << stream->start_time;
+
+        ret.emplace(index, std::move(decoder_context));
+    }
+    return ret;
+}
+
+int find_video_stream_index(const detail::ScopedAvFormatInput& input_format_context)
+{
+    int ret = -1;
+    for(auto&& [index, stream] :
+        boost::adaptors::index(input_format_context.streams())) {
+        const auto codec_type = stream->codecpar->codec_type;
+        if(codec_type == AVMEDIA_TYPE_VIDEO) {
+            ret = static_cast<int>(index);
+            break;
+        }
+    }
+    return ret;
+}
+detail::SwsPixelConverter create_pixel_converter(
+    const int video_stream_index,
+    const DecoderContextsMap& decoder_contexts)
+{
+    const auto& decoder_context = decoder_contexts.at(video_stream_index);
+    auto ret = detail::SwsPixelConverter(
+        decoder_context.width(),
+        decoder_context.height(),
+        decoder_context.pix_fmt(),
+        AV_PIX_FMT_BGR24);
+    return ret;
+}
+} // namespace
+
 InputDevice open_input_device(
     const char* const url,
     const std::optional<std::string>& file_format,
     ScopedAvDictionary& options)
 {
     BOOST_LOG_FUNCTION();
-    {
-        static const bool register_devices_flag = [] {
-            avdevice_register_all();
-            return true;
-        }();
-        (void)register_devices_flag;
+    unique_register_all_ffmpeg_devices();
+
+    auto input_format_context
+        = create_input_format_context(url, file_format, options);
+
+    auto decoder_contexts = create_decoder_contexts(input_format_context);
+    const int video_stream_index = find_video_stream_index(input_format_context);
+    if(video_stream_index == -1) {
+        BOOST_LOG_TRIVIAL(fatal) << "Input file does not contain video streams!";
+        std::exit(1);
     }
-
-    BOOST_LOG_TRIVIAL(debug) << "Demuxer options = " << options;
-    detail::ScopedAvFormatInput input_format_context(url, file_format, options);
-    BOOST_LOG_TRIVIAL(debug) << "Unsupported options = " << options;
-    input_format_context.find_stream_info();
-    input_format_context.dump_format();
-
-    DecoderContextsMap decoder_contexts;
-    std::optional<detail::SwsPixelConverter> pixel_converter;
-    int video_stream_index = -1;
-
-    boost::for_each(
-        boost::adaptors::index(input_format_context.streams()),
-        [&](const auto& elem) {
-            const auto stream_index = static_cast<int>(elem.index());
-            AVStream* const local_stream = elem.value();
-
-            const AVCodecParameters* const local_codec_par = local_stream->codecpar;
-            const AVMediaType codec_type = local_codec_par->codec_type;
-            if(codec_type != AVMEDIA_TYPE_VIDEO
-               && codec_type != AVMEDIA_TYPE_AUDIO) {
-                return;
-            }
-
-            const AVCodec* const local_decoder
-                = avcodec_find_decoder(local_codec_par->codec_id);
-            if(!local_decoder) {
-                BOOST_LOG_TRIVIAL(error)
-                    << "Failed to find decoder for stream #" << stream_index;
-                throw std::runtime_error("Failed to find decoder");
-            }
-            detail::ScopedDecoderContext decoder_context(
-                local_decoder,
-                local_codec_par);
-            switch(codec_type) {
-                case AVMEDIA_TYPE_VIDEO: {
-                    decoder_context.guess_frame_rate(
-                        input_format_context,
-                        local_stream);
-                    if(video_stream_index == -1) {
-                        pixel_converter = detail::SwsPixelConverter(
-                            decoder_context.width(),
-                            decoder_context.height(),
-                            decoder_context.pix_fmt(),
-                            AV_PIX_FMT_BGR24);
-                        video_stream_index = stream_index;
-                    } else {
-                        BOOST_LOG_TRIVIAL(warning)
-                            << "Found another video stream: " << stream_index
-                            << ". Using only " << video_stream_index << "-th";
-                        return;
-                    }
-                    BOOST_LOG_TRIVIAL(debug)
-                        << "VIDEO codec name = " << local_decoder->name
-                        << ", stream " << stream_index;
-                    const AVRational framerate = decoder_context.framerate();
-                    BOOST_LOG_TRIVIAL(debug)
-                        << "decoder: guess_frame_rate = " << framerate << " = "
-                        << av_q2d(framerate)
-                        << " time_base = " << decoder_context.time_base();
-                    break;
-                }
-                case AVMEDIA_TYPE_AUDIO: {
-                    if(decoder_context.ch_layout().order
-                       == AV_CHANNEL_ORDER_UNSPEC) {
-                        av_channel_layout_default(
-                            &decoder_context.ch_layout(),
-                            decoder_context.ch_layout().nb_channels);
-                    }
-                    break;
-                }
-                default:
-                    throw std::runtime_error("Unreachable!");
-            }
-            // Set the packet timebase for the decoder.
-            decoder_context.set_pkt_timebase(local_stream->time_base);
-            BOOST_LOG_TRIVIAL(debug)
-                << "stream " << stream_index << ":"
-                << " timebase = " << local_stream->time_base
-                << " r_frame_rate = " << local_stream->r_frame_rate
-                << " start_time = " << local_stream->start_time;
-
-            decoder_contexts.emplace(stream_index, std::move(decoder_context));
-        });
-    if(video_stream_index == -1 || !pixel_converter) {
-        throw std::runtime_error("Input file does not contain video streams");
-    }
+    auto pixel_converter
+        = create_pixel_converter(video_stream_index, decoder_contexts);
 
     return InputDevice(std::make_unique<InputDevice::Impl>(
         std::move(input_format_context),
         std::move(decoder_contexts),
-        std::move(pixel_converter.value())));
+        std::move(pixel_converter)));
 }
 } // namespace vehlwn::ffmpeg
