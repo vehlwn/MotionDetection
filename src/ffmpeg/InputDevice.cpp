@@ -231,41 +231,44 @@ InputDevice open_input_device(
                 local_decoder,
                 local_codec_par);
             switch(codec_type) {
-            case AVMEDIA_TYPE_VIDEO: {
-                decoder_context.guess_frame_rate(input_format_context, local_stream);
-                if(video_stream_index == -1) {
-                    pixel_converter = detail::SwsPixelConverter(
-                        decoder_context.width(),
-                        decoder_context.height(),
-                        decoder_context.pix_fmt(),
-                        AV_PIX_FMT_BGR24);
-                    video_stream_index = stream_index;
-                } else {
-                    BOOST_LOG_TRIVIAL(warning)
-                        << "Found another video stream: " << stream_index
-                        << ". Using only " << video_stream_index << "-th";
-                    return;
+                case AVMEDIA_TYPE_VIDEO: {
+                    decoder_context.guess_frame_rate(
+                        input_format_context,
+                        local_stream);
+                    if(video_stream_index == -1) {
+                        pixel_converter = detail::SwsPixelConverter(
+                            decoder_context.width(),
+                            decoder_context.height(),
+                            decoder_context.pix_fmt(),
+                            AV_PIX_FMT_BGR24);
+                        video_stream_index = stream_index;
+                    } else {
+                        BOOST_LOG_TRIVIAL(warning)
+                            << "Found another video stream: " << stream_index
+                            << ". Using only " << video_stream_index << "-th";
+                        return;
+                    }
+                    BOOST_LOG_TRIVIAL(debug)
+                        << "VIDEO codec name = " << local_decoder->name
+                        << ", stream " << stream_index;
+                    const AVRational framerate = decoder_context.framerate();
+                    BOOST_LOG_TRIVIAL(debug)
+                        << "decoder: guess_frame_rate = " << framerate << " = "
+                        << av_q2d(framerate)
+                        << " time_base = " << decoder_context.time_base();
+                    break;
                 }
-                BOOST_LOG_TRIVIAL(debug)
-                    << "VIDEO codec name = " << local_decoder->name << ", stream "
-                    << stream_index;
-                const AVRational framerate = decoder_context.framerate();
-                BOOST_LOG_TRIVIAL(debug)
-                    << "decoder: guess_frame_rate = " << framerate << " = "
-                    << av_q2d(framerate)
-                    << " time_base = " << decoder_context.time_base();
-                break;
-            }
-            case AVMEDIA_TYPE_AUDIO: {
-                if(decoder_context.ch_layout().order == AV_CHANNEL_ORDER_UNSPEC) {
-                    av_channel_layout_default(
-                        &decoder_context.ch_layout(),
-                        decoder_context.ch_layout().nb_channels);
+                case AVMEDIA_TYPE_AUDIO: {
+                    if(decoder_context.ch_layout().order
+                       == AV_CHANNEL_ORDER_UNSPEC) {
+                        av_channel_layout_default(
+                            &decoder_context.ch_layout(),
+                            decoder_context.ch_layout().nb_channels);
+                    }
+                    break;
                 }
-                break;
-            }
-            default:
-                throw std::runtime_error("Unreachable!");
+                default:
+                    throw std::runtime_error("Unreachable!");
             }
             // Set the packet timebase for the decoder.
             decoder_context.set_pkt_timebase(local_stream->time_base);
