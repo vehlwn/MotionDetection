@@ -51,7 +51,7 @@ try {
     motion_data_worker->start();
 
     drogon::app()
-        .loadConfigFile(std::string(CONFIG_DIR) + "/drogon_config.json")
+        .loadConfigFile(std::string(CONFIG_DIR) + "/drogon.json")
         .setDocumentRoot(std::string(DATA_DIR) + "/front")
         .registerController(
             std::make_shared<vehlwn::api::Controller>(std::move(motion_data_worker)))

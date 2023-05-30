@@ -17,7 +17,7 @@
 #include "ErrorWithContext.hpp"
 
 namespace {
-constexpr std::string_view CONFIG_FILE_NAME = "MotionDetection.json";
+constexpr std::string_view CONFIG_FILE_NAME = "app.json";
 
 class ConfigParser {
     const boost::json::value& m_config;
