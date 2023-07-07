@@ -18,6 +18,7 @@
 #include <boost/range/algorithm/for_each.hpp>
 
 extern "C" {
+#include <libavutil/avutil.h>
 #include <libavutil/mathematics.h>
 #include <libavutil/pixdesc.h>
 #include <libavutil/rational.h>
@@ -199,36 +200,39 @@ struct OutputFile::Impl {
                   .streams()[static_cast<std::size_t>(out_stream_index)]
                   ->time_base;
         switch(frame_type) {
-        case AVMEDIA_TYPE_VIDEO:
-            if(frame.pts() == AV_NOPTS_VALUE) {
-                BOOST_LOG_TRIVIAL(error) << "Video frame does not have pts value";
-            } else {
-                const auto new_pts = frame.pts() - start_times.at(out_stream_index);
-                const auto rescaled_pts
-                    = av_rescale_q(new_pts, in_stream_tb, out_stream_tb);
-                frame.set_pts(rescaled_pts);
+            case AVMEDIA_TYPE_VIDEO:
+                if(frame.pts() == AV_NOPTS_VALUE) {
+                    BOOST_LOG_TRIVIAL(error)
+                        << "Video frame does not have pts value";
+                } else {
+                    const auto new_pts
+                        = frame.pts() - start_times.at(out_stream_index);
+                    const auto rescaled_pts
+                        = av_rescale_q(new_pts, in_stream_tb, out_stream_tb);
+                    frame.set_pts(rescaled_pts);
+                }
+                break;
+            case AVMEDIA_TYPE_AUDIO: {
+                if(frame.pts() == AV_NOPTS_VALUE) {
+                    const auto enc_tb = encoder_context.time_base();
+                    const auto new_pts = next_pts.at(out_stream_index);
+                    const auto rescaled_pts
+                        = av_rescale_q(new_pts, enc_tb, out_stream_tb);
+                    frame.set_pts(rescaled_pts);
+                    next_pts[out_stream_index] = new_pts + frame.nb_samples();
+                } else {
+                    BOOST_LOG_TRIVIAL(error)
+                        << "Unexpected! Audio resampler returned valid pts!";
+                    const auto new_pts
+                        = frame.pts() - start_times.at(out_stream_index);
+                    const auto rescaled_pts
+                        = av_rescale_q(new_pts, in_stream_tb, out_stream_tb);
+                    frame.set_pts(rescaled_pts);
+                }
+                break;
             }
-            break;
-        case AVMEDIA_TYPE_AUDIO: {
-            if(frame.pts() == AV_NOPTS_VALUE) {
-                const auto enc_tb = encoder_context.time_base();
-                const auto new_pts = next_pts.at(out_stream_index);
-                const auto rescaled_pts
-                    = av_rescale_q(new_pts, enc_tb, out_stream_tb);
-                frame.set_pts(rescaled_pts);
-                next_pts[out_stream_index] = new_pts + frame.nb_samples();
-            } else {
-                BOOST_LOG_TRIVIAL(error)
-                    << "Unexpected! Audio resampler returned valid pts!";
-                const auto new_pts = frame.pts() - start_times.at(out_stream_index);
-                const auto rescaled_pts
-                    = av_rescale_q(new_pts, in_stream_tb, out_stream_tb);
-                frame.set_pts(rescaled_pts);
-            }
-            break;
-        }
-        default:
-            throw std::runtime_error("Unreachable!");
+            default:
+                throw std::runtime_error("Unreachable!");
         }
     }
 
@@ -295,7 +299,7 @@ OutputFile open_output_file(
     const std::optional<std::string>& audio_bitrate)
 {
     BOOST_LOG_FUNCTION();
-    ScopedAvFormatOutput out_format_context(url);
+    auto out_format_context = ScopedAvFormatOutput(url);
     std::vector<ScopedEncoderContext> encoder_contexts;
     std::map<int, int> in_out_stream_mapping;
     std::map<int, ScopedAvAudioFifo> audio_fifos;
@@ -306,34 +310,21 @@ OutputFile open_output_file(
     constexpr auto out_vcodec = AV_CODEC_ID_H264;
     constexpr auto out_acodec = AV_CODEC_ID_AAC;
 
-    boost::for_each(
-        decoder_contexts,
-        [&, out_stream_counter = 0](const auto& elem) mutable {
-            const int in_stream_index = elem.first;
-            const auto& decoder_context = elem.second;
+    int out_stream_counter = 0;
+    for(auto&& [in_stream_index, decoder_context] : decoder_contexts) {
+        const AVMediaType input_codec_type = decoder_context.codec_type();
+        const AVCodec* encoder = nullptr;
+        if(input_codec_type == AVMEDIA_TYPE_VIDEO) {
+            encoder = avcodec_find_encoder(out_vcodec);
+        } else {
+            encoder = avcodec_find_encoder(out_acodec);
+        }
 
-            const AVMediaType input_codec_type = decoder_context.codec_type();
-            if(input_codec_type != AVMEDIA_TYPE_VIDEO
-               && input_codec_type != AVMEDIA_TYPE_AUDIO) {
-                BOOST_LOG_TRIVIAL(warning)
-                    << "Ignoring input stream " << in_stream_index << " of type "
-                    << av_get_media_type_string(input_codec_type);
-                return;
-            }
-            const AVCodec* encoder = nullptr;
-            if(input_codec_type == AVMEDIA_TYPE_VIDEO) {
-                encoder = avcodec_find_encoder(out_vcodec);
-            } else {
-                encoder = avcodec_find_encoder(out_acodec);
-            }
-            if(!encoder) {
-                throw std::runtime_error("Encoder not found");
-            }
+        auto encoder_context = ScopedEncoderContext(encoder);
+        auto encoder_options = ScopedAvDictionary();
 
-            ScopedEncoderContext encoder_context(encoder);
-            ScopedAvDictionary encoder_options;
-
-            if(input_codec_type == AVMEDIA_TYPE_VIDEO) {
+        switch(input_codec_type) {
+            case AVMEDIA_TYPE_VIDEO: {
                 // transcode to same properties
                 encoder_context.set_height(decoder_context.height());
                 encoder_context.set_width(decoder_context.width());
@@ -378,13 +369,16 @@ OutputFile open_output_file(
                 encoder_context.set_max_b_frames(2);
                 encoder_context.set_gop_size(
                     static_cast<int>(av_q2d(decoder_context.framerate()) / 2.0));
+                encoder_options.set_str("flags", "+cgop");
+                // h264 private options. See ffmpeg -h encoder=h264 and x264 -h.
                 encoder_options.set_str("preset", "fast");
                 encoder_options.set_str("tune", "zerolatency");
-                encoder_options.set_str("flags", "+cgop");
                 if(video_bitrate) {
                     encoder_options.set_str("b", video_bitrate.value().data());
                 }
-            } else {
+                break;
+            }
+            case AVMEDIA_TYPE_AUDIO: {
                 encoder_context.set_sample_rate(decoder_context.sample_rate());
                 encoder_context.set_ch_layout(decoder_context.ch_layout());
                 // take first format from list of supported formats
@@ -395,15 +389,14 @@ OutputFile open_output_file(
                     encoder_options.set_str("b", audio_bitrate.value().data());
                 }
 
-                ScopedSwrResampler resampler
-                    = SwrResamplerBuiler()
-                          .in_ch_layout(&decoder_context.ch_layout())
-                          .in_sample_fmt(decoder_context.sample_fmt())
-                          .in_sample_rate(decoder_context.sample_rate())
-                          .out_ch_layout(&encoder_context.ch_layout())
-                          .out_sample_fmt(encoder_context.sample_fmt())
-                          .out_sample_rate(encoder_context.sample_rate())
-                          .build();
+                auto resampler = SwrResamplerBuiler()
+                                     .in_ch_layout(&decoder_context.ch_layout())
+                                     .in_sample_fmt(decoder_context.sample_fmt())
+                                     .in_sample_rate(decoder_context.sample_rate())
+                                     .out_ch_layout(&encoder_context.ch_layout())
+                                     .out_sample_fmt(encoder_context.sample_fmt())
+                                     .out_sample_rate(encoder_context.sample_rate())
+                                     .build();
                 resamplers.emplace(out_stream_counter, std::move(resampler));
                 audio_fifos.emplace(
                     std::piecewise_construct,
@@ -411,28 +404,36 @@ OutputFile open_output_file(
                     std::forward_as_tuple(
                         encoder_context.sample_fmt(),
                         encoder_context.ch_layout().nb_channels));
+                break;
             }
-            if(out_format_context.oformat_flags()
-               & static_cast<unsigned>(AVFMT_GLOBALHEADER)) {
-                encoder_context.set_flags(static_cast<int>(
-                    encoder_context.flags()
-                    | static_cast<unsigned>(AV_CODEC_FLAG_GLOBAL_HEADER)));
-            }
+            default:
+                BOOST_LOG_TRIVIAL(warning)
+                    << "Ignoring input stream " << in_stream_index << " of type "
+                    << av_get_media_type_string(input_codec_type);
+                continue;
+        }
 
-            AVStream* const out_stream = out_format_context.new_stream();
-            out_stream->time_base = encoder_context.time_base();
+        if(out_format_context.oformat_flags()
+           & static_cast<unsigned>(AVFMT_GLOBALHEADER)) {
+            encoder_context.set_flags(static_cast<int>(
+                encoder_context.flags()
+                | static_cast<unsigned>(AV_CODEC_FLAG_GLOBAL_HEADER)));
+        }
 
-            BOOST_LOG_TRIVIAL(debug) << "out stream " << out_stream_counter
-                                     << ": encoder options = " << encoder_options;
-            encoder_context.open(out_stream->codecpar, encoder_options);
-            BOOST_LOG_TRIVIAL(debug)
-                << "out stream " << out_stream_counter
-                << ": unsupported options = " << encoder_options << std::endl;
-            encoder_contexts.emplace_back(std::move(encoder_context));
-            in_out_stream_mapping.emplace(in_stream_index, out_stream_counter);
-            next_pts.emplace(out_stream_counter, 0);
-            out_stream_counter++;
-        });
+        AVStream* const out_stream = out_format_context.new_stream();
+        out_stream->time_base = encoder_context.time_base();
+
+        BOOST_LOG_TRIVIAL(debug) << "out stream " << out_stream_counter
+                                 << ": encoder options = " << encoder_options;
+        encoder_context.open(out_stream->codecpar, encoder_options);
+        BOOST_LOG_TRIVIAL(debug)
+            << "out stream " << out_stream_counter
+            << ": unsupported options = " << encoder_options << std::endl;
+        encoder_contexts.emplace_back(std::move(encoder_context));
+        in_out_stream_mapping.emplace(in_stream_index, out_stream_counter);
+        next_pts.emplace(out_stream_counter, 0);
+        out_stream_counter++;
+    }
     out_format_context.dump_format();
 
     std::map<int, std::int64_t> start_times;
