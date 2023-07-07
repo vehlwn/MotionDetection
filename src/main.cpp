@@ -26,7 +26,7 @@ try {
     const auto application_settings
         = std::make_shared<const vehlwn::ApplicationSettings>(
             vehlwn::read_settings());
-    vehlwn::init_logging(application_settings->logging.log_level);
+    vehlwn::init_logging(application_settings->logging);
 
     auto back_subtractor_factory
         = std::make_shared<vehlwn::BackgroundSubtractorFactory>(

@@ -1,4 +1,5 @@
 #include "init_logging.hpp"
+#include "ApplicationSettings.hpp"
 
 #include <iostream>
 
@@ -93,9 +94,9 @@ void init_ffmpeg_log(const std::string_view log_level)
 }
 } // namespace
 
-void init_logging(const std::string_view log_level)
+void init_logging(const ApplicationSettings::Logging& logging)
 {
-    init_boost_log(log_level);
-    init_ffmpeg_log(log_level);
+    init_boost_log(logging.app_level);
+    init_ffmpeg_log(logging.ffmpeg_level);
 }
 } // namespace vehlwn

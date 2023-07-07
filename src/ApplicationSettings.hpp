@@ -22,7 +22,8 @@ struct ApplicationSettings {
     } output_files;
 
     struct Logging {
-        std::string log_level;
+        std::string app_level;
+        std::string ffmpeg_level;
     } logging;
 
     struct BackgroundSubtractor {

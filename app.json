@@ -13,7 +13,8 @@
     "audio_bitrate": "128k"
   },
   "logging": {
-    "log_level": "info"
+    "app_level": "info",
+    "ffmpeg_level": "warning"
   },
   "background_subtractor": {
     "algorithm": "MOG2",

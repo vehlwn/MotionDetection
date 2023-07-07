@@ -1,7 +1,7 @@
 #pragma once
 
-#include <string_view>
+#include "ApplicationSettings.hpp"
 
 namespace vehlwn {
-void init_logging( std::string_view log_level);
+void init_logging(const ApplicationSettings::Logging& logging);
 }

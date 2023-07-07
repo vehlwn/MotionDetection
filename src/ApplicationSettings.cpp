@@ -103,11 +103,16 @@ public:
     }
     [[nodiscard]] vehlwn::ApplicationSettings::Logging parse_logging() const
     {
-        std::string log_level = "info";
-        if(const auto* tmp = m_config.at_pointer("/logging/log_level").if_string()) {
-            log_level = {tmp->begin(), tmp->end()};
+        std::string app_level = "info";
+        if(auto tmp = m_config.at_pointer("/logging/app_level").if_string()) {
+            app_level = {tmp->begin(), tmp->end()};
         }
-        return {std::move(log_level)};
+
+        std::string ffmpeg_level = "warning";
+        if(auto tmp = m_config.at_pointer("/logging/ffmpeg_level").if_string()) {
+            ffmpeg_level = {tmp->begin(), tmp->end()};
+        }
+        return {std::move(app_level), std::move(ffmpeg_level)};
     }
     [[nodiscard]] vehlwn::ApplicationSettings::BackgroundSubtractor::Knn
         parse_knn() const
