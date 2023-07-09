@@ -34,33 +34,49 @@ public:
                 return m_config.at_pointer("/video_capture/filename").as_string();
             },
             "video_capture.filename key not found");
-        auto file_format = vehlwn::invoke_with_error_context_str(
-            [&] {
-                return m_config.at_pointer("/video_capture/file_format").as_string();
-            },
-            "video_capture.file_format key not found");
-        auto video_size = vehlwn::invoke_with_error_context_str(
-            [&] {
-                return m_config.at_pointer("/video_capture/video_size").as_string();
-            },
-            "video_capture.video_size key not found");
-        auto framerate = vehlwn::invoke_with_error_context_str(
-            [&] {
-                return m_config.at_pointer("/video_capture/framerate").as_string();
-            },
-            "video_capture.framerate key not found");
-        auto input_format = vehlwn::invoke_with_error_context_str(
-            [&] {
-                return m_config.at_pointer("/video_capture/input_format")
-                    .as_string();
-            },
-            "video_capture.input_format key not found");
+        auto file_format = [&]() -> std::optional<std::string> {
+            if(m_config.at("video_capture").as_object().contains("file_format")) {
+                if(const auto tmp
+                   = m_config.at_pointer("/video_capture/file_format").if_string()) {
+                    return std::string(tmp->begin(), tmp->end());
+                }
+            }
+            return std::nullopt;
+        }();
+        auto video_size = [&]() -> std::optional<std::string> {
+            if(m_config.at("video_capture").as_object().contains("video_size")) {
+                if(const auto tmp
+                   = m_config.at_pointer("/video_capture/video_size").if_string()) {
+                    return std::string(tmp->begin(), tmp->end());
+                }
+            }
+            return std::nullopt;
+        }();
+        auto framerate = [&]() -> std::optional<std::string> {
+            if(m_config.at("video_capture").as_object().contains("framerate")) {
+                if(const auto tmp
+                   = m_config.at_pointer("/video_capture/framerate").if_string()) {
+                    return std::string(tmp->begin(), tmp->end());
+                }
+            }
+            return std::nullopt;
+        }();
+        auto input_format = [&]() -> std::optional<std::string> {
+            if(m_config.at("video_capture").as_object().contains("input_format")) {
+                if(const auto tmp
+                   = m_config.at_pointer("/video_capture/input_format")
+                         .if_string()) {
+                    return std::string(tmp->begin(), tmp->end());
+                }
+            }
+            return std::nullopt;
+        }();
         return {
             {filename.begin(), filename.end()},
-            std::string(file_format.begin(), file_format.end()),
-            std::string(video_size.begin(), video_size.end()),
-            std::string(framerate.begin(), framerate.end()),
-            std::string(input_format.begin(), input_format.end())};
+            std::move(file_format),
+            std::move(video_size),
+            std::move(framerate),
+            std::move(input_format)};
     }
     [[nodiscard]] vehlwn::ApplicationSettings::OutputFiles parse_output_files() const
     {
