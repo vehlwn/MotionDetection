@@ -371,7 +371,7 @@ OutputFile open_output_file(
                     static_cast<int>(av_q2d(decoder_context.framerate()) / 2.0));
                 encoder_options.set_str("flags", "+cgop");
                 // h264 private options. See ffmpeg -h encoder=h264 and x264 -h.
-                encoder_options.set_str("preset", "fast");
+                encoder_options.set_str("preset", "ultrafast");
                 encoder_options.set_str("tune", "zerolatency");
                 if(video_bitrate) {
                     encoder_options.set_str("b", video_bitrate.value().data());
