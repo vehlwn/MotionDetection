@@ -18,6 +18,7 @@ Checks: >
   ,-readability-qualified-auto
 WarningsAsErrors: >
   ,bugprone-use-after-move
+  ,clang-analyzer-core.StackAddressEscape
   ,performance-move-const-arg
 CheckOptions:
   cppcoreguidelines-explicit-virtual-functions.IgnoreDestructors: true
