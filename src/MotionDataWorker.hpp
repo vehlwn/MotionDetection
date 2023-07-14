@@ -39,5 +39,9 @@ private:
     std::atomic_bool m_stopped;
 
     std::thread m_working_thread;
+
+    void thread_func(
+        std::shared_ptr<IBackgroundSubtractor>&& back_subtractor,
+        std::shared_ptr<IImageFilter>&& preprocess_filter);
 };
 } // namespace vehlwn

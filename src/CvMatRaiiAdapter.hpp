@@ -14,6 +14,10 @@ public:
     CvMatRaiiAdapter& operator=(const CvMatRaiiAdapter&) = delete;
     CvMatRaiiAdapter& operator=(CvMatRaiiAdapter&&) = default;
 
+    [[nodiscard]] CvMatRaiiAdapter clone() const
+    {
+        return CvMatRaiiAdapter(m_internal.clone());
+    }
     explicit CvMatRaiiAdapter(cv::Mat&& rhs) noexcept
         : m_internal(std::move(rhs))
     {}

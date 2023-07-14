@@ -47,17 +47,25 @@ void MotionDataWorker::start()
     auto preprocess_filter = m_preprocess_image_factory->create();
     const auto fname = m_out_filename_factory->generate();
     m_input_device.start_recording(fname.data());
-    m_working_thread = std::thread{[=] {
-        while(!m_stopped) {
-            auto frame = m_input_device.get_video_frame();
-            auto processed
-                = preprocess_filter->apply(CvMatRaiiAdapter(frame.get().clone()));
-            auto fgmask = back_subtractor->apply(std::move(processed));
-            (*m_motion_data->lock())
-                .set_frame(std::move(frame))
-                .set_fgmask(std::move(fgmask));
-        }
-    }};
+    m_working_thread = std::thread(
+        &MotionDataWorker::thread_func,
+        this,
+        std::move(back_subtractor),
+        std::move(preprocess_filter));
+}
+
+void MotionDataWorker::thread_func(
+    std::shared_ptr<IBackgroundSubtractor>&& back_subtractor,
+    std::shared_ptr<IImageFilter>&& preprocess_filter)
+{
+    while(!m_stopped) {
+        auto frame = m_input_device.get_video_frame();
+        auto processed = preprocess_filter->apply(frame.clone());
+        auto fgmask = back_subtractor->apply(std::move(processed));
+        (*m_motion_data->lock())
+            .set_frame(std::move(frame))
+            .set_fgmask(std::move(fgmask));
+    }
 }
 
 void MotionDataWorker::stop()
