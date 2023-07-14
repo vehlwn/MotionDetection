@@ -25,25 +25,25 @@ private:
 } // namespace
 
 BackgroundSubtractorFactory::BackgroundSubtractorFactory(
-    const ApplicationSettings::BackgroundSubtractor& config)
+    const ApplicationSettings::Segmentation::BackgroundSubtractor& config)
     : m_config{config}
 {}
 
 std::shared_ptr<IBackgroundSubtractor> BackgroundSubtractorFactory::create()
 {
     BOOST_LOG_FUNCTION();
-    if(const auto* const knn
-       = std::get_if<vehlwn::ApplicationSettings::BackgroundSubtractor::Knn>(
-           &m_config.algorithm)) {
+    using BackgroundSubtractor
+        = vehlwn::ApplicationSettings::Segmentation::BackgroundSubtractor;
+    if(const auto knn
+       = std::get_if<BackgroundSubtractor::Knn>(&m_config.algorithm)) {
         return std::make_shared<OpencvBackgroundSubtractorAdapter>(
             cv::createBackgroundSubtractorKNN(
                 knn->history,
                 knn->dist_2_threshold,
                 knn->detect_shadows));
     }
-    if(const auto* const mog2
-       = std::get_if<vehlwn::ApplicationSettings::BackgroundSubtractor::Mog2>(
-           &m_config.algorithm)) {
+    if(const auto mog2
+       = std::get_if<BackgroundSubtractor::Mog2>(&m_config.algorithm)) {
         return std::make_shared<OpencvBackgroundSubtractorAdapter>(
             cv::createBackgroundSubtractorMOG2(
                 mog2->history,

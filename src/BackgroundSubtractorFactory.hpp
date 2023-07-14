@@ -9,10 +9,10 @@ namespace vehlwn {
 class BackgroundSubtractorFactory {
 public:
     explicit BackgroundSubtractorFactory(
-        const ApplicationSettings::BackgroundSubtractor& config);
+        const ApplicationSettings::Segmentation::BackgroundSubtractor& config);
     std::shared_ptr<IBackgroundSubtractor> create();
 
 private:
-    const ApplicationSettings::BackgroundSubtractor& m_config;
+    const ApplicationSettings::Segmentation::BackgroundSubtractor& m_config;
 };
 } // namespace vehlwn

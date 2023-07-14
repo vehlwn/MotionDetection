@@ -26,19 +26,23 @@ struct ApplicationSettings {
         std::string ffmpeg_level;
     } logging;
 
-    struct BackgroundSubtractor {
-        struct Knn {
-            int history;
-            double dist_2_threshold;
-            bool detect_shadows;
-        };
-        struct Mog2 {
-            int history;
-            double var_threshold;
-            bool detect_shadows;
-        };
-        std::variant<Knn, Mog2> algorithm;
-    } background_subtractor;
+    struct Segmentation {
+        struct BackgroundSubtractor {
+            struct Knn {
+                int history;
+                double dist_2_threshold;
+                bool detect_shadows;
+            };
+            struct Mog2 {
+                int history;
+                double var_threshold;
+                bool detect_shadows;
+            };
+            std::variant<Knn, Mog2> algorithm;
+        } background_subtractor;
+        int min_moving_area{};
+        double delta_without_motion{};
+    } segmentation;
 
     struct Preprocess {
         std::optional<double> resize_factor;

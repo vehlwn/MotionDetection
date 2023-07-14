@@ -5,9 +5,11 @@
 #include <fstream>
 #include <optional>
 #include <sstream>
+#include <stdexcept>
 #include <string>
 #include <string_view>
 
+#include <boost/json/object.hpp>
 #include <boost/json/parse.hpp>
 #include <boost/json/value.hpp>
 #include <boost/log/attributes/named_scope.hpp>
@@ -130,114 +132,176 @@ public:
         }
         return {std::move(app_level), std::move(ffmpeg_level)};
     }
-    [[nodiscard]] vehlwn::ApplicationSettings::BackgroundSubtractor::Knn
-        parse_knn() const
+    [[nodiscard]] vehlwn::ApplicationSettings::Segmentation::BackgroundSubtractor::
+        Knn
+        parse_knn(const boost::json::object& back_subtr_obj) const
     {
         BOOST_LOG_FUNCTION();
-        auto ret = vehlwn::ApplicationSettings::BackgroundSubtractor::Knn();
-        ret.history = [&] {
-            if(const auto* tmp
-               = m_config.at_pointer("/background_subtractor/history").if_int64()) {
-                if(*tmp <= 0) {
-                    BOOST_LOG_TRIVIAL(fatal)
-                        << "background_subtractor.history must be positive int";
-                    std::exit(1);
+        auto ret
+            = vehlwn::ApplicationSettings::Segmentation::BackgroundSubtractor::Knn();
+        ret.history = vehlwn::invoke_with_error_context_str(
+            [&] {
+                if(const auto it = back_subtr_obj.find("history");
+                   it != back_subtr_obj.end()) {
+                    const auto tmp = it->value().to_number<int>();
+                    if(tmp <= 0) {
+                        throw std::runtime_error(
+                            "background_subtractor.history must be positive int");
+                    }
+                    return tmp;
                 }
-                return static_cast<int>(*tmp);
-            }
-            return 500;
-        }();
-        ret.dist_2_threshold = [&] {
-            if(const auto* tmp
-               = m_config.at_pointer("/background_subtractor/dist_2_threshold")
-                     .if_double()) {
-                if(*tmp <= 0.0) {
-                    BOOST_LOG_TRIVIAL(fatal) << "background_subtractor.dist_2_"
-                                                "threshold must be positive double";
-                    std::exit(1);
+                return 500;
+            },
+            "Failed to parse background_subtractor.history");
+        ret.dist_2_threshold = vehlwn::invoke_with_error_context_str(
+            [&] {
+                if(const auto it = back_subtr_obj.find("dist_2_threshold");
+                   it != back_subtr_obj.end()) {
+                    const auto tmp = it->value().to_number<double>();
+                    if(tmp <= 0) {
+                        throw std::runtime_error(
+                            "background_subtractor.dist_2_threshold must be "
+                            "positive double");
+                    }
+                    return tmp;
                 }
-                return *tmp;
-            }
-            return 400.0;
-        }();
-        ret.detect_shadows = [&] {
-            if(const auto* tmp
-               = m_config.at_pointer("/background_subtractor/detect_shadows")
-                     .if_bool()) {
-                return *tmp;
-            }
-            return true;
-        }();
+                return 400.0;
+            },
+            "Failed to parse background_subtractor.dist_2_threshold");
+        ret.detect_shadows = vehlwn::invoke_with_error_context_str(
+            [&] {
+                if(const auto it = back_subtr_obj.find("detect_shadows");
+                   it != back_subtr_obj.end()) {
+                    const auto tmp = it->value().as_bool();
+                    return tmp;
+                }
+                return false;
+            },
+            "Failed to parse background_subtractor.detect_shadows");
         return ret;
     }
-    [[nodiscard]] vehlwn::ApplicationSettings::BackgroundSubtractor::Mog2
-        parse_mog2() const
+    [[nodiscard]] vehlwn::ApplicationSettings::Segmentation::BackgroundSubtractor::
+        Mog2
+        parse_mog2(const boost::json::object& back_subtr_obj) const
     {
         BOOST_LOG_FUNCTION();
-        auto ret = vehlwn::ApplicationSettings::BackgroundSubtractor::Mog2();
-        ret.history = [&] {
-            if(const auto* tmp
-               = m_config.at_pointer("/background_subtractor/history").if_int64()) {
-                if(*tmp <= 0) {
-                    BOOST_LOG_TRIVIAL(fatal)
-                        << "background_subtractor.history must be positive int";
-                    std::exit(1);
+        auto ret = vehlwn::ApplicationSettings::Segmentation::BackgroundSubtractor::
+            Mog2();
+        ret.history = vehlwn::invoke_with_error_context_str(
+            [&] {
+                if(const auto it = back_subtr_obj.find("history");
+                   it != back_subtr_obj.end()) {
+                    const auto tmp = it->value().to_number<int>();
+                    if(tmp <= 0) {
+                        throw std::runtime_error(
+                            "background_subtractor.history must be positive int");
+                    }
+                    return tmp;
                 }
-                return static_cast<int>(*tmp);
-            }
-            return 500;
-        }();
-        ret.var_threshold = [&] {
-            if(const auto* tmp
-               = m_config.at_pointer("/background_subtractor/var_threshold")
-                     .if_double()) {
-                if(*tmp <= 0.0) {
-                    BOOST_LOG_TRIVIAL(fatal) << "background_subtractor.var_"
-                                                "threshold must be positive double";
-                    std::exit(1);
+                return 500;
+            },
+            "Failed to parse background_subtractor.history");
+        ret.var_threshold = vehlwn::invoke_with_error_context_str(
+            [&] {
+                if(const auto it = back_subtr_obj.find("var_threshold");
+                   it != back_subtr_obj.end()) {
+                    const auto tmp = it->value().to_number<double>();
+                    if(tmp <= 0) {
+                        throw std::runtime_error(
+                            "background_subtractor.var_threshold must be "
+                            "positive double");
+                    }
+                    return tmp;
                 }
-                return *tmp;
-            }
-            return 16.0;
-        }();
-        ret.detect_shadows = [&] {
-            if(const auto* tmp
-               = m_config.at_pointer("/background_subtractor/detect_shadows")
-                     .if_bool()) {
-                return *tmp;
-            }
-            return true;
-        }();
+                return 16.0;
+            },
+            "Failed to parse background_subtractor.dist_2_threshold");
+        ret.detect_shadows = vehlwn::invoke_with_error_context_str(
+            [&] {
+                if(const auto it = back_subtr_obj.find("detect_shadows");
+                   it != back_subtr_obj.end()) {
+                    const auto tmp = it->value().as_bool();
+                    return tmp;
+                }
+                return false;
+            },
+            "Failed to parse background_subtractor.detect_shadows");
         return ret;
     }
-    [[nodiscard]] vehlwn::ApplicationSettings::BackgroundSubtractor
-        parse_background_subtractor() const
+    [[nodiscard]] vehlwn::ApplicationSettings::Segmentation::BackgroundSubtractor
+        parse_background_subtractor(const boost::json::object& back_subtr_obj) const
     {
         BOOST_LOG_FUNCTION();
         const auto algorithm_name = vehlwn::invoke_with_error_context_str(
             [&] {
-                auto tmp = m_config.at_pointer("/background_subtractor/algorithm")
-                               .as_string();
+                auto tmp = back_subtr_obj.at("algorithm").as_string();
                 return std::string(tmp.begin(), tmp.end());
             },
             "background_subtractor.algorithm key not found");
 
-        auto ret = vehlwn::ApplicationSettings::BackgroundSubtractor();
+        auto ret = vehlwn::ApplicationSettings::Segmentation::BackgroundSubtractor();
         // https://docs.opencv.org/4.5.3/de/de1/group__video__motion.html
         if(algorithm_name == "KNN") {
-            ret.algorithm = parse_knn();
+            ret.algorithm = parse_knn(back_subtr_obj);
         } else if(algorithm_name == "MOG2") {
-            ret.algorithm = parse_mog2();
+            ret.algorithm = parse_mog2(back_subtr_obj);
         } else {
             // The rest algorithms are in opencv_contrib module which does not
             // present in system packages.
             // https://docs.opencv.org/4.5.3/d2/d55/group__bgsegm.html
-            BOOST_LOG_TRIVIAL(fatal) << "Unknown background_subtractor algorithm: '"
-                                     << algorithm_name << "'";
-            std::exit(1);
+            throw std::runtime_error(
+                "Unknown background_subtractor algorithm: '" + algorithm_name + "'");
         }
         return ret;
     }
+
+    [[nodiscard]] vehlwn::ApplicationSettings::Segmentation
+        parse_segmentation() const
+    {
+        auto ret = vehlwn::ApplicationSettings::Segmentation();
+
+        const auto segm_obj = vehlwn::invoke_with_error_context_str(
+            [&] { return m_config.at("segmentation").as_object(); },
+            "segmentation object not found");
+
+        const auto back_subtr_obj = vehlwn::invoke_with_error_context_str(
+            [&] { return segm_obj.at("background_subtractor").as_object(); },
+            "segmentation.background_subtractor object not found");
+
+        ret.background_subtractor = vehlwn::invoke_with_error_context_str(
+            [&] { return parse_background_subtractor(back_subtr_obj); },
+            "Failed to parse segmentation.background_subtractor");
+        ret.min_moving_area = vehlwn::invoke_with_error_context_str(
+            [&] {
+                if(const auto it = segm_obj.find("min_moving_area");
+                   it != segm_obj.end()) {
+                    const auto tmp = it->value().to_number<int>();
+                    if(tmp < 0) {
+                        throw std::runtime_error(
+                            "min_moving_area cannot be negative");
+                    }
+                    return tmp;
+                }
+                return 500;
+            },
+            "Failed to parse segmentation.min_moving_area");
+        ret.delta_without_motion = vehlwn::invoke_with_error_context_str(
+            [&] {
+                if(const auto it = segm_obj.find("delta_without_motion");
+                   it != segm_obj.end()) {
+                    const auto tmp = it->value().to_number<double>();
+                    if(tmp < 0) {
+                        throw std::runtime_error(
+                            "delta_without_motion cannot be negative");
+                    }
+                    return tmp;
+                }
+                return 5.0;
+            },
+            "Failed to parse segmentation.delta_without_motion");
+        return ret;
+    }
+
     [[nodiscard]] vehlwn::ApplicationSettings::Preprocess::NormalizedBox
         parse_normalized_filter() const
     {
@@ -377,13 +441,13 @@ try {
     auto video_capture = p.parse_video_capture();
     auto output_files = p.parse_output_files();
     auto logging = p.parse_logging();
-    auto background_subtractor = p.parse_background_subtractor();
+    auto segmentation = p.parse_segmentation();
     auto preprocess = p.parse_preprocess();
     return {
         std::move(video_capture),
         std::move(output_files),
         std::move(logging),
-        background_subtractor,
+        segmentation,
         preprocess};
 } catch(const std::exception& ex) {
     BOOST_LOG_TRIVIAL(fatal) << "Unexpected error in read_settings: " << ex.what();

@@ -16,11 +16,15 @@
     "app_level": "info",
     "ffmpeg_level": "warning"
   },
-  "background_subtractor": {
-    "algorithm": "MOG2",
-    "history": 500,
-    "var_threshold": 16.0,
-    "detect_shadows": false
+  "segmentation": {
+    "background_subtractor": {
+        "algorithm": "MOG2",
+        "history": 500,
+        "var_threshold": 16.0,
+        "detect_shadows": false
+    },
+    "min_moving_area": 500,
+    "delta_without_motion": 5.0
   },
   "preprocess": {
     "resize": {

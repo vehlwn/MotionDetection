@@ -30,7 +30,7 @@ try {
 
     auto back_subtractor_factory
         = std::make_shared<vehlwn::BackgroundSubtractorFactory>(
-            application_settings->background_subtractor);
+            application_settings->segmentation.background_subtractor);
 
     auto input_device
         = vehlwn::FfmpegInputDeviceFactory(*application_settings).create();
