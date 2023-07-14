@@ -84,4 +84,9 @@ double MotionDataWorker::get_fps() const
 {
     return m_input_device.fps();
 }
+
+bool MotionDataWorker::is_recording() const
+{
+    return m_input_device.is_recording();
+}
 } // namespace vehlwn

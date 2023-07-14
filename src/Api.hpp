@@ -18,6 +18,7 @@ public:
     ADD_METHOD_TO(Controller::motion_mask, "/api/motion_mask", drogon::Get);
     ADD_METHOD_TO(Controller::fps, "/api/fps", drogon::Get);
     ADD_METHOD_TO(Controller::moving_area, "/api/moving_area", drogon::Get);
+    ADD_METHOD_TO(Controller::is_recording, "/api/is_recording", drogon::Get);
     METHOD_LIST_END
 
 private:
@@ -27,5 +28,6 @@ private:
     void motion_mask(const drogon::HttpRequestPtr& req, RespCb&& callback) const;
     void fps(const drogon::HttpRequestPtr& req, RespCb&& callback) const;
     void moving_area(const drogon::HttpRequestPtr& req, RespCb&& callback) const;
+    void is_recording(const drogon::HttpRequestPtr& req, RespCb&& callback) const;
 };
 } // namespace vehlwn::api

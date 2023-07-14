@@ -12,6 +12,9 @@
       <label for="moving_area">Moving area:</label>
       <input type="text" id="moving_area" name="moving_area" readonly="readonly"/>
 
+      <label for="is_recording">Is recording:</label>
+      <input type="text" id="is_recording" name="is_recording" readonly="readonly"/>
+
       <input
         type="button"
         id="start_button"
@@ -24,10 +27,17 @@
       <img id="motion_mask" src="" alt="Motion mask" />
     </div>
   </body>
+    <style>
+    .active_recording {
+        background-color: red;
+    }
+    </style>
   <script>
     const fps_element = document.getElementById("fps");
     const moving_area_element = document.getElementById("moving_area");
     const start_button_element = document.getElementById("start_button");
+    const is_recording_element = document.getElementById("is_recording");
+
     let fps = 0;
     let poll_image_interval;
     let stopped = true;
@@ -80,8 +90,15 @@
       try {
         await poll_image("current_frame");
         await poll_image("motion_mask");
-        const moving_area = await get_data("/api/moving_area");
-        moving_area_element.value = await moving_area.text();
+        moving_area_element.value = await (await get_data("/api/moving_area")).text();
+        const is_recording = await (await get_data("/api/is_recording")).text();
+        if(parseInt(is_recording)) {
+            is_recording_element.classList.add("active_recording");
+        }
+        else {
+            is_recording_element.classList.remove("active_recording");
+        }
+        is_recording_element.value = is_recording;
       } catch (e) {
         console.log(e.message);
         stop_polling();

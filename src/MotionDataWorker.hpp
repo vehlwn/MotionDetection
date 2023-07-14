@@ -29,6 +29,7 @@ public:
     void start();
     void stop();
     [[nodiscard]] double get_fps() const;
+    [[nodiscard]] bool is_recording() const;
 
 private:
     std::shared_ptr<BackgroundSubtractorFactory> m_back_subtractor_factory;

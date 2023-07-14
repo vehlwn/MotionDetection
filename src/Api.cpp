@@ -113,4 +113,15 @@ void Controller::moving_area(
     callback(resp);
 }
 
+void Controller::is_recording(
+    const drogon::HttpRequestPtr& /*req*/,
+    RespCb&& callback) const
+{
+    const bool ret = m_motion_data_worker->is_recording();
+    auto msg = std::to_string(static_cast<int>(ret));
+    auto resp = drogon::HttpResponse::newHttpResponse();
+    resp->setContentTypeCode(drogon::CT_TEXT_PLAIN);
+    resp->setBody(std::move(msg));
+    callback(resp);
+}
 } // namespace vehlwn::api
