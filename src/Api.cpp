@@ -55,9 +55,7 @@ Controller::Controller(
     : m_motion_data_worker(std::move(motion_data_worker))
 {}
 
-void Controller::healthy(
-    const drogon::HttpRequestPtr& /*req*/,
-    std::function<void(const drogon::HttpResponsePtr&)>&& callback)
+void Controller::healthy(const drogon::HttpRequestPtr& /*req*/, RespCb&& callback)
 {
     auto resp = drogon::HttpResponse::newHttpResponse();
     resp->setContentTypeCode(drogon::CT_TEXT_PLAIN);
@@ -67,7 +65,7 @@ void Controller::healthy(
 
 void Controller::current_frame(
     const drogon::HttpRequestPtr& /*req*/,
-    std::function<void(const drogon::HttpResponsePtr&)>&& callback) const
+    RespCb&& callback) const
 {
     cv::Mat frame;
     {
@@ -79,7 +77,7 @@ void Controller::current_frame(
 
 void Controller::motion_mask(
     const drogon::HttpRequestPtr& /*req*/,
-    std::function<void(const drogon::HttpResponsePtr&)>&& callback) const
+    RespCb&& callback) const
 {
     cv::Mat mask;
     {
@@ -89,9 +87,7 @@ void Controller::motion_mask(
     callback(create_encoded_image_resp(mask));
 }
 
-void Controller::fps(
-    const drogon::HttpRequestPtr& /*req*/,
-    std::function<void(const drogon::HttpResponsePtr&)>&& callback) const
+void Controller::fps(const drogon::HttpRequestPtr& /*req*/, RespCb&& callback) const
 {
     const double fps = m_motion_data_worker->get_fps();
     auto msg = std::to_string(fps);
@@ -103,7 +99,7 @@ void Controller::fps(
 
 void Controller::moving_area(
     const drogon::HttpRequestPtr& /*req*/,
-    std::function<void(const drogon::HttpResponsePtr&)>&& callback) const
+    RespCb&& callback) const
 {
     int ret = 0;
     {

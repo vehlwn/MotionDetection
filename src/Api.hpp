@@ -20,20 +20,12 @@ public:
     ADD_METHOD_TO(Controller::moving_area, "/api/moving_area", drogon::Get);
     METHOD_LIST_END
 
-    static void healthy(
-        const drogon::HttpRequestPtr& req,
-        std::function<void(const drogon::HttpResponsePtr&)>&& callback);
-    void current_frame(
-        const drogon::HttpRequestPtr& req,
-        std::function<void(const drogon::HttpResponsePtr&)>&& callback) const;
-    void motion_mask(
-        const drogon::HttpRequestPtr& req,
-        std::function<void(const drogon::HttpResponsePtr&)>&& callback) const;
-    void
-        fps(const drogon::HttpRequestPtr& req,
-            std::function<void(const drogon::HttpResponsePtr&)>&& callback) const;
-    void
-        moving_area(const drogon::HttpRequestPtr& req,
-            std::function<void(const drogon::HttpResponsePtr&)>&& callback) const;
+private:
+    using RespCb = std::function<void(const drogon::HttpResponsePtr&)>;
+    static void healthy(const drogon::HttpRequestPtr& req, RespCb&& callback);
+    void current_frame(const drogon::HttpRequestPtr& req, RespCb&& callback) const;
+    void motion_mask(const drogon::HttpRequestPtr& req, RespCb&& callback) const;
+    void fps(const drogon::HttpRequestPtr& req, RespCb&& callback) const;
+    void moving_area(const drogon::HttpRequestPtr& req, RespCb&& callback) const;
 };
 } // namespace vehlwn::api
