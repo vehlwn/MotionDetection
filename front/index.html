@@ -8,6 +8,10 @@
     <div>
       <label for="fps">FPS:</label>
       <input type="number" id="fps" name="fps" min="1" max="100" value="10" />
+
+      <label for="moving_area">Moving area:</label>
+      <input type="text" id="moving_area" name="moving_area" readonly="readonly"/>
+
       <input
         type="button"
         id="start_button"
@@ -22,6 +26,7 @@
   </body>
   <script>
     const fps_element = document.getElementById("fps");
+    const moving_area_element = document.getElementById("moving_area");
     const start_button_element = document.getElementById("start_button");
     let fps = 0;
     let poll_image_interval;
@@ -75,6 +80,8 @@
       try {
         await poll_image("current_frame");
         await poll_image("motion_mask");
+        const moving_area = await get_data("/api/moving_area");
+        moving_area_element.value = await moving_area.text();
       } catch (e) {
         console.log(e.message);
         stop_polling();
@@ -82,13 +89,7 @@
     }
 
     async function get_data(url = "") {
-      const response = await fetch(url, {
-        method: "GET",
-        headers: {
-          pragma: "no-cache",
-          "cache-control": "no-cache",
-        },
-      });
+      const response = await fetch(url, { method: "GET" });
       if (!response.ok) {
         throw new Error(
           `HTTP error when fetching '${url}', status = ${response.status}`
@@ -98,4 +99,3 @@
     }
   </script>
 </html>
-

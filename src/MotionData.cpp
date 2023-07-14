@@ -30,6 +30,11 @@ const CvMatRaiiAdapter& MotionData::fgmask() const
     return m_fgmask;
 }
 
+int MotionData::moving_area() const
+{
+    return m_moving_area;
+}
+
 void MotionData::fgmask_changed()
 {
     m_moving_area = cv::countNonZero(m_fgmask.get());

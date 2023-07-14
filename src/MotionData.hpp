@@ -15,6 +15,8 @@ public:
     MotionData& set_fgmask(CvMatRaiiAdapter&& fgmask);
     [[nodiscard]] const CvMatRaiiAdapter& fgmask() const;
 
+    [[nodiscard]] int moving_area() const;
+
 private:
     void fgmask_changed();
 

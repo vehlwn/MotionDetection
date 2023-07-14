@@ -17,6 +17,7 @@ public:
     ADD_METHOD_TO(Controller::current_frame, "/api/current_frame", drogon::Get);
     ADD_METHOD_TO(Controller::motion_mask, "/api/motion_mask", drogon::Get);
     ADD_METHOD_TO(Controller::fps, "/api/fps", drogon::Get);
+    ADD_METHOD_TO(Controller::moving_area, "/api/moving_area", drogon::Get);
     METHOD_LIST_END
 
     static void healthy(
@@ -30,6 +31,9 @@ public:
         std::function<void(const drogon::HttpResponsePtr&)>&& callback) const;
     void
         fps(const drogon::HttpRequestPtr& req,
+            std::function<void(const drogon::HttpResponsePtr&)>&& callback) const;
+    void
+        moving_area(const drogon::HttpRequestPtr& req,
             std::function<void(const drogon::HttpResponsePtr&)>&& callback) const;
 };
 } // namespace vehlwn::api

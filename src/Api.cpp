@@ -100,4 +100,21 @@ void Controller::fps(
     resp->setBody(std::move(msg));
     callback(resp);
 }
+
+void Controller::moving_area(
+    const drogon::HttpRequestPtr& /*req*/,
+    std::function<void(const drogon::HttpResponsePtr&)>&& callback) const
+{
+    int ret = 0;
+    {
+        const auto lock = m_motion_data_worker->get_motion_data()->lock();
+        ret = lock->moving_area();
+    }
+    auto msg = std::to_string(ret);
+    auto resp = drogon::HttpResponse::newHttpResponse();
+    resp->setContentTypeCode(drogon::CT_TEXT_PLAIN);
+    resp->setBody(std::move(msg));
+    callback(resp);
+}
+
 } // namespace vehlwn::api
