@@ -9,11 +9,11 @@ class SharedMutex;
 
 namespace detail {
 template<class T>
-class MutexGuard {
+class WriteMutexGuard {
     friend class SharedMutex<T>;
 
 private:
-    explicit MutexGuard(SharedMutex<T>& mutex)
+    explicit WriteMutexGuard(const SharedMutex<T>& mutex)
         : m_mutex{mutex}
         , m_lock{m_mutex.m_inner}
     {}
@@ -29,16 +29,16 @@ public:
     }
 
 private:
-    SharedMutex<T>& m_mutex;
+    const SharedMutex<T>& m_mutex;
     std::unique_lock<std::shared_mutex> m_lock;
 };
 
 template<class T>
-class ConstMutexGuard {
+class ReadMutexGuard {
     friend class SharedMutex<T>;
 
 private:
-    explicit ConstMutexGuard(const SharedMutex<T>& mutex)
+    explicit ReadMutexGuard(const SharedMutex<T>& mutex)
         : m_mutex{mutex}
         , m_lock{m_mutex.m_inner}
     {}
@@ -61,8 +61,8 @@ private:
 
 template<class T>
 class SharedMutex {
-    friend class detail::MutexGuard<T>;
-    friend class detail::ConstMutexGuard<T>;
+    friend class detail::WriteMutexGuard<T>;
+    friend class detail::ReadMutexGuard<T>;
 
 public:
     SharedMutex()
@@ -76,17 +76,17 @@ public:
     ~SharedMutex() = default;
     SharedMutex& operator=(const SharedMutex&) = delete;
     SharedMutex& operator=(SharedMutex&&) = delete;
-    detail::MutexGuard<T> lock()
+    detail::WriteMutexGuard<T> write() const
     {
-        return detail::MutexGuard<T>{*this};
+        return detail::WriteMutexGuard<T>{*this};
     }
-    detail::ConstMutexGuard<T> lock() const
+    detail::ReadMutexGuard<T> read() const
     {
-        return detail::ConstMutexGuard<T>{*this};
+        return detail::ReadMutexGuard<T>{*this};
     }
 
 private:
-    T m_value;
+    mutable T m_value;
     mutable std::shared_mutex m_inner;
 };
 } // namespace vehlwn

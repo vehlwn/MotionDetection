@@ -69,7 +69,7 @@ void Controller::current_frame(
 {
     cv::Mat frame;
     {
-        const auto lock = m_motion_data_worker->get_motion_data()->lock();
+        const auto lock = m_motion_data_worker->get_motion_data()->read();
         frame = lock->frame().get().clone();
     }
     callback(create_encoded_image_resp(frame));
@@ -81,7 +81,7 @@ void Controller::motion_mask(
 {
     cv::Mat mask;
     {
-        const auto lock = m_motion_data_worker->get_motion_data()->lock();
+        const auto lock = m_motion_data_worker->get_motion_data()->read();
         mask = lock->fgmask().get().clone();
     }
     callback(create_encoded_image_resp(mask));
@@ -103,7 +103,7 @@ void Controller::moving_area(
 {
     int ret = 0;
     {
-        const auto lock = m_motion_data_worker->get_motion_data()->lock();
+        const auto lock = m_motion_data_worker->get_motion_data()->read();
         ret = lock->moving_area();
     }
     auto msg = std::to_string(ret);

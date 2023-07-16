@@ -62,7 +62,7 @@ void MotionDataWorker::thread_func(
         auto frame = m_input_device.get_video_frame();
         auto processed = preprocess_filter->apply(frame.clone());
         auto fgmask = back_subtractor->apply(std::move(processed));
-        (*m_motion_data->lock())
+        (*m_motion_data->write())
             .set_frame(std::move(frame))
             .set_fgmask(std::move(fgmask));
     }
