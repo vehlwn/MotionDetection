@@ -10,7 +10,7 @@
     "prefix": "videos",
     "extension": ".mp4",
     "video_bitrate": "10M",
-    "audio_bitrate": "128k"
+    "audio_bitrate": "128K"
   },
   "logging": {
     "app_level": "info",
@@ -27,9 +27,7 @@
     "delta_without_motion": 5.0
   },
   "preprocess": {
-    "resize": {
-      "factor": 0.5
-    },
+    "resize_factor": 0.5,
     "smoothing": {
       "algorithm": "normalized_box",
       "kernel_size": 11

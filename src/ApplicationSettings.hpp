@@ -46,17 +46,20 @@ struct ApplicationSettings {
 
     struct Preprocess {
         std::optional<double> resize_factor;
-        struct NormalizedBox {
-            int kernel_size;
+        struct Smoothing {
+            struct NormalizedBox {
+                int kernel_size;
+            };
+            struct Gaussian {
+                int kernel_size;
+                double sigma;
+            };
+            struct Median {
+                int kernel_size;
+            };
+            std::variant<NormalizedBox, Gaussian, Median> algorithm;
         };
-        struct Gaussian {
-            int kernel_size;
-            double sigma;
-        };
-        struct Median {
-            int kernel_size;
-        };
-        std::optional<std::variant<NormalizedBox, Gaussian, Median>> smoothing;
+        std::optional<Smoothing> smoothing;
     } preprocess;
 };
 
