@@ -7,7 +7,7 @@ project(
 )
 
 subdir('meson')
-add_global_arguments(HARDEN_CXX_OPTIONS, language: 'cpp')
+add_project_arguments(HARDEN_CXX_OPTIONS, language: 'cpp')
 
 prefix = get_option('prefix')
 data_dir = prefix / get_option('datadir') / meson.project_name()

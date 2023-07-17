@@ -1,3 +1,4 @@
+boost_deps = dependency('boost-headers', include_type: 'system')
 libav_deps = []
 foreach name : [
   'libavcodec',
@@ -32,7 +33,7 @@ ffmpeg_adapters = library(
     'InputDevice.hpp',
     'ScopedAvDictionary.hpp',
     ],
-  dependencies: [libav_deps, opencv_dep]
+  dependencies: [libav_deps, opencv_dep, boost_deps]
 )
 
 ffmpeg_adapters_dep = declare_dependency(link_with: ffmpeg_adapters)

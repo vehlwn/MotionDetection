@@ -4,8 +4,6 @@
 #include <optional>
 #include <string>
 
-#include <opencv2/core/mat.hpp>
-
 #include "../CvMatRaiiAdapter.hpp"
 #include "ScopedAvDictionary.hpp"
 
