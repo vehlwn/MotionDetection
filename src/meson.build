@@ -2,7 +2,7 @@ opencv_dep = dependency('OpenCV', include_type: 'system')
 
 drogon_dep = dependency('drogon', include_type: 'system')
 
-boost_modules = ['chrono', 'log', 'thread', 'json']
+boost_modules = ['chrono', 'log', 'thread']
 boost_deps = []
 foreach name : boost_modules
   boost_deps += dependency('boost-' + name, include_type: 'system')
@@ -87,6 +87,6 @@ executable(
     'PreprocessImageFactory.hpp',
     'SharedMutex.hpp',
   ],
-  dependencies: [drogon_dep, opencv_dep, boost_deps, libav_deps],
+  dependencies: [drogon_dep, opencv_dep, boost_deps, libav_deps, ini_dep],
   install: true,
 )

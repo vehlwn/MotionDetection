@@ -7,11 +7,14 @@ project(
 )
 
 subdir('meson')
-add_project_arguments(HARDEN_CXX_OPTIONS, language: 'cpp')
+add_global_arguments(HARDEN_CXX_OPTIONS, language: 'cpp')
 
 prefix = get_option('prefix')
 data_dir = prefix / get_option('datadir') / meson.project_name()
 config_dir = prefix / get_option('sysconfdir') / meson.project_name()
+
+ini_proj = subproject('ini', default_options: ['default_library=static'])
+ini_dep = ini_proj.get_variable('ini_dep')
 
 subdir('src')
 
