@@ -7,8 +7,8 @@ extern "C" {
 #include <libavutil/audio_fifo.h>
 }
 
+#include "../ErrorWithContext.hpp"
 #include "AvError.hpp"
-#include "ErrorWithContext.hpp"
 
 namespace vehlwn::ffmpeg::detail {
 class ScopedAvAudioFifo {

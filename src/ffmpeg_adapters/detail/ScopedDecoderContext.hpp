@@ -11,7 +11,7 @@ extern "C" {
 #include "AvFrameAdapters.hpp"
 #include "AvPacketAdapters.hpp"
 #include "BaseAvCodecContextProperties.hpp"
-#include "ErrorWithContext.hpp"
+#include "../ErrorWithContext.hpp"
 
 namespace vehlwn::ffmpeg::detail {
 class ScopedDecoderContext : public BaseAvCodecContextProperties {

@@ -8,8 +8,8 @@ extern "C" {
 #include <libswresample/swresample.h>
 }
 
+#include "../ErrorWithContext.hpp"
 #include "AvError.hpp"
-#include "ErrorWithContext.hpp"
 
 namespace vehlwn::ffmpeg::detail {
 class ScopedSwrResampler {

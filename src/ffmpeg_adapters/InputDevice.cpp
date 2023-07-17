@@ -26,14 +26,14 @@ extern "C" {
 #include <boost/range/algorithm/find_if.hpp>
 #include <boost/range/algorithm/for_each.hpp>
 
-#include "ffmpeg/ScopedAvDictionary.hpp"
-#include "ffmpeg/detail/AVRationalOutput.hpp"
-#include "ffmpeg/detail/AvError.hpp"
-#include "ffmpeg/detail/AvFrameAdapters.hpp"
-#include "ffmpeg/detail/OutputFile.hpp"
-#include "ffmpeg/detail/ScopedAvFormatInput.hpp"
-#include "ffmpeg/detail/ScopedDecoderContext.hpp"
-#include "ffmpeg/detail/SwsPixelConverter.hpp"
+#include "ScopedAvDictionary.hpp"
+#include "detail/AVRationalOutput.hpp"
+#include "detail/AvError.hpp"
+#include "detail/AvFrameAdapters.hpp"
+#include "detail/OutputFile.hpp"
+#include "detail/ScopedAvFormatInput.hpp"
+#include "detail/ScopedDecoderContext.hpp"
+#include "detail/SwsPixelConverter.hpp"
 
 namespace vehlwn::ffmpeg {
 using DecoderContextsMap = std::map<int, detail::ScopedDecoderContext>;

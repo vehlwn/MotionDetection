@@ -9,7 +9,7 @@
 #include "MotionData.hpp"
 #include "PreprocessImageFactory.hpp"
 #include "SharedMutex.hpp"
-#include "ffmpeg/InputDevice.hpp"
+#include "ffmpeg_adapters/InputDevice.hpp"
 
 namespace vehlwn {
 class MotionDataWorker {

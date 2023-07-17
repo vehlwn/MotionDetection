@@ -10,9 +10,9 @@ extern "C" {
 
 #include <opencv2/core/mat.hpp>
 
+#include "../ErrorWithContext.hpp"
 #include "AvError.hpp"
 #include "AvFrameAdapters.hpp"
-#include "ErrorWithContext.hpp"
 
 namespace vehlwn::ffmpeg::detail {
 class SwsPixelConverter {
@@ -96,11 +96,11 @@ public:
         auto tmp = scale_video(frame);
         int type = 0;
         switch(m_dst_format) {
-        case AV_PIX_FMT_BGR24:
-            type = CV_8UC3;
-            break;
-        default:
-            throw std::runtime_error("m_dst_format not implemented");
+            case AV_PIX_FMT_BGR24:
+                type = CV_8UC3;
+                break;
+            default:
+                throw std::runtime_error("m_dst_format not implemented");
         }
         auto ret = cv::Mat(
                        frame.height(),

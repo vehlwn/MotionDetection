@@ -11,10 +11,10 @@ extern "C" {
 
 #include <boost/core/span.hpp>
 
-#include "ErrorWithContext.hpp"
-#include "ffmpeg/ScopedAvDictionary.hpp"
-#include "ffmpeg/detail/AvError.hpp"
-#include "ffmpeg/detail/AvPacketAdapters.hpp"
+#include "../ErrorWithContext.hpp"
+#include "ScopedAvDictionary.hpp"
+#include "detail/AvError.hpp"
+#include "detail/AvPacketAdapters.hpp"
 
 namespace vehlwn::ffmpeg::detail {
 class ScopedAvFormatInput {

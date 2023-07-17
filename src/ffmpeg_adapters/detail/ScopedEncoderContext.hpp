@@ -7,11 +7,11 @@ extern "C" {
 #include <stdexcept>
 #include <variant>
 
+#include "../ErrorWithContext.hpp"
 #include "AvError.hpp"
 #include "AvFrameAdapters.hpp"
 #include "AvPacketAdapters.hpp"
 #include "BaseAvCodecContextProperties.hpp"
-#include "ErrorWithContext.hpp"
 
 namespace vehlwn::ffmpeg::detail {
 class ScopedEncoderContext : public BaseAvCodecContextProperties {

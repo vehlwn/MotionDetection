@@ -10,8 +10,8 @@ extern "C" {
 #include <libavutil/dict.h>
 }
 
-#include "ErrorWithContext.hpp"
-#include "ffmpeg/detail/AvError.hpp"
+#include "../ErrorWithContext.hpp"
+#include "detail/AvError.hpp"
 
 namespace vehlwn::ffmpeg {
 class ScopedAvDictionary {

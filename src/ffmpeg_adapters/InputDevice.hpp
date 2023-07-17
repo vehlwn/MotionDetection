@@ -6,8 +6,8 @@
 
 #include <opencv2/core/mat.hpp>
 
-#include "CvMatRaiiAdapter.hpp"
-#include "ffmpeg/ScopedAvDictionary.hpp"
+#include "../CvMatRaiiAdapter.hpp"
+#include "ScopedAvDictionary.hpp"
 
 namespace vehlwn::ffmpeg {
 class InputDevice {

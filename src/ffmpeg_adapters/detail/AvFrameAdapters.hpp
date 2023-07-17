@@ -12,8 +12,8 @@ extern "C" {
 #include <boost/log/attributes/named_scope.hpp>
 #include <boost/log/trivial.hpp>
 
+#include "../ErrorWithContext.hpp"
 #include "AvError.hpp"
-#include "ErrorWithContext.hpp"
 
 namespace vehlwn::ffmpeg::detail {
 class OwningAvframe {

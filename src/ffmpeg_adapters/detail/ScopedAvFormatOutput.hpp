@@ -8,9 +8,9 @@ extern "C" {
 }
 #include <boost/core/span.hpp>
 
+#include "../ErrorWithContext.hpp"
 #include "AvError.hpp"
 #include "AvPacketAdapters.hpp"
-#include "ErrorWithContext.hpp"
 
 namespace vehlwn::ffmpeg::detail {
 class ScopedAvFormatOutput {

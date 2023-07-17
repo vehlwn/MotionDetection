@@ -5,7 +5,7 @@
 
 #include "ApplicationSettings.hpp"
 #include "DemuxerOptionsFactory.hpp"
-#include "ffmpeg/InputDevice.hpp"
+#include "ffmpeg_adapters/InputDevice.hpp"
 
 namespace vehlwn {
 class FfmpegInputDeviceFactory {

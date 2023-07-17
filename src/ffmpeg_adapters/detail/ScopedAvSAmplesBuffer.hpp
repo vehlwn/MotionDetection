@@ -8,8 +8,8 @@ extern "C" {
 #include <libavutil/samplefmt.h>
 }
 
+#include "../ErrorWithContext.hpp"
 #include "AvError.hpp"
-#include "ErrorWithContext.hpp"
 
 namespace vehlwn::ffmpeg::detail {
 class ScopedAvSAmplesBuffer {

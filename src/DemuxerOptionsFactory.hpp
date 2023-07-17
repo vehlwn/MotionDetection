@@ -1,7 +1,7 @@
 #pragma once
 
 #include "ApplicationSettings.hpp"
-#include "ffmpeg/ScopedAvDictionary.hpp"
+#include "ffmpeg_adapters/ScopedAvDictionary.hpp"
 
 namespace vehlwn {
 class DemuxerOptionsFactory {

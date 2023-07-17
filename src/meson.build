@@ -8,20 +8,8 @@ foreach name : boost_modules
   boost_deps += dependency('boost-' + name, include_type: 'system')
 endforeach
 
-libav_deps = []
-foreach name : [
-    'libavcodec',
-    'libavdevice',
-    'libavformat',
-    'libavutil',
-    'libswresample',
-    'libswscale',
-  ]
-  dep = dependency(name, include_type: 'system')
-  libav_deps += dep
-endforeach
-
 subdir('ini')
+subdir('ffmpeg_adapters')
 
 conf_data = configuration_data()
 conf_data.set('CONFIG_DIR', '"@0@"'.format(config_dir))
@@ -44,24 +32,6 @@ executable(
     'CvMatRaiiAdapter.hpp',
     'DemuxerOptionsFactory.hpp',
     'ErrorWithContext.hpp',
-    'ffmpeg/detail/AvError.hpp',
-    'ffmpeg/detail/AvFrameAdapters.hpp',
-    'ffmpeg/detail/AvPacketAdapters.hpp',
-    'ffmpeg/detail/AVRationalOutput.hpp',
-    'ffmpeg/detail/BaseAvCodecContextProperties.hpp',
-    'ffmpeg/detail/OutputFile.cpp',
-    'ffmpeg/detail/OutputFile.hpp',
-    'ffmpeg/detail/ScopedAvAudioFifo.hpp',
-    'ffmpeg/detail/ScopedAvFormatInput.hpp',
-    'ffmpeg/detail/ScopedAvFormatOutput.hpp',
-    'ffmpeg/detail/ScopedAvSAmplesBuffer.hpp',
-    'ffmpeg/detail/ScopedDecoderContext.hpp',
-    'ffmpeg/detail/ScopedEncoderContext.hpp',
-    'ffmpeg/detail/SwrResampler.hpp',
-    'ffmpeg/detail/SwsPixelConverter.hpp',
-    'ffmpeg/InputDevice.cpp',
-    'ffmpeg/InputDevice.hpp',
-    'ffmpeg/ScopedAvDictionary.hpp',
     'FfmpegInputDeviceFactory.hpp',
     'FileNameFactory.hpp',
     'filters/GaussianBlurFilter.cpp',
@@ -89,6 +59,6 @@ executable(
     'PreprocessImageFactory.hpp',
     'SharedMutex.hpp',
   ],
-  dependencies: [drogon_dep, opencv_dep, boost_deps, libav_deps, ini_dep],
+  dependencies: [drogon_dep, opencv_dep, boost_deps, ini_dep, ffmpeg_adapters_dep],
   install: true,
 )
