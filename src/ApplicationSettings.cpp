@@ -14,10 +14,9 @@
 
 #include "Config.hpp"
 #include "ErrorWithContext.hpp"
-#include "Parser.hpp"
+#include "ini/src/Parser.hpp"
 
 namespace {
-constexpr std::string_view CONFIG_FILE_NAME = "app.json";
 
 vehlwn::ApplicationSettings::Segmentation::BackgroundSubtractor::Knn
     parse_knn(const vehlwn::ini::Section& back_subtr_obj)
@@ -430,6 +429,10 @@ public:
 } // namespace
 
 namespace vehlwn {
+namespace {
+constexpr std::string_view CONFIG_FILE_NAME = "app.ini";
+}
+
 ApplicationSettings read_settings() noexcept
 try {
     BOOST_LOG_FUNCTION();

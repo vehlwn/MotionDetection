@@ -9,6 +9,5 @@ lib_ini = library(
   dependencies: boost_deps
 )
 ini_dep = declare_dependency(
-  link_with: lib_ini,
-  include_directories : src_dir
+  link_with: lib_ini
 )

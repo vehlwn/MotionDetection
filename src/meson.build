@@ -21,6 +21,8 @@ foreach name : [
   libav_deps += dep
 endforeach
 
+subdir('ini')
+
 conf_data = configuration_data()
 conf_data.set('CONFIG_DIR', '"@0@"'.format(config_dir))
 conf_data.set('DATA_DIR', '"@0@"'.format(data_dir))
