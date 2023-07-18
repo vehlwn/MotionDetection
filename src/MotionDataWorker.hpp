@@ -1,6 +1,7 @@
 #pragma once
 
 #include <atomic>
+#include <chrono>
 #include <memory>
 #include <thread>
 
@@ -36,6 +37,7 @@ private:
     std::shared_ptr<const vehlwn::ApplicationSettings> m_settings;
 
     std::shared_ptr<SharedMutex<MotionData>> m_motion_data;
+    std::chrono::system_clock::time_point m_last_motion_point;
     std::atomic_bool m_stopped;
 
     std::thread m_working_thread;
