@@ -14,11 +14,8 @@
 namespace vehlwn {
 class MotionDataWorker {
 public:
-    MotionDataWorker(
-        std::shared_ptr<BackgroundSubtractorFactory>&& back_subtractor_factory,
-        ffmpeg::InputDevice&& input_device,
-        std::shared_ptr<FileNameFactory>&& out_filename_factory,
-        std::shared_ptr<PreprocessImageFactory>&& preprocess_image_factory);
+    explicit MotionDataWorker(
+        std::shared_ptr<const vehlwn::ApplicationSettings>&& settings);
     MotionDataWorker(const MotionDataWorker&) = delete;
     MotionDataWorker(MotionDataWorker&&) = delete;
     MotionDataWorker& operator=(const MotionDataWorker&) = delete;
@@ -36,6 +33,8 @@ private:
     ffmpeg::InputDevice m_input_device;
     std::shared_ptr<FileNameFactory> m_out_filename_factory;
     std::shared_ptr<PreprocessImageFactory> m_preprocess_image_factory;
+    std::shared_ptr<const vehlwn::ApplicationSettings> m_settings;
+
     std::shared_ptr<SharedMutex<MotionData>> m_motion_data;
     std::atomic_bool m_stopped;
 

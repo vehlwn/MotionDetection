@@ -7,21 +7,28 @@
 #include <boost/log/trivial.hpp>
 
 #include "CvMatRaiiAdapter.hpp"
+#include "FfmpegInputDeviceFactory.hpp"
 
 namespace vehlwn {
 MotionDataWorker::MotionDataWorker(
-    std::shared_ptr<BackgroundSubtractorFactory>&& back_subtractor_factory,
-    ffmpeg::InputDevice&& input_device,
-    std::shared_ptr<FileNameFactory>&& out_filename_factory,
-    std::shared_ptr<PreprocessImageFactory>&& preprocess_image_factory)
-    : m_back_subtractor_factory{std::move(back_subtractor_factory)}
-    , m_input_device(std::move(input_device))
-    , m_out_filename_factory(std::move(out_filename_factory))
-    , m_preprocess_image_factory(std::move(preprocess_image_factory))
+    std::shared_ptr<const vehlwn::ApplicationSettings>&& settings)
+    : m_back_subtractor_factory(
+        std::make_shared<vehlwn::BackgroundSubtractorFactory>(
+            settings->segmentation.background_subtractor))
+    , m_input_device(vehlwn::FfmpegInputDeviceFactory(*settings).create())
+    , m_preprocess_image_factory(
+          std::make_shared<vehlwn::PreprocessImageFactory>(settings->preprocess))
+    , m_settings(std::move(settings))
     , m_motion_data{std::make_shared<SharedMutex<MotionData>>()}
     , m_stopped{false}
 {
     BOOST_LOG_FUNCTION();
+    m_out_filename_factory = [&] {
+        auto ret = std::make_shared<vehlwn::DateFolderFactory>();
+        ret->set_prefix(std::string(m_settings->output_files.prefix));
+        ret->set_extension(std::string(m_settings->output_files.extension));
+        return ret;
+    }();
     BOOST_LOG_TRIVIAL(debug) << "constructor MotionDataWorker";
 }
 

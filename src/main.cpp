@@ -14,7 +14,6 @@
 #include "BackgroundSubtractorFactory.hpp"
 #include "Config.hpp"
 #include "DemuxerOptionsFactory.hpp"
-#include "FfmpegInputDeviceFactory.hpp"
 #include "FileNameFactory.hpp"
 #include "MotionDataWorker.hpp"
 #include "PreprocessImageFactory.hpp"
@@ -23,31 +22,12 @@
 int main()
 try {
     BOOST_LOG_FUNCTION();
-    const auto application_settings
-        = std::make_shared<const vehlwn::ApplicationSettings>(
-            vehlwn::read_settings());
+    auto application_settings = std::make_shared<const vehlwn::ApplicationSettings>(
+        vehlwn::read_settings());
     vehlwn::init_logging(application_settings->logging);
 
-    auto back_subtractor_factory
-        = std::make_shared<vehlwn::BackgroundSubtractorFactory>(
-            application_settings->segmentation.background_subtractor);
-
-    auto input_device
-        = vehlwn::FfmpegInputDeviceFactory(*application_settings).create();
-
-    auto out_filename_factory = std::make_shared<vehlwn::DateFolderFactory>();
-    out_filename_factory->set_prefix(
-        std::string(application_settings->output_files.prefix));
-    out_filename_factory->set_extension(
-        std::string(application_settings->output_files.extension));
-
-    auto preprocess_image_factory = std::make_shared<vehlwn::PreprocessImageFactory>(
-        application_settings->preprocess);
     auto motion_data_worker = std::make_shared<vehlwn::MotionDataWorker>(
-        std::move(back_subtractor_factory),
-        std::move(input_device),
-        std::move(out_filename_factory),
-        std::move(preprocess_image_factory));
+        std::move(application_settings));
     motion_data_worker->start();
 
     drogon::app()
