@@ -22,7 +22,7 @@ public:
         : m_val(val)
     {}
 
-    std::string_view get_string_view() const
+    [[nodiscard]] std::string_view get_string_view() const
     {
         return *m_val;
     }
@@ -36,14 +36,16 @@ public:
         return boost::lexical_cast<T>(get_string_view());
     }
 
-    bool get_bool() const
+    [[nodiscard]] bool get_bool() const
     {
         auto tmp = std::string(get_string_view());
         boost::algorithm::to_lower(tmp);
-        if(tmp == "true" || tmp == "yes" || tmp == "on" || tmp == "1")
+        if(tmp == "true" || tmp == "yes" || tmp == "on" || tmp == "1") {
             return true;
-        else if(tmp == "false" || tmp == "no" || tmp == "off" || tmp == "0")
+        }
+        if(tmp == "false" || tmp == "no" || tmp == "off" || tmp == "0") {
             return false;
+        }
         throw std::runtime_error(
             "Cannot convert '" + std::string(get_string_view()) + "' to bool");
     }
@@ -53,11 +55,11 @@ class Section {
     const ValueMap* m_properties;
 
 public:
-    Section(const ValueMap* properties)
+    explicit Section(const ValueMap* properties)
         : m_properties(properties)
     {}
 
-    std::optional<ValueWrapper> get(const std::string& key_name) const
+    [[nodiscard]] std::optional<ValueWrapper> get(const std::string& key_name) const
     {
         const auto value = m_properties->find(key_name);
         if(value == m_properties->end()) {
@@ -75,7 +77,8 @@ public:
         : m_map(std::move(map))
     {}
 
-    std::optional<Section> section(const std::string& section_name) const
+    [[nodiscard]] std::optional<Section>
+        section(const std::string& section_name) const
     {
         auto section = m_map.find(section_name);
         if(section == m_map.end()) {

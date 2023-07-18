@@ -34,10 +34,12 @@ public:
             boost::algorithm::trim(line);
             if(line.empty()) {
                 continue;
-            } else if(line[0] == ';' || line[0] == '#') {
+            }
+            if(line[0] == ';' || line[0] == '#') {
                 // comment
                 continue;
-            } else if(line[0] == '[') {
+            }
+            if(line[0] == '[') {
                 // section header
                 const auto end = line.find(']');
                 if(end == std::string::npos) {
