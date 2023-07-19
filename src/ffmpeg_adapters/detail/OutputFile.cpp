@@ -43,9 +43,10 @@ struct OutputFile::Impl {
     std::map<int, ScopedAvAudioFifo> audio_fifos;
     std::map<int, ScopedSwrResampler> resamplers;
     std::optional<SwsPixelConverter> video_pix_converter;
+    std::map<int, AVRational> orig_stream_time_bases;
+
     std::map<int, std::int64_t> start_times;
     std::map<int, std::int64_t> next_pts;
-    std::map<int, AVRational> orig_stream_time_bases;
 
     Impl(
         ScopedAvFormatOutput&& out_format_context_,
@@ -54,8 +55,6 @@ struct OutputFile::Impl {
         std::map<int, ScopedAvAudioFifo>&& audio_fifos_,
         std::map<int, ScopedSwrResampler>&& resamplers_,
         std::optional<SwsPixelConverter>&& video_pix_converter_,
-        std::map<int, std::int64_t>&& start_times_,
-        std::map<int, std::int64_t>&& next_pts_,
         std::map<int, AVRational>&& orig_stream_time_bases_)
         : out_format_context(std::move(out_format_context_))
         , encoder_contexts(std::move(encoder_contexts_))
@@ -63,8 +62,6 @@ struct OutputFile::Impl {
         , audio_fifos(std::move(audio_fifos_))
         , resamplers(std::move(resamplers_))
         , video_pix_converter(std::move(video_pix_converter_))
-        , start_times(std::move(start_times_))
-        , next_pts(std::move(next_pts_))
         , orig_stream_time_bases(std::move(orig_stream_time_bases_))
     {
         BOOST_LOG_FUNCTION();
@@ -127,9 +124,6 @@ struct OutputFile::Impl {
     void process_audio_frame(const OwningAvframe& frame, const int out_stream_index)
     {
         BOOST_LOG_FUNCTION();
-        BOOST_LOG_TRIVIAL(debug)
-            << "astream " << out_stream_index
-            << ": audio frame nb_samples = " << frame.nb_samples();
         const auto& encoder_context
             = encoder_contexts.at(static_cast<std::size_t>(out_stream_index));
         const auto& fifo = audio_fifos.at(out_stream_index);
@@ -150,6 +144,9 @@ struct OutputFile::Impl {
         // FIFO buffer to store as many frames worth of input samples that they
         // make up at least one frame worth of output samples.
         const int out_frame_size = encoder_context.frame_size();
+        BOOST_LOG_TRIVIAL(trace) << "audio stream " << out_stream_index
+                                 << ": nb_samples = " << frame.nb_samples()
+                                 << ": out_frame_size = " << out_frame_size;
         while(fifo.size() >= out_frame_size) {
             consume_encode_audio_fifo(fifo, encoder_context, out_stream_index);
         }
@@ -205,32 +202,38 @@ struct OutputFile::Impl {
                     BOOST_LOG_TRIVIAL(error)
                         << "Video frame does not have pts value";
                 } else {
-                    const auto new_pts
-                        = frame.pts() - start_times.at(out_stream_index);
+                    auto start_time_it = start_times.find(out_stream_index);
+                    if(start_time_it == start_times.end()) {
+                        BOOST_LOG_TRIVIAL(debug)
+                            << "Setting out video stream start_time = "
+                            << frame.pts();
+                        start_time_it
+                            = start_times.emplace(out_stream_index, frame.pts())
+                                  .first;
+                    }
+                    const auto new_pts = frame.pts() - start_time_it->second;
                     const auto rescaled_pts
                         = av_rescale_q(new_pts, in_stream_tb, out_stream_tb);
                     frame.set_pts(rescaled_pts);
                 }
                 break;
-            case AVMEDIA_TYPE_AUDIO: {
+            case AVMEDIA_TYPE_AUDIO:
                 if(frame.pts() == AV_NOPTS_VALUE) {
+                    auto new_pts_it = next_pts.find(out_stream_index);
+                    if(new_pts_it == next_pts.end()) {
+                        new_pts_it = next_pts.emplace(out_stream_index, 0).first;
+                    }
+                    auto& new_pts = new_pts_it->second;
                     const auto enc_tb = encoder_context.time_base();
-                    const auto new_pts = next_pts.at(out_stream_index);
                     const auto rescaled_pts
                         = av_rescale_q(new_pts, enc_tb, out_stream_tb);
                     frame.set_pts(rescaled_pts);
-                    next_pts[out_stream_index] = new_pts + frame.nb_samples();
+                    new_pts += frame.nb_samples();
                 } else {
                     BOOST_LOG_TRIVIAL(error)
                         << "Unexpected! Audio resampler returned valid pts!";
-                    const auto new_pts
-                        = frame.pts() - start_times.at(out_stream_index);
-                    const auto rescaled_pts
-                        = av_rescale_q(new_pts, in_stream_tb, out_stream_tb);
-                    frame.set_pts(rescaled_pts);
                 }
                 break;
-            }
             default:
                 throw std::runtime_error("Unreachable!");
         }
@@ -305,7 +308,6 @@ OutputFile open_output_file(
     std::map<int, ScopedAvAudioFifo> audio_fifos;
     std::map<int, ScopedSwrResampler> resamplers;
     std::optional<SwsPixelConverter> video_pix_converter;
-    std::map<int, std::int64_t> next_pts;
 
     constexpr auto out_vcodec = AV_CODEC_ID_H264;
     constexpr auto out_acodec = AV_CODEC_ID_AAC;
@@ -431,31 +433,20 @@ OutputFile open_output_file(
             << ": unsupported options = " << encoder_options << std::endl;
         encoder_contexts.emplace_back(std::move(encoder_context));
         in_out_stream_mapping.emplace(in_stream_index, out_stream_counter);
-        next_pts.emplace(out_stream_counter, 0);
         out_stream_counter++;
     }
     out_format_context.dump_format();
 
-    std::map<int, std::int64_t> start_times;
     std::map<int, AVRational> orig_stream_time_bases;
-    boost::for_each(boost::adaptors::index(in_streams), [&](const auto& elem) {
-        const auto in_stream_index = static_cast<int>(elem.index());
-        int out_stream_index = 0;
-        if(const auto it = in_out_stream_mapping.find(in_stream_index);
+    for(const auto& [in_stream_index, stream] : boost::adaptors::index(in_streams)) {
+        if(const auto it
+           = in_out_stream_mapping.find(static_cast<int>(in_stream_index));
            it != in_out_stream_mapping.end()) {
-            out_stream_index = it->second;
+            orig_stream_time_bases.emplace(it->second, stream->time_base);
         } else {
-            return;
+            continue;
         }
-        const auto stream = elem.value();
-        const std::int64_t start_time = stream->start_time;
-        std::int64_t ret = 0;
-        if(start_time != AV_NOPTS_VALUE) {
-            ret = start_time;
-        }
-        start_times.emplace(out_stream_index, ret);
-        orig_stream_time_bases.emplace(out_stream_index, stream->time_base);
-    });
+    }
 
     return OutputFile(std::make_unique<OutputFile::Impl>(
         std::move(out_format_context),
@@ -464,8 +455,6 @@ OutputFile open_output_file(
         std::move(audio_fifos),
         std::move(resamplers),
         std::move(video_pix_converter),
-        std::move(start_times),
-        std::move(next_pts),
         std::move(orig_stream_time_bases)));
 }
 } // namespace vehlwn::ffmpeg::detail
