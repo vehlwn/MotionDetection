@@ -209,7 +209,9 @@ detail::ScopedAvFormatInput create_input_format_context(
 DecoderContextsMap
     create_decoder_contexts(detail::ScopedAvFormatInput& input_format_context)
 {
+    BOOST_LOG_FUNCTION();
     auto ret = DecoderContextsMap();
+    bool has_video_stream = false;
     for(auto&& [index, stream] :
         boost::adaptors::index(input_format_context.streams())) {
         const AVCodecParameters* const local_codec_par = stream->codecpar;
@@ -229,6 +231,11 @@ DecoderContextsMap
             = detail::ScopedDecoderContext(local_decoder, local_codec_par);
         switch(codec_type) {
             case AVMEDIA_TYPE_VIDEO: {
+                if(has_video_stream) {
+                    BOOST_LOG_TRIVIAL(warning)
+                        << "Found another video stream: " << index << ". Ignoring";
+                    continue;
+                }
                 decoder_context.guess_frame_rate(input_format_context, stream);
                 BOOST_LOG_TRIVIAL(debug)
                     << "VIDEO codec name = " << local_decoder->name << ", stream "
@@ -238,9 +245,13 @@ DecoderContextsMap
                     << "decoder: guess_frame_rate = " << framerate << " = "
                     << av_q2d(framerate)
                     << " time_base = " << decoder_context.time_base();
+                has_video_stream = true;
                 break;
             }
             case AVMEDIA_TYPE_AUDIO: {
+                BOOST_LOG_TRIVIAL(debug)
+                    << "AUDIO codec name = " << local_decoder->name << ", stream "
+                    << index;
                 if(decoder_context.ch_layout().order == AV_CHANNEL_ORDER_UNSPEC) {
                     av_channel_layout_default(
                         &decoder_context.ch_layout(),
