@@ -13,7 +13,8 @@
     "log": {
       "log_level": "WARN"
     },
-    "server_header_field": "drogon"
+    "server_header_field": "drogon",
+    "upload_path":"/tmp/drogon_uploads"
   },
   "plugins": [
     {
