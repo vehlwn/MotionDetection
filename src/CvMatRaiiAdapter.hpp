@@ -25,7 +25,7 @@ public:
     {
         return m_internal;
     }
-    cv::Mat& get()
+    [[nodiscard]] cv::Mat& get()
     {
         return m_internal;
     }

@@ -403,6 +403,15 @@ public:
     {
         auto ret = vehlwn::ApplicationSettings::Preprocess();
         if(const auto preprocess_obj = m_config.section("preprocess")) {
+            ret.convert_to_gray = vehlwn::invoke_with_error_context_str(
+                [&] {
+                    if(const auto it = preprocess_obj->get("convert_to_gray")) {
+                        const auto tmp = it->get_bool();
+                        return tmp;
+                    }
+                    return false;
+                },
+                "Failed to parse preprocess.convert_to_gray");
             ret.resize_factor = vehlwn::invoke_with_error_context_str(
                 [&]() -> std::optional<double> {
                     if(const auto it = preprocess_obj->get("resize_factor")) {

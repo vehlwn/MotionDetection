@@ -84,6 +84,7 @@ try {
 
 void MotionDataWorker::check_motion()
 {
+    BOOST_LOG_FUNCTION();
     const auto& segmentation = m_settings->segmentation;
     const auto current_moving_area = m_motion_data->read()->moving_area();
     const auto now = std::chrono::system_clock::now();

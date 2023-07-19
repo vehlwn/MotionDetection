@@ -45,6 +45,7 @@ struct ApplicationSettings {
     } segmentation;
 
     struct Preprocess {
+        bool convert_to_gray{};
         std::optional<double> resize_factor;
         struct Smoothing {
             struct NormalizedBox {

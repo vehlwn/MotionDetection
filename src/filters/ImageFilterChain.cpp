@@ -9,6 +9,11 @@ void ImageFilterChain::add_filter(std::shared_ptr<IImageFilter>&& filter)
     m_filters.emplace_back(std::move(filter));
 }
 
+bool ImageFilterChain::empty() const
+{
+    return m_filters.empty();
+}
+
 CvMatRaiiAdapter ImageFilterChain::apply(CvMatRaiiAdapter&& input)
 {
     boost::for_each(m_filters, [&](const auto& filter) {

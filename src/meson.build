@@ -34,6 +34,8 @@ executable(
     'ErrorWithContext.hpp',
     'FfmpegInputDeviceFactory.hpp',
     'FileNameFactory.hpp',
+    'filters/ConvertToGrayFilter.cpp',
+    'filters/ConvertToGrayFilter.hpp',
     'filters/GaussianBlurFilter.cpp',
     'filters/GaussianBlurFilter.hpp',
     'filters/IdentityFilter.cpp',
