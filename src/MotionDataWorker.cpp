@@ -2,6 +2,7 @@
 
 #include <chrono>
 #include <cstdlib>
+#include <exception>
 #include <memory>
 
 #include <boost/log/attributes/named_scope.hpp>
@@ -64,10 +65,7 @@ void MotionDataWorker::start()
 void MotionDataWorker::thread_func(
     std::shared_ptr<IBackgroundSubtractor>&& back_subtractor,
     std::shared_ptr<IImageFilter>&& preprocess_filter)
-{
-    BOOST_LOG_FUNCTION();
-    const auto& segmentation = m_settings->segmentation;
-    auto output_path = std::string();
+try {
     while(!m_stopped) {
         auto frame = m_input_device.get_video_frame();
         auto processed = preprocess_filter->apply(frame.clone());
@@ -75,27 +73,36 @@ void MotionDataWorker::thread_func(
         (*m_motion_data->write())
             .set_frame(std::move(frame))
             .set_fgmask(std::move(fgmask));
+        check_motion();
+    }
+} catch(const std::exception& ex) {
+    BOOST_LOG_FUNCTION();
+    BOOST_LOG_TRIVIAL(fatal) << "thread_func: " << ex.what();
+    m_input_device.stop_recording();
+    std::exit(1);
+}
 
-        const auto current_moving_area = m_motion_data->read()->moving_area();
-        const auto now = std::chrono::system_clock::now();
-        if(current_moving_area >= segmentation.min_moving_area) {
-            m_last_motion_point = now;
-            if(!m_input_device.is_recording()) {
-                output_path = m_out_filename_factory->generate();
+void MotionDataWorker::check_motion()
+{
+    const auto& segmentation = m_settings->segmentation;
+    const auto current_moving_area = m_motion_data->read()->moving_area();
+    const auto now = std::chrono::system_clock::now();
+    if(current_moving_area >= segmentation.min_moving_area) {
+        m_last_motion_point = now;
+        if(!m_input_device.is_recording()) {
+            m_output_path = m_out_filename_factory->generate();
+            BOOST_LOG_TRIVIAL(info)
+                << "Motion detected. Opening file '" << m_output_path << "'";
+            m_input_device.start_recording(m_output_path.data());
+        }
+    } else {
+        if(m_input_device.is_recording()) {
+            const auto duration
+                = std::chrono::duration<double>(now - m_last_motion_point).count();
+            if(duration >= segmentation.delta_without_motion) {
                 BOOST_LOG_TRIVIAL(info)
-                    << "Motion detected. Opening file '" << output_path << "'";
-                m_input_device.start_recording(output_path.data());
-            }
-        } else {
-            if(m_input_device.is_recording()) {
-                const auto duration
-                    = std::chrono::duration<double>(now - m_last_motion_point)
-                          .count();
-                if(duration >= segmentation.delta_without_motion) {
-                    BOOST_LOG_TRIVIAL(info)
-                        << "End of motion. Closing file '" << output_path << "'";
-                    m_input_device.stop_recording();
-                }
+                    << "End of motion. Closing file '" << m_output_path << "'";
+                m_input_device.stop_recording();
             }
         }
     }

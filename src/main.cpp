@@ -11,12 +11,8 @@
 
 #include "Api.hpp"
 #include "ApplicationSettings.hpp"
-#include "BackgroundSubtractorFactory.hpp"
 #include "Config.hpp"
-#include "DemuxerOptionsFactory.hpp"
-#include "FileNameFactory.hpp"
 #include "MotionDataWorker.hpp"
-#include "PreprocessImageFactory.hpp"
 #include "init_logging.hpp"
 
 int main()

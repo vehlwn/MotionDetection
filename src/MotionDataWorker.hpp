@@ -39,11 +39,13 @@ private:
     std::shared_ptr<SharedMutex<MotionData>> m_motion_data;
     std::chrono::system_clock::time_point m_last_motion_point;
     std::atomic_bool m_stopped;
+    std::string m_output_path;
 
     std::thread m_working_thread;
 
     void thread_func(
         std::shared_ptr<IBackgroundSubtractor>&& back_subtractor,
         std::shared_ptr<IImageFilter>&& preprocess_filter);
+    void check_motion();
 };
 } // namespace vehlwn
