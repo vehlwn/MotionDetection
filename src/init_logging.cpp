@@ -51,7 +51,8 @@ void init_boost_log(const std::string_view log_level)
                      << expr::format_named_scope(
                             "Scope",
                             keywords::format = "%F:%l",
-                            keywords::depth = 1)
+                            keywords::depth = 1,
+                            keywords::incomplete_marker = "")
                      << "] " << expr::smessage);
 
     core->add_global_attribute("TimeStamp", attrs::local_clock());
