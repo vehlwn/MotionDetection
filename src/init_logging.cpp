@@ -5,7 +5,6 @@
 
 #include <boost/core/null_deleter.hpp>
 #include <boost/log/attributes/clock.hpp>
-#include <boost/log/attributes/current_thread_id.hpp>
 #include <boost/log/attributes/named_scope.hpp>
 #include <boost/log/core/core.hpp>
 #include <boost/log/expressions.hpp>
@@ -45,9 +44,7 @@ void init_boost_log(const std::string_view log_level)
                      << expr::format_date_time<attrs::local_clock::value_type>(
                             "TimeStamp",
                             "%Y-%m-%d %H:%M:%S.%f")
-                     << "] [" << boost::log::trivial::severity << "] [tid="
-                     << expr::attr<attrs::current_thread_id::value_type>("ThreadID")
-                     << "] ["
+                     << "] [" << boost::log::trivial::severity << "] ["
                      << expr::format_named_scope(
                             "Scope",
                             keywords::format = "%F:%l",
@@ -57,7 +54,6 @@ void init_boost_log(const std::string_view log_level)
 
     core->add_global_attribute("TimeStamp", attrs::local_clock());
     core->add_global_attribute("Scope", attrs::named_scope());
-    core->add_global_attribute("ThreadID", attrs::current_thread_id());
     auto level = boost::log::trivial::info;
     if(log_level == "trace") {
         level = boost::log::trivial::trace;
