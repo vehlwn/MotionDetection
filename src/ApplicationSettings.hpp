@@ -24,6 +24,7 @@ struct ApplicationSettings {
     struct Logging {
         std::string app_level;
         std::string ffmpeg_level;
+        bool show_timestamp;
     } logging;
 
     struct Segmentation {

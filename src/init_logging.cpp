@@ -23,7 +23,7 @@ extern "C" {
 
 namespace vehlwn {
 namespace {
-void init_boost_log(const std::string_view log_level)
+void init_boost_log(const ApplicationSettings::Logging& logging)
 {
     auto core = boost::log::core::get();
     auto backend = boost::make_shared<boost::log::sinks::text_ostream_backend>();
@@ -39,22 +39,32 @@ void init_boost_log(const std::string_view log_level)
     namespace attrs = boost::log::attributes;
     namespace keywords = boost::log::keywords;
 
-    sink->set_formatter(
-        expr::stream << "["
-                     << expr::format_date_time<attrs::local_clock::value_type>(
-                            "TimeStamp",
-                            "%Y-%m-%d %H:%M:%S.%f")
-                     << "] [" << boost::log::trivial::severity << "] ["
-                     << expr::format_named_scope(
-                            "Scope",
-                            keywords::format = "%F:%l",
-                            keywords::depth = 1,
-                            keywords::incomplete_marker = "")
-                     << "] " << expr::smessage);
+#define COMMON_FORMAT                                                               \
+    "[" << boost::log::trivial::severity << "] ["                                   \
+        << expr::format_named_scope(                                                \
+               "Scope",                                                             \
+               keywords::format = "%F:%l",                                          \
+               keywords::depth = 1,                                                 \
+               keywords::incomplete_marker = "")                                    \
+        << "] " << expr::smessage
+    if(logging.show_timestamp) {
+        sink->set_formatter(
+            expr::stream << "["
+                         << expr::format_date_time<attrs::local_clock::value_type>(
+                                "TimeStamp",
+                                "%Y-%m-%d %H:%M:%S.%f")
+                         << "] " << COMMON_FORMAT);
+    } else {
+        sink->set_formatter(expr::stream << COMMON_FORMAT);
+    }
+#undef COMMON_FORMAT
 
-    core->add_global_attribute("TimeStamp", attrs::local_clock());
+    if(logging.show_timestamp) {
+        core->add_global_attribute("TimeStamp", attrs::local_clock());
+    }
     core->add_global_attribute("Scope", attrs::named_scope());
     auto level = boost::log::trivial::info;
+    const auto& log_level = logging.app_level;
     if(log_level == "trace") {
         level = boost::log::trivial::trace;
     } else if(log_level == "debug") {
@@ -93,7 +103,7 @@ void init_ffmpeg_log(const std::string_view log_level)
 
 void init_logging(const ApplicationSettings::Logging& logging)
 {
-    init_boost_log(logging.app_level);
+    init_boost_log(logging);
     init_ffmpeg_log(logging.ffmpeg_level);
 }
 } // namespace vehlwn

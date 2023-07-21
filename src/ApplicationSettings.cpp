@@ -336,18 +336,25 @@ public:
 
     [[nodiscard]] vehlwn::ApplicationSettings::Logging parse_logging() const
     {
-        std::string app_level = "info";
-        std::string ffmpeg_level = "warning";
+        auto ret = vehlwn::ApplicationSettings::Logging();
+        ret.app_level = "info";
+        ret.ffmpeg_level = "warning";
+        ret.show_timestamp = true;
 
         if(const auto logging_obj = m_config.section("logging")) {
             if(const auto tmp = logging_obj->get("app_level")) {
-                app_level = std::string(tmp->get_string_view());
+                ret.app_level = std::string(tmp->get_string_view());
             }
             if(const auto tmp = logging_obj->get("ffmpeg_level")) {
-                ffmpeg_level = std::string(tmp->get_string_view());
+                ret.ffmpeg_level = std::string(tmp->get_string_view());
+            }
+            if(const auto tmp = logging_obj->get("show_timestamp")) {
+                ret.show_timestamp = vehlwn::invoke_with_error_context_str(
+                    [&] { return tmp->get_bool(); },
+                    "Failed to parse logging.show_timestamp");
             }
         }
-        return {std::move(app_level), std::move(ffmpeg_level)};
+        return ret;
     }
 
     [[nodiscard]] vehlwn::ApplicationSettings::Segmentation
