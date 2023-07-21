@@ -33,6 +33,7 @@ executable(
     'DemuxerOptionsFactory.hpp',
     'ErrorWithContext.hpp',
     'FfmpegInputDeviceFactory.hpp',
+    'FileNameFactory.cpp',
     'FileNameFactory.hpp',
     'filters/ConvertToGrayFilter.cpp',
     'filters/ConvertToGrayFilter.hpp',
