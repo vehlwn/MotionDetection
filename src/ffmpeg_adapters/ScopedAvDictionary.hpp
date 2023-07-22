@@ -41,6 +41,10 @@ public:
     {
         return &m_raw;
     }
+    [[nodiscard]] int size() const
+    {
+        return av_dict_count(m_raw);
+    }
 
 private:
     class Iterator {

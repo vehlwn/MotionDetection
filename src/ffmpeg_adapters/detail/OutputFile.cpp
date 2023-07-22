@@ -428,9 +428,11 @@ OutputFile open_output_file(
         BOOST_LOG_TRIVIAL(debug) << "out stream " << out_stream_counter
                                  << ": encoder options = " << encoder_options;
         encoder_context.open(out_stream->codecpar, encoder_options);
-        BOOST_LOG_TRIVIAL(debug)
-            << "out stream " << out_stream_counter
-            << ": unsupported options = " << encoder_options << std::endl;
+        if(encoder_options.size() != 0) {
+            BOOST_LOG_TRIVIAL(fatal) << "out stream " << out_stream_counter
+                                     << ": options not found = " << encoder_options;
+            throw std::runtime_error("Encoder option not found");
+        }
         encoder_contexts.emplace_back(std::move(encoder_context));
         in_out_stream_mapping.emplace(in_stream_index, out_stream_counter);
         out_stream_counter++;
