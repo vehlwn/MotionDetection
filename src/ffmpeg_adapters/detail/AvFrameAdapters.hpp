@@ -3,14 +3,12 @@
 #include <cstdint>
 #include <optional>
 #include <stdexcept>
+#include <utility>
 
 extern "C" {
 #include <libavutil/frame.h>
 #include <libavutil/hwcontext.h>
 }
-
-#include <boost/log/attributes/named_scope.hpp>
-#include <boost/log/trivial.hpp>
 
 #include "../ErrorWithContext.hpp"
 #include "AvError.hpp"
@@ -19,27 +17,18 @@ namespace vehlwn::ffmpeg::detail {
 class OwningAvframe {
     AVFrame* m_raw = nullptr;
 
-    void init()
+public:
+    OwningAvframe()
+        : m_raw(av_frame_alloc())
     {
-        m_raw = av_frame_alloc();
         if(m_raw == nullptr) {
             throw std::runtime_error("failed to allocate memory for AVFrame");
         }
     }
-
-public:
-    OwningAvframe()
-    {
-        init();
-    }
     OwningAvframe(const OwningAvframe&) = delete;
     OwningAvframe(OwningAvframe&& rhs) noexcept
-    try {
-        BOOST_LOG_FUNCTION();
-        init();
-        av_frame_move_ref(m_raw, rhs.m_raw);
-    } catch(const std::exception& ex) {
-        BOOST_LOG_TRIVIAL(error) << ex.what();
+    {
+        swap(rhs);
     }
     ~OwningAvframe()
     {
@@ -48,10 +37,13 @@ public:
     OwningAvframe& operator=(const OwningAvframe&) = delete;
     OwningAvframe& operator=(OwningAvframe&& rhs) noexcept
     {
-        av_frame_move_ref(m_raw, rhs.m_raw);
+        swap(rhs);
         return *this;
     }
-
+    void swap(OwningAvframe& rhs) noexcept
+    {
+        std::swap(m_raw, rhs.m_raw);
+    }
     AVFrame* raw()
     {
         return m_raw;

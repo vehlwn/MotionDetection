@@ -49,7 +49,6 @@ public:
     {
         swap(rhs);
         return *this;
-        ;
     }
     void swap(ScopedAvSAmplesBuffer& rhs) noexcept
     {

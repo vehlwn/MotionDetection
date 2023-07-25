@@ -4,40 +4,29 @@
 #include <exception>
 #include <iostream>
 #include <stdexcept>
+#include <utility>
 
 extern "C" {
 #include <libavcodec/avcodec.h>
 #include <libavutil/rational.h>
 }
 
-#include <boost/log/attributes/named_scope.hpp>
-#include <boost/log/trivial.hpp>
-
 namespace vehlwn::ffmpeg::detail {
 class OwningAvPacket {
     AVPacket* m_raw = nullptr;
 
-    void alloc()
+public:
+    OwningAvPacket()
+        : m_raw(av_packet_alloc())
     {
-        m_raw = av_packet_alloc();
         if(m_raw == nullptr) {
             throw std::runtime_error("failed to allocate memory for AVPacket");
         }
     }
-
-public:
-    OwningAvPacket()
-    {
-        alloc();
-    }
     OwningAvPacket(const OwningAvPacket&) = delete;
     OwningAvPacket(OwningAvPacket&& rhs) noexcept
-    try {
-        BOOST_LOG_FUNCTION();
-        alloc();
-        av_packet_move_ref(m_raw, rhs.m_raw);
-    } catch(const std::exception& ex) {
-        BOOST_LOG_TRIVIAL(error) << ex.what();
+    {
+        swap(rhs);
     }
     ~OwningAvPacket()
     {
@@ -46,9 +35,14 @@ public:
     OwningAvPacket& operator=(const OwningAvPacket&) = delete;
     OwningAvPacket& operator=(OwningAvPacket&& rhs) noexcept
     {
-        av_packet_move_ref(m_raw, rhs.m_raw);
+        swap(rhs);
         return *this;
     }
+    void swap(OwningAvPacket& rhs) noexcept
+    {
+        std::swap(m_raw, rhs.m_raw);
+    }
+
     [[nodiscard]] const AVPacket* raw() const
     {
         return m_raw;
