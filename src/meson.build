@@ -2,7 +2,7 @@ opencv_dep = dependency('OpenCV', include_type: 'system')
 
 drogon_dep = dependency('drogon', include_type: 'system')
 
-boost_modules = ['chrono', 'log']
+boost_modules = ['log']
 boost_deps = []
 foreach name : boost_modules
   boost_deps += dependency('boost-' + name, include_type: 'system')
