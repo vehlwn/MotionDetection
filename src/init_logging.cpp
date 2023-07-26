@@ -40,22 +40,22 @@ void init_boost_log(const ApplicationSettings::Logging& logging)
     namespace keywords = boost::log::keywords;
 
 #define COMMON_FORMAT                                                               \
-    "[" << boost::log::trivial::severity << "] ["                                   \
-        << expr::format_named_scope(                                                \
-               "Scope",                                                             \
-               keywords::format = "%F:%l",                                          \
-               keywords::depth = 1,                                                 \
-               keywords::incomplete_marker = "")                                    \
-        << "] " << expr::smessage
+    boost::log::trivial::severity << " "                                            \
+                                  << expr::format_named_scope(                      \
+                                         "Scope",                                   \
+                                         keywords::format = "%F:%l",                \
+                                         keywords::depth = 1,                       \
+                                         keywords::incomplete_marker = "")          \
+                                  << "] " << expr::smessage
     if(logging.show_timestamp) {
         sink->set_formatter(
             expr::stream << "["
                          << expr::format_date_time<attrs::local_clock::value_type>(
                                 "TimeStamp",
                                 "%Y-%m-%d %H:%M:%S.%f")
-                         << "] " << COMMON_FORMAT);
+                         << " " << COMMON_FORMAT);
     } else {
-        sink->set_formatter(expr::stream << COMMON_FORMAT);
+        sink->set_formatter(expr::stream << "[" << COMMON_FORMAT);
     }
 #undef COMMON_FORMAT
 
