@@ -1,6 +1,7 @@
-/build*/
+.cache/
 /*.user
-compile_commands.json
 /.clangd/
 /.mypy_cache/
-.cache/
+/build*/
+compile_commands.json
+venv/
