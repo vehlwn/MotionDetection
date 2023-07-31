@@ -26,6 +26,7 @@ extern "C" {
 #include <boost/range/algorithm/find_if.hpp>
 #include <boost/range/algorithm/for_each.hpp>
 
+#include "../SharedMutex.hpp"
 #include "ScopedAvDictionary.hpp"
 #include "detail/AVRationalOutput.hpp"
 #include "detail/AvError.hpp"
@@ -42,7 +43,7 @@ struct InputDevice::Impl {
     detail::ScopedAvFormatInput input_format_context;
     DecoderContextsMap decoder_contexts;
     detail::SwsPixelConverter pixel_converter;
-    std::optional<detail::OutputFile> output_file;
+    SharedMutex<std::optional<detail::OutputFile>> output_file;
 
     std::queue<detail::OwningAvframe> video_frames_queue;
 
@@ -100,10 +101,12 @@ struct InputDevice::Impl {
                     << av_get_picture_type_char(decoded_frame->pict_type());
                 decoded_frame->set_pts(decoded_frame->best_effort_timestamp());
                 // Write frame to a file
-                if(output_file) {
-                    output_file.value().encode_write_frame(
-                        *decoded_frame,
-                        in_stream_index);
+                {
+                    const auto lock = output_file.write();
+                    auto& opt = *lock;
+                    if(opt) {
+                        opt->encode_write_frame(*decoded_frame, in_stream_index);
+                    }
                 }
                 // Save it to queue
                 if(decoder_context.codec_type() == AVMEDIA_TYPE_VIDEO) {
@@ -155,7 +158,8 @@ double InputDevice::fps() const
 
 void InputDevice::start_recording(const char* const path) const
 {
-    pimpl->output_file.emplace(open_output_file(
+    const auto lock = pimpl->output_file.write();
+    lock->emplace(open_output_file(
         path,
         pimpl->decoder_contexts,
         pimpl->input_format_context.streams(),
@@ -165,12 +169,14 @@ void InputDevice::start_recording(const char* const path) const
 
 void InputDevice::stop_recording() const
 {
-    pimpl->output_file = std::nullopt;
+    const auto lock = pimpl->output_file.write();
+    *lock = std::nullopt;
 }
 
 bool InputDevice::is_recording() const
 {
-    return pimpl->output_file.has_value();
+    const auto lock = pimpl->output_file.read();
+    return lock->has_value();
 }
 
 void InputDevice::set_out_video_bitrate(std::optional<std::string>&& x) const
