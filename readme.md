@@ -32,5 +32,7 @@ $ conan build . --output-folder build --build=missing -s build_type=Release
 # Alternative with conan in venv:
 $ python -m venv venv
 $ ./venv/bin/pip install -r requirements.txt
+$ ./venv/bin/conan profile detect
+# Modify generated ~/.conan2/profiles/default as you need.
 $ ./venv/bin/conan build . --output-folder build --build=missing -s build_type=Release
 ```
