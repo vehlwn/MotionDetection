@@ -1,8 +1,21 @@
+cmake = import('cmake')
+
 opencv_dep = dependency('OpenCV', include_type: 'system')
 
-drogon_dep = dependency('drogon', include_type: 'system')
+drogon_dep = dependency('drogon', include_type: 'system', required: false)
+if not drogon_dep.found()
+  opt_var = cmake.subproject_options()
+  opt_var.add_cmake_defines({'BUILD_CTL': false})
+  opt_var.add_cmake_defines({'BUILD_EXAMPLES': false})
+  opt_var.add_cmake_defines({'BUILD_ORM': false})
+  opt_var.add_cmake_defines({'BUILD_BROTLI': false})
 
-boost_modules = ['log']
+  drogon_subproj = cmake.subproject('drogon', options: opt_var)
+  drogon_dep = drogon_subproj.dependency('drogon', include_type: 'system')
+  trantor_dep = drogon_subproj.dependency('trantor', include_type: 'system')
+endif
+
+boost_modules = ['log', 'thread']
 boost_deps = []
 if get_option('use_conan_boost')
   foreach name : boost_modules
@@ -66,6 +79,6 @@ executable(
     'PreprocessImageFactory.hpp',
     'SharedMutex.hpp',
   ],
-  dependencies: [drogon_dep, opencv_dep, boost_deps, ini_dep, ffmpeg_adapters_dep],
+  dependencies: [drogon_dep, trantor_dep, opencv_dep, boost_deps, ini_dep, ffmpeg_adapters_dep],
   install: true,
 )

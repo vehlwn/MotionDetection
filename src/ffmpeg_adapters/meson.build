@@ -1,9 +1,3 @@
-if get_option('use_conan_boost')
-  boost_deps = dependency('boost-headers', include_type: 'system')
-else
-  boost_deps = dependency('boost', include_type: 'system')
-endif
-
 libav_deps = []
 foreach name : [
   'libavcodec',
