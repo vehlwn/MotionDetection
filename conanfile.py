@@ -13,6 +13,7 @@ class MotionDetectionConan(ConanFile):
 
     def generate(self):
         tc = MesonToolchain(self)
+        tc.project_options["use_conan_boost"] = "true"
         tc.generate()
         pc = PkgConfigDeps(self)
         pc.generate()

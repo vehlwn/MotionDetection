@@ -1,4 +1,13 @@
-boost_deps = dependency('boost-unit_test_framework', include_type: 'system')
+boost_modules = ['unit_test_framework']
+boost_deps = []
+if get_option('use_conan_boost')
+  foreach name : boost_modules
+    boost_deps += dependency('boost-' + name, include_type: 'system')
+  endforeach
+else
+  boost_deps = dependency('boost', modules: boost_modules, include_type: 'system')
+endif
+
 test('parser',
   executable(
     'parser',
