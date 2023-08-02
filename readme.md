@@ -26,6 +26,10 @@ $ meson install
 $ meson setup --reconfigure --prefix install
 $ meson install
 
+# Alternative with drogon from subproject:
+$ meson setup --buildtype release -D use_subproj_drogon=true
+$ meson compile
+
 # Alternative with conan:
 $ conan build . --output-folder build --build=missing -s build_type=Release
 
