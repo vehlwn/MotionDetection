@@ -1,4 +1,4 @@
-opencv_dep = dependency('OpenCV', include_type: 'system')
+opencv_dep = dependency('opencv4', include_type: 'system')
 
 drogon_dep = dependency('drogon', include_type: 'system', required: false)
 if not drogon_dep.found() and get_option('use_subproj_drogon')
