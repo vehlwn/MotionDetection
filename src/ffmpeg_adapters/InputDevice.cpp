@@ -65,9 +65,8 @@ struct InputDevice::Impl {
         while(true) {
             detail::OwningAvPacket ret = input_format_context.read_packet();
             const int in_stream_index = ret.stream_index();
-            const auto decoder = decoder_contexts.find(in_stream_index);
             // Ignoge all non video and non audio streams
-            if(decoder != decoder_contexts.end()) {
+            if(decoder_contexts.contains(in_stream_index)) {
                 BOOST_LOG_TRIVIAL(trace)
                     << "packet: stream = " << in_stream_index
                     << " pts = " << ret.pts() << " dts = " << ret.dts();

@@ -1,7 +1,7 @@
 project(
   'MotionDetection',
   ['cpp'],
-  default_options: ['cpp_std=c++17', 'default_library=static'],
+  default_options: ['cpp_std=c++20', 'default_library=static'],
   license: 'ISC',
   meson_version: '>=0.61'
 )
