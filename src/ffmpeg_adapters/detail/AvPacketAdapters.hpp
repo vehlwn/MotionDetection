@@ -63,9 +63,17 @@ public:
     {
         return m_raw->pts;
     }
+    void set_pts(const std::int64_t x)
+    {
+        m_raw->pts = x;
+    }
     [[nodiscard]] std::int64_t dts() const
     {
         return m_raw->dts;
+    }
+    void set_dts(const std::int64_t x)
+    {
+        m_raw->dts = x;
     }
 };
 } // namespace vehlwn::ffmpeg::detail

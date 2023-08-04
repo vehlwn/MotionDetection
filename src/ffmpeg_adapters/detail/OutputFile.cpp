@@ -47,6 +47,7 @@ struct OutputFile::Impl {
 
     std::map<int, std::int64_t> start_times;
     std::map<int, std::int64_t> next_pts;
+    std::map<int, std::int64_t> last_mux_dts;
 
     Impl(
         ScopedAvFormatOutput&& out_format_context_,
@@ -239,6 +240,39 @@ struct OutputFile::Impl {
         }
     }
 
+    void check_dts_monotonicity(detail::OwningAvPacket& packet)
+    {
+        BOOST_LOG_FUNCTION();
+        // See https://github.com/FFmpeg/FFmpeg/blob/master/fftools/ffmpeg_mux.c
+        if((out_format_context.oformat_flags()
+            & static_cast<unsigned>(AVFMT_NOTIMESTAMPS))
+           != 0U) {
+            return;
+        }
+        if(packet.dts() == AV_NOPTS_VALUE) {
+            return;
+        }
+        if(const auto last_dts = last_mux_dts.find(packet.stream_index());
+           last_dts != last_mux_dts.end()) {
+            const auto max = last_dts->second
+                + static_cast<int>(
+                                 (out_format_context.oformat_flags()
+                                  & static_cast<unsigned>(AVFMT_TS_NONSTRICT))
+                                 == 0U);
+            if(packet.dts() < max) {
+                BOOST_LOG_TRIVIAL(error)
+                    << "Non-monotonous DTS in output stream "
+                    << packet.stream_index() << ": previous = " << last_dts->second
+                    << ", current = " << packet.dts() << "; changing to " << max;
+                if(packet.pts() >= packet.dts()) {
+                    packet.set_pts(std::max(packet.pts(), max));
+                }
+                packet.set_dts(max);
+            }
+        }
+        last_mux_dts[packet.stream_index()] = packet.dts();
+    }
+
     void encode_write_frame_impl(
         const std::optional<std::reference_wrapper<const OwningAvframe>> frame,
         const int out_stream_index)
@@ -255,10 +289,11 @@ struct OutputFile::Impl {
         }
         while(true) {
             auto encoded_result = encoder_context.receive_packet();
-            if(auto* const enc_packet
+            if(const auto enc_packet
                = std::get_if<OwningAvPacket>(&encoded_result)) {
                 // prepare packet for muxing
                 enc_packet->set_stream_index(out_stream_index);
+                check_dts_monotonicity(*enc_packet);
                 // mux encoded frame
                 out_format_context.interleaved_write_packet(*enc_packet);
             } else if(std::holds_alternative<ScopedEncoderContext::Again>(
