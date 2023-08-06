@@ -205,7 +205,10 @@ detail::ScopedAvFormatInput create_input_format_context(
 {
     BOOST_LOG_TRIVIAL(debug) << "Demuxer options = " << options;
     auto ret = detail::ScopedAvFormatInput(url, file_format, options);
-    BOOST_LOG_TRIVIAL(debug) << "Unsupported options = " << options;
+    if(options.size() != 0) {
+        BOOST_LOG_TRIVIAL(error) << "Unsupported demuxer options: " << options;
+        throw std::runtime_error("Found unsupported demuxer options");
+    }
     ret.find_stream_info();
     ret.dump_format();
     return ret;
