@@ -95,7 +95,7 @@ public:
         av_write_trailer(m_raw);
     }
 
-    void interleaved_write_packet(OwningAvPacket& packet) const
+    void interleaved_write_packet(OwningAvPacket&& packet) const
     {
         const int errnum = av_interleaved_write_frame(m_raw, packet.raw());
         if(errnum < 0) {

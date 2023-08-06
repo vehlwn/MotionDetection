@@ -295,7 +295,7 @@ struct OutputFile::Impl {
                 enc_packet->set_stream_index(out_stream_index);
                 check_dts_monotonicity(*enc_packet);
                 // mux encoded frame
-                out_format_context.interleaved_write_packet(*enc_packet);
+                out_format_context.interleaved_write_packet(std::move(*enc_packet));
             } else if(std::holds_alternative<ScopedEncoderContext::Again>(
                           encoded_result)) {
                 break;
