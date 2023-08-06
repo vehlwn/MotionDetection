@@ -68,6 +68,10 @@ public:
     {
         return m_raw->pts;
     }
+    [[nodiscard]] std::int64_t pkt_dts() const
+    {
+        return m_raw->pkt_dts;
+    }
     [[nodiscard]] std::int64_t best_effort_timestamp() const
     {
         return m_raw->best_effort_timestamp;
