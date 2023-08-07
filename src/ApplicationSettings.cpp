@@ -265,30 +265,16 @@ public:
             }
             return std::nullopt;
         }();
-        auto video_size = [&]() -> std::optional<std::string> {
-            if(auto opt = video_cap_obj.get("video_size")) {
-                return std::string(opt->get_string_view());
-            }
-            return std::nullopt;
-        }();
-        auto framerate = [&]() -> std::optional<std::string> {
-            if(auto opt = video_cap_obj.get("framerate")) {
-                return std::string(opt->get_string_view());
-            }
-            return std::nullopt;
-        }();
-        auto input_format = [&]() -> std::optional<std::string> {
-            if(auto opt = video_cap_obj.get("input_format")) {
-                return std::string(opt->get_string_view());
-            }
-            return std::nullopt;
-        }();
+
+        auto demuxer_options = std::map<std::string, std::string>();
+        if(const auto demuxer_opts_obj
+           = m_config.section("video_capture.demuxer_options")) {
+            demuxer_options = demuxer_opts_obj->get_all_values();
+        }
         return {
             std::move(filename),
             std::move(file_format),
-            std::move(video_size),
-            std::move(framerate),
-            std::move(input_format)};
+            std::move(demuxer_options)};
     }
 
     [[nodiscard]] vehlwn::ApplicationSettings::OutputFiles parse_output_files() const

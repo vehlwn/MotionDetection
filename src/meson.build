@@ -20,7 +20,6 @@ executable(
     'BackgroundSubtractorFactory.cpp',
     'BackgroundSubtractorFactory.hpp',
     'CvMatRaiiAdapter.hpp',
-    'DemuxerOptionsFactory.hpp',
     'ErrorWithContext.hpp',
     'FfmpegInputDeviceFactory.hpp',
     'FileNameFactory.cpp',

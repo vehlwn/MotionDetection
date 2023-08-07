@@ -1,5 +1,6 @@
 #pragma once
 
+#include <map>
 #include <ostream>
 #include <stdexcept>
 #include <string_view>
@@ -44,6 +45,15 @@ public:
     [[nodiscard]] int size() const
     {
         return av_dict_count(m_raw);
+    }
+    static ScopedAvDictionary
+        from_std_map(const std::map<std::string, std::string>& options)
+    {
+        auto ret = ScopedAvDictionary();
+        for(const auto& [key, val] : options) {
+            ret.set_str(key.data(), val.data());
+        }
+        return ret;
     }
 
 private:

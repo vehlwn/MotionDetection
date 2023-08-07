@@ -1,5 +1,6 @@
 #pragma once
 
+#include <map>
 #include <optional>
 #include <string>
 #include <variant>
@@ -9,9 +10,7 @@ struct ApplicationSettings {
     struct VideoCapture {
         std::string filename;
         std::optional<std::string> file_format;
-        std::optional<std::string> video_size;
-        std::optional<std::string> framerate;
-        std::optional<std::string> input_format;
+        std::map<std::string, std::string> demuxer_options;
     } video_capture;
 
     struct OutputFiles {
