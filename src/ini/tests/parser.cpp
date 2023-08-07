@@ -1,4 +1,6 @@
+#include <map>
 #include <sstream>
+#include <string>
 #define BOOST_TEST_MODULE parser
 #include <boost/test/included/unit_test.hpp>
 
@@ -116,4 +118,24 @@ BOOST_AUTO_TEST_CASE(EmptyKey)
     BOOST_TEST(key_opt.has_value());
     auto key = key_opt.value();
     BOOST_TEST(key.get_string_view() == "val");
+}
+
+BOOST_AUTO_TEST_CASE(IterateValues)
+{
+    auto in = std::istringstream(R"(
+  [section]
+  key1 = val1
+  key2 = 45
+  key3 = false
+    )");
+    const auto val = vehlwn::ini::parser::parse(in);
+    const auto section_opt = val.section("section");
+    BOOST_TEST(section_opt.has_value());
+    const auto section = section_opt.value();
+
+    const auto target = std::map<std::string, std::string>{
+        {"key1", "val1"},
+        {"key2", "45"},
+        {"key3", "false"}};
+    BOOST_TEST(section.get_all_values() == target);
 }

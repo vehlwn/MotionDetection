@@ -67,6 +67,11 @@ public:
         }
         return ValueWrapper(&value->second);
     }
+
+    [[nodiscard]] const ValueMap& get_all_values() const
+    {
+        return *m_properties;
+    }
 };
 
 class Ini {
