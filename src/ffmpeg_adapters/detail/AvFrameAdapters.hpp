@@ -1,13 +1,19 @@
 #pragma once
 
+#include <algorithm>
+#include <cstddef>
 #include <cstdint>
 #include <optional>
 #include <stdexcept>
 #include <utility>
 
+#include <opencv2/core/mat.hpp>
+
 extern "C" {
 #include <libavutil/frame.h>
 #include <libavutil/hwcontext.h>
+#include <libavutil/pixdesc.h>
+#include <libavutil/pixfmt.h>
 }
 
 #include "../ErrorWithContext.hpp"
@@ -100,6 +106,10 @@ public:
     {
         m_raw->format = x;
     }
+    [[nodiscard]] AVPixelFormat format() const
+    {
+        return static_cast<AVPixelFormat>(m_raw->format);
+    }
     void set_sample_rate(const int x) const
     {
         m_raw->sample_rate = x;
@@ -131,6 +141,40 @@ public:
     void set_width(const int x) const
     {
         m_raw->width = x;
+    }
+    void copy_props_from(const OwningAvframe& other)
+    {
+        const int errnum = av_frame_copy_props(raw(), other.raw());
+        if(errnum < 0) {
+            throw ErrorWithContext("av_frame_copy_props failed", AvError(errnum));
+        }
+    }
+    void transfer_hwdata_from(const OwningAvframe& other)
+    {
+        const int errnum = av_hwframe_transfer_data(raw(), other.raw(), 0);
+        if(errnum < 0) {
+            throw ErrorWithContext(
+                "Error transferring the data to system memory: ",
+                AvError(errnum));
+        }
+    }
+    [[nodiscard]] cv::Mat copy_to_cv_mat() const
+    {
+        if(format() != AV_PIX_FMT_BGR24) {
+            throw std::runtime_error(
+                std::string(
+                    "Failed to copy AVFrame to cv::Mat: expected BGR24 format, got ")
+                + av_get_pix_fmt_name(format()));
+        }
+        auto ret = cv::Mat(height(), width(), CV_8UC3);
+        const auto ffmpeg_step = static_cast<ptrdiff_t>(linesize()[0]);
+        const auto opencv_step = static_cast<ptrdiff_t>(width()) * 3;
+        for(int i = 0; i < height(); i++) {
+            const auto begin = data()[0] + ffmpeg_step * i;
+            const auto end = begin + linesize()[0];
+            std::copy(begin, end, ret.data + opencv_step * i);
+        }
+        return ret;
     }
 };
 

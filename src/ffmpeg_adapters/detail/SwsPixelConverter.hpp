@@ -8,8 +8,6 @@ extern "C" {
 #include <libswscale/swscale.h>
 }
 
-#include <opencv2/core/mat.hpp>
-
 #include "../ErrorWithContext.hpp"
 #include "AvError.hpp"
 #include "AvFrameAdapters.hpp"
@@ -73,11 +71,11 @@ public:
         if(frame.height() == 0 || frame.width() == 0) {
             throw std::runtime_error("scale_video accepts only VIDEO frames!");
         }
-        OwningAvframe ret = VideoAvFrameBuilder()
-                                .format(m_dst_format)
-                                .width(frame.width())
-                                .height(frame.height())
-                                .get_buffer();
+        auto ret = VideoAvFrameBuilder()
+                       .format(m_dst_format)
+                       .width(frame.width())
+                       .height(frame.height())
+                       .get_buffer();
         scale_impl(
             frame.data(),
             frame.linesize(),
@@ -85,30 +83,6 @@ public:
             frame.height(),
             ret.data(),
             ret.linesize());
-        return ret;
-    }
-
-    [[nodiscard]] cv::Mat frame_to_cv_mat(const OwningAvframe& frame) const
-    {
-        if(frame.height() == 0 || frame.width() == 0) {
-            throw std::runtime_error("frame_to_cv_mat accepts only VIDEO frames!");
-        }
-        auto tmp = scale_video(frame);
-        int type = 0;
-        switch(m_dst_format) {
-            case AV_PIX_FMT_BGR24:
-                type = CV_8UC3;
-                break;
-            default:
-                throw std::runtime_error("m_dst_format not implemented");
-        }
-        auto ret = cv::Mat(
-                       frame.height(),
-                       frame.width(),
-                       type,
-                       tmp.data()[0],
-                       static_cast<std::size_t>(tmp.linesize()[0]))
-                       .clone();
         return ret;
     }
 

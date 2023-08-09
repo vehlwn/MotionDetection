@@ -11,6 +11,11 @@ struct ApplicationSettings {
         std::string filename;
         std::optional<std::string> file_format;
         std::map<std::string, std::string> demuxer_options;
+
+        struct VideoDecoder {
+            std::optional<std::string> hw_type;
+        };
+        std::optional<VideoDecoder> video_decoder;
     } video_capture;
 
     struct OutputFiles {

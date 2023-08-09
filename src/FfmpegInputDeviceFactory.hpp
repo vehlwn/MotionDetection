@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <optional>
 #include <string>
 
 #include "ApplicationSettings.hpp"
@@ -19,10 +20,17 @@ public:
     {
         auto demuxer_options = ffmpeg::ScopedAvDictionary::from_std_map(
             m_settings.video_capture.demuxer_options);
+        const auto hw_decoder_type = [&]() -> std::optional<std::string> {
+            if(const auto& video_decoder = m_settings.video_capture.video_decoder) {
+                return video_decoder->hw_type;
+            }
+            return std::nullopt;
+        }();
         auto ret = vehlwn::ffmpeg::open_input_device(
             m_settings.video_capture.filename.data(),
             m_settings.video_capture.file_format,
-            demuxer_options);
+            demuxer_options,
+            hw_decoder_type);
         ret.set_out_video_bitrate(
             std::optional(m_settings.output_files.video_bitrate));
         ret.set_out_audio_bitrate(

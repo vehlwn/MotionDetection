@@ -21,6 +21,7 @@ extern "C" {
 #include <libavutil/avutil.h>
 #include <libavutil/mathematics.h>
 #include <libavutil/pixdesc.h>
+#include <libavutil/pixfmt.h>
 #include <libavutil/rational.h>
 }
 
@@ -346,6 +347,7 @@ OutputFile open_output_file(
 
     constexpr auto out_vcodec = AV_CODEC_ID_H264;
     constexpr auto out_acodec = AV_CODEC_ID_AAC;
+    constexpr auto input_pix_fmt = AV_PIX_FMT_BGR24;
 
     int out_stream_counter = 0;
     for(auto&& [in_stream_index, decoder_context] : decoder_contexts) {
@@ -369,19 +371,19 @@ OutputFile open_output_file(
                     decoder_context.sample_aspect_ratio());
                 const auto enc_pix_fmts = [&] {
                     boost::span<const AVPixelFormat> ret;
-                    if(!encoder->pix_fmts) {
+                    if(encoder->pix_fmts == nullptr) {
                         return ret;
                     }
-                    const auto* const start = encoder->pix_fmts;
-                    const auto* end = start;
+                    const auto start = encoder->pix_fmts;
+                    auto end = start;
                     while(static_cast<int>(*end) != -1) {
                         end++;
                     }
                     ret = {start, end};
                     return ret;
                 }();
-                if(const auto it
-                   = boost::find(enc_pix_fmts, decoder_context.pix_fmt());
+                // Compare input pixel format with encoder supported formats.
+                if(const auto it = boost::find(enc_pix_fmts, input_pix_fmt);
                    it != enc_pix_fmts.end()) {
                     encoder_context.set_pix_fmt(*it);
                 } else {
@@ -390,11 +392,12 @@ OutputFile open_output_file(
                             << "Found more than one video stream! "
                                "Ignoring others";
                     } else {
+                        // Take first format.
                         const auto dst_format = enc_pix_fmts[0];
                         video_pix_converter = SwsPixelConverter(
                             decoder_context.width(),
                             decoder_context.height(),
-                            decoder_context.pix_fmt(),
+                            input_pix_fmt,
                             dst_format);
                         encoder_context.set_pix_fmt(dst_format);
                     }

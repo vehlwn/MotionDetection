@@ -1,12 +1,15 @@
 #pragma once
 
+#include <libavutil/pixfmt.h>
+#include <stdexcept>
 extern "C" {
 #include <libavcodec/avcodec.h>
 }
 
 #include "ScopedAvFormatInput.hpp"
+#include "ScopedHwDeviceCtx.hpp"
 
-namespace vehlwn::ffmpeg ::detail {
+namespace vehlwn::ffmpeg::detail {
 class BaseAvCodecContextProperties {
 public:
     BaseAvCodecContextProperties() = default;
@@ -131,5 +134,22 @@ public:
     {
         raw()->gop_size = x;
     }
+    void set_default_get_format(const AVPixelFormat hw_pix_fmt)
+    {
+        set_hw_pix_fmt(hw_pix_fmt);
+        raw()->get_format = avcodec_default_get_format;
+    }
+    virtual void set_hw_pix_fmt(AVPixelFormat hw_pix_fmt) = 0;
+    void hw_decoder_init(const AVHWDeviceType type)
+    {
+        auto& hw_device_ctx = raw()->hw_device_ctx;
+        const int err
+            = av_hwdevice_ctx_create(&hw_device_ctx, type, nullptr, nullptr, 0);
+        if(err < 0) {
+            throw std::runtime_error("Failed to create specified HW device");
+        }
+        init_hw_device(ScopedHwDeviceCtx(av_buffer_ref(hw_device_ctx)));
+    }
+    virtual void init_hw_device(ScopedHwDeviceCtx&&) = 0;
 };
 } // namespace vehlwn::ffmpeg::detail

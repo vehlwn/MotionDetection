@@ -11,14 +11,17 @@
 #include <string>
 
 extern "C" {
+#include <libavcodec/codec.h>
 #include <libavdevice/avdevice.h>
 #include <libavformat/avformat.h>
 #include <libavutil/avutil.h>
 #include <libavutil/hwcontext.h>
 #include <libavutil/pixdesc.h>
+#include <libavutil/pixfmt.h>
 #include <libavutil/rational.h>
 }
 
+#include <boost/algorithm/string/join.hpp>
 #include <boost/log/attributes/named_scope.hpp>
 #include <boost/log/trivial.hpp>
 #include <boost/range/adaptor/indexed.hpp>
@@ -42,9 +45,9 @@ using DecoderContextsMap = std::map<int, detail::ScopedDecoderContext>;
 struct InputDevice::Impl {
     detail::ScopedAvFormatInput input_format_context;
     DecoderContextsMap decoder_contexts;
-    detail::SwsPixelConverter pixel_converter;
     SharedMutex<std::optional<detail::OutputFile>> output_file;
 
+    std::optional<detail::SwsPixelConverter> pixel_converter;
     std::queue<detail::OwningAvframe> video_frames_queue;
 
     std::optional<std::string> video_bitrate;
@@ -52,11 +55,9 @@ struct InputDevice::Impl {
 
     Impl(
         detail::ScopedAvFormatInput&& input_format_context_,
-        DecoderContextsMap&& decoder_contexts_,
-        detail::SwsPixelConverter&& pixel_converter_)
+        DecoderContextsMap&& decoder_contexts_)
         : input_format_context(std::move(input_format_context_))
         , decoder_contexts(std::move(decoder_contexts_))
-        , pixel_converter(std::move(pixel_converter_))
     {}
 
     detail::OwningAvPacket read_packet()
@@ -72,6 +73,27 @@ struct InputDevice::Impl {
                     << " pts = " << ret.pts() << " dts = " << ret.dts();
                 return ret;
             }
+        }
+    }
+
+    void create_pixel_converter(const detail::OwningAvframe& input_frame)
+    {
+        pixel_converter.emplace(
+            input_frame.width(),
+            input_frame.height(),
+            input_frame.format(),
+            AV_PIX_FMT_BGR24);
+    }
+
+    void check_encode_write(
+        const detail::OwningAvframe& frame,
+        const int in_stream_index) const
+    {
+        // Write frame to a file
+        const auto lock = output_file.write();
+        auto& opt = *lock;
+        if(opt) {
+            opt->encode_write_frame(frame, in_stream_index);
         }
     }
 
@@ -99,17 +121,22 @@ struct InputDevice::Impl {
                     << " d_pts = " << d_pts << " pict_type = "
                     << av_get_picture_type_char(decoded_frame->pict_type());
                 decoded_frame->set_pts(decoded_frame->best_effort_timestamp());
-                // Write frame to a file
-                {
-                    const auto lock = output_file.write();
-                    auto& opt = *lock;
-                    if(opt) {
-                        opt->encode_write_frame(*decoded_frame, in_stream_index);
-                    }
-                }
+
                 // Save it to queue
                 if(decoder_context.codec_type() == AVMEDIA_TYPE_VIDEO) {
-                    video_frames_queue.emplace(std::move(*decoded_frame));
+                    if(!pixel_converter) {
+                        // Cannot trust AVCodecContext::pix_fmt after
+                        // decoder_context.open() because it can change after
+                        // send_packet() when using hardware decoder.
+                        create_pixel_converter(*decoded_frame);
+                    }
+                    auto converted_frame
+                        = pixel_converter->scale_video(*decoded_frame);
+                    converted_frame.set_pts(decoded_frame->pts());
+                    check_encode_write(converted_frame, in_stream_index);
+                    video_frames_queue.emplace(std::move(converted_frame));
+                } else {
+                    check_encode_write(*decoded_frame, in_stream_index);
                 }
             } else if(std::holds_alternative<detail::ScopedDecoderContext::Again>(
                           decoded_result)) {
@@ -139,7 +166,8 @@ CvMatRaiiAdapter InputDevice::get_video_frame() const
     }
     auto next_frame = std::move(pimpl->video_frames_queue.front());
     pimpl->video_frames_queue.pop();
-    auto ret = pimpl->pixel_converter.frame_to_cv_mat(next_frame);
+
+    auto ret = next_frame.copy_to_cv_mat();
     return CvMatRaiiAdapter(std::move(ret));
 }
 
@@ -214,8 +242,52 @@ detail::ScopedAvFormatInput create_input_format_context(
     return ret;
 }
 
-DecoderContextsMap
-    create_decoder_contexts(detail::ScopedAvFormatInput& input_format_context)
+AVHWDeviceType find_hw_device_by_name(const char* const name)
+{
+    BOOST_LOG_FUNCTION();
+    auto type = av_hwdevice_find_type_by_name(name);
+    if(type == AV_HWDEVICE_TYPE_NONE) {
+        const auto msg = std::string("Device type '") + name + "' is not supported";
+        BOOST_LOG_TRIVIAL(error) << msg;
+
+        auto avaliable_types = std::vector<std::string>();
+        while((type = av_hwdevice_iterate_types(type)) != AV_HWDEVICE_TYPE_NONE) {
+            avaliable_types.emplace_back(av_hwdevice_get_type_name(type));
+        }
+        BOOST_LOG_TRIVIAL(error) << "Available device types: {"
+                                 << boost::join(avaliable_types, ", ") << "}";
+        throw std::runtime_error(msg);
+    }
+    return type;
+}
+
+AVPixelFormat
+    find_hw_pix_fmt(const AVCodec* const decoder, const AVHWDeviceType type)
+{
+    BOOST_LOG_FUNCTION();
+    auto hw_pix_fmt = AV_PIX_FMT_NONE;
+    for(int i = 0;; i++) {
+        const auto config = avcodec_get_hw_config(decoder, i);
+        if(config == nullptr) {
+            BOOST_LOG_TRIVIAL(error)
+                << "Decoder " << decoder->name << " does not support device type "
+                << av_hwdevice_get_type_name(type);
+            throw std::runtime_error("Decoder does not support wanted device type");
+        }
+        if(((static_cast<unsigned>(config->methods)
+             & AV_CODEC_HW_CONFIG_METHOD_HW_DEVICE_CTX)
+            != 0)
+           && config->device_type == type) {
+            hw_pix_fmt = config->pix_fmt;
+            break;
+        }
+    }
+    return hw_pix_fmt;
+}
+
+DecoderContextsMap create_decoder_contexts(
+    detail::ScopedAvFormatInput& input_format_context,
+    const std::optional<std::string>& hw_decoder_type)
 {
     BOOST_LOG_FUNCTION();
     auto ret = DecoderContextsMap();
@@ -228,8 +300,7 @@ DecoderContextsMap
             continue;
         }
 
-        const AVCodec* const local_decoder
-            = avcodec_find_decoder(local_codec_par->codec_id);
+        const auto local_decoder = avcodec_find_decoder(local_codec_par->codec_id);
         if(local_decoder == nullptr) {
             BOOST_LOG_TRIVIAL(error)
                 << "Failed to find decoder for stream #" << index;
@@ -243,6 +314,15 @@ DecoderContextsMap
                     BOOST_LOG_TRIVIAL(warning)
                         << "Found another video stream: " << index << ". Ignoring";
                     continue;
+                }
+                if(hw_decoder_type) {
+                    const auto type
+                        = find_hw_device_by_name(hw_decoder_type.value().data());
+                    const auto hw_pix_fmt = find_hw_pix_fmt(local_decoder, type);
+                    decoder_context.set_default_get_format(hw_pix_fmt);
+                    decoder_context.hw_decoder_init(type);
+                    BOOST_LOG_TRIVIAL(debug) << "Using hardware decoder: "
+                                             << av_hwdevice_get_type_name(type);
                 }
                 decoder_context.guess_frame_rate(input_format_context, stream);
                 BOOST_LOG_TRIVIAL(debug)
@@ -276,6 +356,7 @@ DecoderContextsMap
         }
         // Set the packet timebase for the decoder.
         decoder_context.set_pkt_timebase(stream->time_base);
+        decoder_context.open();
         BOOST_LOG_TRIVIAL(debug) << "stream " << index << ":"
                                  << " timebase = " << stream->time_base
                                  << " r_frame_rate = " << stream->r_frame_rate
@@ -299,43 +380,29 @@ int find_video_stream_index(const detail::ScopedAvFormatInput& input_format_cont
     }
     return ret;
 }
-detail::SwsPixelConverter create_pixel_converter(
-    const int video_stream_index,
-    const DecoderContextsMap& decoder_contexts)
-{
-    const auto& decoder_context = decoder_contexts.at(video_stream_index);
-    auto ret = detail::SwsPixelConverter(
-        decoder_context.width(),
-        decoder_context.height(),
-        decoder_context.pix_fmt(),
-        AV_PIX_FMT_BGR24);
-    return ret;
-}
 } // namespace
 
 InputDevice open_input_device(
     const char* const url,
     const std::optional<std::string>& file_format,
-    ScopedAvDictionary& options)
+    ScopedAvDictionary& demuxer_options,
+    const std::optional<std::string>& hw_decoder_type)
 {
     BOOST_LOG_FUNCTION();
     unique_register_all_ffmpeg_devices();
 
     auto input_format_context
-        = create_input_format_context(url, file_format, options);
+        = create_input_format_context(url, file_format, demuxer_options);
 
-    auto decoder_contexts = create_decoder_contexts(input_format_context);
+    auto decoder_contexts
+        = create_decoder_contexts(input_format_context, hw_decoder_type);
     const int video_stream_index = find_video_stream_index(input_format_context);
     if(video_stream_index == -1) {
         BOOST_LOG_TRIVIAL(fatal) << "Input file does not contain video streams!";
         std::exit(1);
     }
-    auto pixel_converter
-        = create_pixel_converter(video_stream_index, decoder_contexts);
-
     return InputDevice(std::make_unique<InputDevice::Impl>(
         std::move(input_format_context),
-        std::move(decoder_contexts),
-        std::move(pixel_converter)));
+        std::move(decoder_contexts)));
 }
 } // namespace vehlwn::ffmpeg

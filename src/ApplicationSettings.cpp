@@ -236,6 +236,16 @@ vehlwn::ApplicationSettings::Preprocess::Smoothing
     throw std::runtime_error("Unknown smmothing algorithm: " + algorithm_name);
 }
 
+vehlwn::ApplicationSettings::VideoCapture::VideoDecoder
+    parse_video_decoder(const vehlwn::ini::Section& video_decoder_obj)
+{
+    auto ret = vehlwn::ApplicationSettings::VideoCapture::VideoDecoder();
+    if(const auto hw_type = video_decoder_obj.get("hw_type")) {
+        ret.hw_type = hw_type->get_string_view();
+    }
+    return ret;
+}
+
 class ConfigParser {
     vehlwn::ini::Ini m_config;
 
@@ -247,34 +257,37 @@ public:
     [[nodiscard]] vehlwn::ApplicationSettings::VideoCapture
         parse_video_capture() const
     {
+        auto ret = vehlwn::ApplicationSettings::VideoCapture();
         const auto video_cap_obj = [&] {
             if(auto opt = m_config.section("video_capture")) {
                 return *opt;
             }
             throw std::runtime_error("video_capture section not found");
         }();
-        auto filename = [&] {
+        ret.filename = [&] {
             if(auto opt = video_cap_obj.get("filename")) {
                 return std::string(opt->get_string_view());
             }
             throw std::runtime_error("video_capture.filename key not found");
         }();
-        auto file_format = [&]() -> std::optional<std::string> {
+        ret.file_format = [&]() -> std::optional<std::string> {
             if(auto opt = video_cap_obj.get("file_format")) {
                 return std::string(opt->get_string_view());
             }
             return std::nullopt;
         }();
 
-        auto demuxer_options = std::map<std::string, std::string>();
         if(const auto demuxer_opts_obj
            = m_config.section("video_capture.demuxer_options")) {
-            demuxer_options = demuxer_opts_obj->get_all_values();
+            ret.demuxer_options = demuxer_opts_obj->get_all_values();
         }
-        return {
-            std::move(filename),
-            std::move(file_format),
-            std::move(demuxer_options)};
+
+        if(const auto video_decoder_obj
+           = m_config.section("video_capture.video_decoder")) {
+            ret.video_decoder = parse_video_decoder(*video_decoder_obj);
+        }
+
+        return ret;
     }
 
     [[nodiscard]] vehlwn::ApplicationSettings::OutputFiles parse_output_files() const

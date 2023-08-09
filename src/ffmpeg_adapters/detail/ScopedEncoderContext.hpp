@@ -95,6 +95,14 @@ public:
         }
         return ret;
     }
+    void init_hw_device(ScopedHwDeviceCtx&& /*hw_device*/) override
+    {
+        throw std::runtime_error("Not implemented");
+    }
+    void set_hw_pix_fmt(AVPixelFormat /*hw_pix_fmt*/) override
+    {
+        throw std::runtime_error("Not implemented");
+    }
 
 private:
     void send_frame_impl(AVFrame const* frame) const
