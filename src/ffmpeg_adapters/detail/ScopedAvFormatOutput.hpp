@@ -19,12 +19,20 @@ class ScopedAvFormatOutput {
 public:
     explicit ScopedAvFormatOutput(const char* const filename)
     {
-        const int errnum
+        int errnum
             = avformat_alloc_output_context2(&m_raw, nullptr, nullptr, filename);
         if(errnum < 0) {
             throw ErrorWithContext(
-                "Could not create output context: ",
+                "Could not open output file: avformat_alloc_output_context2 failed",
                 AvError(errnum));
+        }
+        if((oformat_flags() & static_cast<unsigned>(AVFMT_NOFILE)) == 0) {
+            errnum = avio_open(&m_raw->pb, m_raw->url, AVIO_FLAG_WRITE);
+            if(errnum < 0) {
+                throw ErrorWithContext(
+                    "Could not open output file: avio_open failed",
+                    AvError(errnum));
+            }
         }
     }
     ScopedAvFormatOutput(const ScopedAvFormatOutput&) = delete;
@@ -34,6 +42,12 @@ public:
     }
     ~ScopedAvFormatOutput()
     {
+        if(m_raw == nullptr) {
+            return;
+        }
+        if((oformat_flags() & static_cast<unsigned>(AVFMT_NOFILE)) == 0) {
+            avio_close(m_raw->pb);
+        }
         avformat_free_context(m_raw);
     }
     ScopedAvFormatOutput& operator=(const ScopedAvFormatOutput&) = delete;
@@ -70,14 +84,6 @@ public:
     void dump_format() const
     {
         av_dump_format(m_raw, 0, m_raw->url, 1);
-    }
-
-    void avio_open() const
-    {
-        const int errnum = ::avio_open(&m_raw->pb, m_raw->url, AVIO_FLAG_WRITE);
-        if(errnum < 0) {
-            throw ErrorWithContext("Could not open output file: ", AvError(errnum));
-        }
     }
 
     void write_header() const

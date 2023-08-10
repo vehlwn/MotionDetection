@@ -67,10 +67,6 @@ struct OutputFile::Impl {
         , orig_stream_time_bases(std::move(orig_stream_time_bases_))
     {
         BOOST_LOG_FUNCTION();
-        if((out_format_context.oformat_flags() & static_cast<unsigned>(AVFMT_NOFILE))
-           == 0) {
-            out_format_context.avio_open();
-        }
         // init muxer, write output file header
         out_format_context.write_header();
         boost::for_each(
