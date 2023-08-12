@@ -1,5 +1,6 @@
 #include "OutputFile.hpp"
 
+#include <algorithm>
 #include <cstddef>
 #include <cstdint>
 #include <exception>
@@ -255,6 +256,19 @@ struct OutputFile::Impl {
         }
         if(const auto last_dts = last_mux_dts.find(packet.stream_index());
            last_dts != last_mux_dts.end()) {
+            if(packet.pts() < packet.dts()) {
+                // Find median among three values
+                auto tmp
+                    = std::array{packet.pts(), packet.dts(), last_dts->second + 1};
+                std::ranges::sort(tmp);
+                const auto fixed_pts = tmp[1];
+                BOOST_LOG_TRIVIAL(warning)
+                    << "Invalid pts (" << packet.pts() << ") < dts (" << packet.dts()
+                    << ") in output stream " << packet.stream_index()
+                    << ", replacing by " << fixed_pts;
+                packet.set_pts(fixed_pts);
+                packet.set_dts(fixed_pts);
+            }
             const auto max = last_dts->second
                 + static_cast<int>(
                                  (out_format_context.oformat_flags()
@@ -355,7 +369,7 @@ OutputFile open_output_file(
             const auto name = settings->output_files.video_encoder.codec_name.data();
             encoder = avcodec_find_encoder_by_name(name);
             if(encoder == nullptr) {
-                BOOST_LOG_TRIVIAL(fatal) << "Encoder " << name << "not found";
+                BOOST_LOG_TRIVIAL(fatal) << "Encoder " << name << " not found";
                 throw std::runtime_error("Video encoder not found");
             }
         } else {
