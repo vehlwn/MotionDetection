@@ -176,6 +176,16 @@ public:
         }
         return ret;
     }
+    void get_hw_buffer(AVBufferRef* const hw_frames_ctx)
+    {
+        const int errnum = av_hwframe_get_buffer(hw_frames_ctx, raw(), 0);
+        if(errnum < 0) {
+            throw ErrorWithContext("av_hwframe_get_buffer failed", AvError(errnum));
+        }
+        if(raw()->hw_frames_ctx == nullptr) {
+            throw std::runtime_error("Failed to create HW buffer for a frame");
+        }
+    }
 };
 
 class VideoAvFrameBuilder {

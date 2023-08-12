@@ -17,7 +17,8 @@ MotionDataWorker::MotionDataWorker(
     : m_back_subtractor_factory(
         std::make_shared<vehlwn::BackgroundSubtractorFactory>(
             settings->segmentation.background_subtractor))
-    , m_input_device(vehlwn::FfmpegInputDeviceFactory(*settings).create())
+    , m_input_device(
+          vehlwn::FfmpegInputDeviceFactory(std::shared_ptr(settings)).create())
     , m_preprocess_image_factory(
           std::make_shared<vehlwn::PreprocessImageFactory>(settings->preprocess))
     , m_settings(std::move(settings))

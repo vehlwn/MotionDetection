@@ -326,11 +326,35 @@ public:
             }
             return std::nullopt;
         }();
+
+        using VideoEncoderSection
+            = vehlwn::ApplicationSettings::OutputFiles::VideoEncoder;
+        const auto video_encoder_obj = [&] {
+            if(auto opt = m_config.section("output_files.video_encoder")) {
+                return *opt;
+            }
+            throw std::runtime_error("output_files.video_encoder section not found");
+        }();
+        auto video_encoder = VideoEncoderSection();
+        video_encoder.codec_name = [&] {
+            if(auto tmp = video_encoder_obj.get("codec_name")) {
+                return std::string(tmp->get_string_view());
+            }
+            return std::string("libx264");
+        }();
+        if(const auto hw_type = video_encoder_obj.get("hw_type")) {
+            video_encoder.hw_type = hw_type->get_string_view();
+        }
+        if(const auto private_options
+           = m_config.section("output_files.video_encoder.private_options")) {
+            video_encoder.private_options = private_options->get_all_values();
+        }
         return {
             std::move(prefix),
             std::move(extension),
             std::move(video_bitrate),
-            std::move(audio_bitrate)};
+            std::move(audio_bitrate),
+            std::move(video_encoder)};
     }
 
     [[nodiscard]] vehlwn::ApplicationSettings::Logging parse_logging() const

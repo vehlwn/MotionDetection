@@ -23,6 +23,13 @@ struct ApplicationSettings {
         std::string extension;
         std::optional<std::string> video_bitrate;
         std::optional<std::string> audio_bitrate;
+
+        struct VideoEncoder {
+            std::string codec_name;
+            std::optional<std::string> hw_type;
+            std::map<std::string, std::string> private_options;
+        };
+        VideoEncoder video_encoder;
     } output_files;
 
     struct Logging {

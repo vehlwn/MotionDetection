@@ -28,7 +28,6 @@ class ScopedDecoderContext : public BaseAvCodecContextProperties {
             m_raw,
             m_codec,
             m_hw_device_ctx,
-            m_hw_device_ctx,
             m_hw_pix_fmt);
     }
 
@@ -116,6 +115,10 @@ public:
             tmp_frame = std::move(frame);
         }
         return tmp_frame;
+    }
+    void set_default_get_format() const
+    {
+        raw()->get_format = avcodec_default_get_format;
     }
     void set_hw_pix_fmt(const AVPixelFormat hw_pix_fmt) override
     {

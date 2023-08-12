@@ -6,6 +6,8 @@ ffmpeg_adapters = library(
     'detail/AvPacketAdapters.hpp',
     'detail/AVRationalOutput.hpp',
     'detail/BaseAvCodecContextProperties.hpp',
+    'detail/HardwareHelpers.cpp',
+    'detail/HardwareHelpers.hpp',
     'detail/OutputFile.cpp',
     'detail/OutputFile.hpp',
     'detail/ScopedAvAudioFifo.hpp',

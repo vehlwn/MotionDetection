@@ -35,5 +35,9 @@ public:
     {
         std::swap(m_device_ctx, rhs.m_device_ctx);
     }
+    AVBufferRef* raw()
+    {
+        return m_device_ctx;
+    }
 };
 } // namespace vehlwn::ffmpeg::detail

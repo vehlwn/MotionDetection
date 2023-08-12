@@ -5,6 +5,7 @@
 #include <optional>
 #include <string>
 
+#include "../ApplicationSettings.hpp"
 #include "AvFrameAdapters.hpp"
 #include "ScopedAvFormatInput.hpp"
 #include "ScopedDecoderContext.hpp"
@@ -27,9 +28,8 @@ private:
 };
 
 OutputFile open_output_file(
+    std::shared_ptr<const ApplicationSettings>&& settings,
     const char* url,
     const std::map<int, ScopedDecoderContext>& decoder_contexts,
-    ScopedAvFormatInput::StreamsView in_streams,
-    const std::optional<std::string>& video_bitrate,
-    const std::optional<std::string>& audio_bitrate);
+    ScopedAvFormatInput::StreamsView in_streams);
 } // namespace vehlwn::ffmpeg::detail

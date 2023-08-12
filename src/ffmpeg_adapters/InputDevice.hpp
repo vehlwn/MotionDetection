@@ -4,6 +4,7 @@
 #include <optional>
 #include <string>
 
+#include "../ApplicationSettings.hpp"
 #include "../CvMatRaiiAdapter.hpp"
 #include "ScopedAvDictionary.hpp"
 
@@ -25,16 +26,9 @@ public:
     void stop_recording() const;
     [[nodiscard]] bool is_recording() const;
 
-    void set_out_video_bitrate(std::optional<std::string>&& x) const;
-    void set_out_audio_bitrate(std::optional<std::string>&& x) const;
-
 private:
     std::unique_ptr<Impl> pimpl;
 };
 
-InputDevice open_input_device(
-    const char* url,
-    const std::optional<std::string>& file_format,
-    ScopedAvDictionary& demuxer_options,
-    const std::optional<std::string>& hw_decoder_type);
+InputDevice open_input_device(std::shared_ptr<const ApplicationSettings>&& settings);
 } // namespace vehlwn::ffmpeg

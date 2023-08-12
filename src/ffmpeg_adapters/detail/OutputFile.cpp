@@ -35,9 +35,11 @@ extern "C" {
 #include "ScopedEncoderContext.hpp"
 #include "SwrResampler.hpp"
 #include "SwsPixelConverter.hpp"
+#include "detail/HardwareHelpers.hpp"
 
 namespace vehlwn::ffmpeg::detail {
 struct OutputFile::Impl {
+    std::shared_ptr<const ApplicationSettings> settings;
     ScopedAvFormatOutput out_format_context;
     std::vector<ScopedEncoderContext> encoder_contexts;
     std::map<int, int> in_out_stream_mapping;
@@ -51,6 +53,7 @@ struct OutputFile::Impl {
     std::map<int, std::int64_t> last_mux_dts;
 
     Impl(
+        std::shared_ptr<const ApplicationSettings>&& settings_,
         ScopedAvFormatOutput&& out_format_context_,
         std::vector<ScopedEncoderContext>&& encoder_contexts_,
         std::map<int, int>&& in_out_stream_mapping_,
@@ -58,7 +61,8 @@ struct OutputFile::Impl {
         std::map<int, ScopedSwrResampler>&& resamplers_,
         std::optional<SwsPixelConverter>&& video_pix_converter_,
         std::map<int, AVRational>&& orig_stream_time_bases_)
-        : out_format_context(std::move(out_format_context_))
+        : settings(std::move(settings_))
+        , out_format_context(std::move(out_format_context_))
         , encoder_contexts(std::move(encoder_contexts_))
         , in_out_stream_mapping(std::move(in_out_stream_mapping_))
         , audio_fifos(std::move(audio_fifos_))
@@ -327,11 +331,10 @@ void OutputFile::encode_write_frame(
 }
 
 OutputFile open_output_file(
+    std::shared_ptr<const ApplicationSettings>&& settings,
     const char* const url,
     const std::map<int, ScopedDecoderContext>& decoder_contexts,
-    const ScopedAvFormatInput::StreamsView in_streams,
-    const std::optional<std::string>& video_bitrate,
-    const std::optional<std::string>& audio_bitrate)
+    const ScopedAvFormatInput::StreamsView in_streams)
 {
     BOOST_LOG_FUNCTION();
     auto out_format_context = ScopedAvFormatOutput(url);
@@ -341,7 +344,6 @@ OutputFile open_output_file(
     std::map<int, ScopedSwrResampler> resamplers;
     std::optional<SwsPixelConverter> video_pix_converter;
 
-    constexpr auto out_vcodec = AV_CODEC_ID_H264;
     constexpr auto out_acodec = AV_CODEC_ID_AAC;
     constexpr auto input_pix_fmt = AV_PIX_FMT_BGR24;
 
@@ -350,7 +352,12 @@ OutputFile open_output_file(
         const AVMediaType input_codec_type = decoder_context.codec_type();
         const AVCodec* encoder = nullptr;
         if(input_codec_type == AVMEDIA_TYPE_VIDEO) {
-            encoder = avcodec_find_encoder(out_vcodec);
+            const auto name = settings->output_files.video_encoder.codec_name.data();
+            encoder = avcodec_find_encoder_by_name(name);
+            if(encoder == nullptr) {
+                BOOST_LOG_TRIVIAL(fatal) << "Encoder " << name << "not found";
+                throw std::runtime_error("Video encoder not found");
+            }
         } else {
             encoder = avcodec_find_encoder(out_acodec);
         }
@@ -365,39 +372,6 @@ OutputFile open_output_file(
                 encoder_context.set_width(decoder_context.width());
                 encoder_context.set_sample_aspect_ratio(
                     decoder_context.sample_aspect_ratio());
-                const auto enc_pix_fmts = [&] {
-                    boost::span<const AVPixelFormat> ret;
-                    if(encoder->pix_fmts == nullptr) {
-                        return ret;
-                    }
-                    const auto start = encoder->pix_fmts;
-                    auto end = start;
-                    while(static_cast<int>(*end) != -1) {
-                        end++;
-                    }
-                    ret = {start, end};
-                    return ret;
-                }();
-                // Compare input pixel format with encoder supported formats.
-                if(const auto it = boost::find(enc_pix_fmts, input_pix_fmt);
-                   it != enc_pix_fmts.end()) {
-                    encoder_context.set_pix_fmt(*it);
-                } else {
-                    if(video_pix_converter) {
-                        BOOST_LOG_TRIVIAL(warning)
-                            << "Found more than one video stream! "
-                               "Ignoring others";
-                    } else {
-                        // Take first format.
-                        const auto dst_format = enc_pix_fmts[0];
-                        video_pix_converter = SwsPixelConverter(
-                            decoder_context.width(),
-                            decoder_context.height(),
-                            input_pix_fmt,
-                            dst_format);
-                        encoder_context.set_pix_fmt(dst_format);
-                    }
-                }
                 // video time_base can be set to whatever is handy and supported
                 // by encoder
                 encoder_context.set_time_base(av_inv_q(decoder_context.framerate()));
@@ -406,11 +380,70 @@ OutputFile open_output_file(
                 encoder_context.set_gop_size(
                     static_cast<int>(av_q2d(decoder_context.framerate()) / 2.0));
                 encoder_options.set_str("flags", "+cgop");
-                // h264 private options. See ffmpeg -h encoder=h264 and x264 -h.
-                encoder_options.set_str("preset", "ultrafast");
-                encoder_options.set_str("tune", "zerolatency");
-                if(video_bitrate) {
-                    encoder_options.set_str("b", video_bitrate.value().data());
+                if(const auto& video_bitrate
+                   = settings->output_files.video_bitrate) {
+                    encoder_options.set_str("b", video_bitrate->data());
+                }
+
+                const auto& hw_encoder_type
+                    = settings->output_files.video_encoder.hw_type;
+                if(hw_encoder_type) {
+                    const auto type = hw_helpers::find_hw_device_by_name(
+                        hw_encoder_type->data());
+                    const auto hw_pix_fmt
+                        = hw_helpers::find_hw_pix_fmt(encoder, type, true);
+                    encoder_context.set_pix_fmt(hw_pix_fmt);
+                    encoder_context.set_hw_pix_fmt(hw_pix_fmt);
+                    encoder_context.create_hw_device_context(type);
+                    encoder_context.create_hw_frames(
+                        ScopedEncoderContext::HwFramesContextParams{
+                            .width = decoder_context.width(),
+                            .height = decoder_context.height()});
+                    video_pix_converter = SwsPixelConverter(
+                        decoder_context.width(),
+                        decoder_context.height(),
+                        input_pix_fmt,
+                        hw_helpers::DEFAULT_SW_FORMAT);
+                    BOOST_LOG_TRIVIAL(debug) << "Using hardware encoder: "
+                                             << av_hwdevice_get_type_name(type);
+                } else {
+                    const auto enc_pix_fmts = [&] {
+                        boost::span<const AVPixelFormat> ret;
+                        if(encoder->pix_fmts == nullptr) {
+                            return ret;
+                        }
+                        const auto start = encoder->pix_fmts;
+                        auto end = start;
+                        while(static_cast<int>(*end) != -1) {
+                            end++;
+                        }
+                        ret = {start, end};
+                        return ret;
+                    }();
+                    // Compare input pixel format with encoder supported formats.
+                    if(const auto it = boost::find(enc_pix_fmts, input_pix_fmt);
+                       it != enc_pix_fmts.end()) {
+                        encoder_context.set_pix_fmt(*it);
+                    } else {
+                        if(video_pix_converter) {
+                            BOOST_LOG_TRIVIAL(warning)
+                                << "Found more than one video stream! "
+                                   "Ignoring others";
+                        } else {
+                            // Take first format.
+                            const auto dst_format = enc_pix_fmts[0];
+                            video_pix_converter = SwsPixelConverter(
+                                decoder_context.width(),
+                                decoder_context.height(),
+                                input_pix_fmt,
+                                dst_format);
+                            encoder_context.set_pix_fmt(dst_format);
+                        }
+                    }
+                }
+                for(const auto& [key, val] :
+                    settings->output_files.video_encoder.private_options) {
+                    encoder_options.set_str(key.data(), val.data());
                 }
                 break;
             }
@@ -421,8 +454,9 @@ OutputFile open_output_file(
                 encoder_context.set_sample_fmt(encoder->sample_fmts[0]);
                 encoder_context.set_time_base(
                     av_make_q(1, encoder_context.sample_rate()));
-                if(audio_bitrate) {
-                    encoder_options.set_str("b", audio_bitrate.value().data());
+                if(const auto& audio_bitrate
+                   = settings->output_files.audio_bitrate) {
+                    encoder_options.set_str("b", audio_bitrate->data());
                 }
 
                 auto resampler = SwrResamplerBuiler()
@@ -449,8 +483,9 @@ OutputFile open_output_file(
                 continue;
         }
 
-        if(out_format_context.oformat_flags()
-           & static_cast<unsigned>(AVFMT_GLOBALHEADER)) {
+        if((out_format_context.oformat_flags()
+            & static_cast<unsigned>(AVFMT_GLOBALHEADER))
+           != 0U) {
             encoder_context.set_flags(static_cast<int>(
                 encoder_context.flags()
                 | static_cast<unsigned>(AV_CODEC_FLAG_GLOBAL_HEADER)));
@@ -485,6 +520,7 @@ OutputFile open_output_file(
     }
 
     return OutputFile(std::make_unique<OutputFile::Impl>(
+        std::move(settings),
         std::move(out_format_context),
         std::move(encoder_contexts),
         std::move(in_out_stream_mapping),

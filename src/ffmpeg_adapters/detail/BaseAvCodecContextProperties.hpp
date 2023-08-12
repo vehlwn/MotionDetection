@@ -134,13 +134,8 @@ public:
     {
         raw()->gop_size = x;
     }
-    void set_default_get_format(const AVPixelFormat hw_pix_fmt)
-    {
-        set_hw_pix_fmt(hw_pix_fmt);
-        raw()->get_format = avcodec_default_get_format;
-    }
     virtual void set_hw_pix_fmt(AVPixelFormat hw_pix_fmt) = 0;
-    void hw_decoder_init(const AVHWDeviceType type)
+    void create_hw_device_context(const AVHWDeviceType type)
     {
         auto& hw_device_ctx = raw()->hw_device_ctx;
         const int err
