@@ -7,7 +7,6 @@ extern "C" {
 }
 
 #include "ScopedAvFormatInput.hpp"
-#include "ScopedHwDeviceCtx.hpp"
 
 namespace vehlwn::ffmpeg::detail {
 class BaseAvCodecContextProperties {
@@ -135,7 +134,7 @@ public:
         raw()->gop_size = x;
     }
     virtual void set_hw_pix_fmt(AVPixelFormat hw_pix_fmt) = 0;
-    void create_hw_device_context(const AVHWDeviceType type)
+    void create_hw_device_context(const AVHWDeviceType type) const
     {
         auto& hw_device_ctx = raw()->hw_device_ctx;
         const int err
@@ -143,8 +142,6 @@ public:
         if(err < 0) {
             throw std::runtime_error("Failed to create specified HW device");
         }
-        init_hw_device(ScopedHwDeviceCtx(av_buffer_ref(hw_device_ctx)));
     }
-    virtual void init_hw_device(ScopedHwDeviceCtx&&) = 0;
 };
 } // namespace vehlwn::ffmpeg::detail

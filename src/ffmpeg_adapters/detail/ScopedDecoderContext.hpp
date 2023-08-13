@@ -19,16 +19,11 @@ namespace vehlwn::ffmpeg::detail {
 class ScopedDecoderContext : public BaseAvCodecContextProperties {
     AVCodecContext* m_raw = nullptr;
     const AVCodec* m_codec = nullptr;
-    std::optional<ScopedHwDeviceCtx> m_hw_device_ctx;
     AVPixelFormat m_hw_pix_fmt = AV_PIX_FMT_NONE;
 
     [[nodiscard]] auto as_tuple()
     {
-        return std::tie(
-            m_raw,
-            m_codec,
-            m_hw_device_ctx,
-            m_hw_pix_fmt);
+        return std::tie(m_raw, m_codec, m_hw_pix_fmt);
     }
 
 public:
@@ -123,10 +118,6 @@ public:
     void set_hw_pix_fmt(const AVPixelFormat hw_pix_fmt) override
     {
         m_hw_pix_fmt = hw_pix_fmt;
-    }
-    void init_hw_device(ScopedHwDeviceCtx&& hw_device_ctx) override
-    {
-        m_hw_device_ctx.emplace(std::move(hw_device_ctx));
     }
 };
 } // namespace vehlwn::ffmpeg::detail

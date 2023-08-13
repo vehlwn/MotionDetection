@@ -19,12 +19,11 @@ namespace vehlwn::ffmpeg::detail {
 class ScopedEncoderContext : public BaseAvCodecContextProperties {
     AVCodecContext* m_raw = nullptr;
     const AVCodec* m_codec = nullptr;
-    std::optional<ScopedHwDeviceCtx> m_hw_device_ctx;
     AVPixelFormat m_hw_pix_fmt = AV_PIX_FMT_NONE;
 
     [[nodiscard]] auto as_tuple()
     {
-        return std::tie(m_raw, m_codec, m_hw_device_ctx, m_hw_pix_fmt);
+        return std::tie(m_raw, m_codec, m_hw_pix_fmt);
     }
 
 public:
@@ -80,7 +79,7 @@ public:
 
     void send_frame(const OwningAvframe& frame) const
     {
-        if(m_hw_device_ctx) {
+        if(raw()->hw_device_ctx != nullptr) {
             auto hw_frame = OwningAvframe();
             hw_frame.get_hw_buffer(raw()->hw_frames_ctx);
             hw_frame.copy_props_from(frame);
@@ -112,10 +111,6 @@ public:
         }
         return ret;
     }
-    void init_hw_device(ScopedHwDeviceCtx&& hw_device_ctx) override
-    {
-        m_hw_device_ctx.emplace(std::move(hw_device_ctx));
-    }
     void set_hw_pix_fmt(const AVPixelFormat hw_pix_fmt) override
     {
         m_hw_pix_fmt = hw_pix_fmt;
@@ -131,11 +126,11 @@ public:
             throw std::runtime_error(
                 "You must set hw_pix_fmt before calling create_hw_frames");
         }
-        if(!m_hw_device_ctx) {
+        if(raw()->hw_device_ctx == nullptr) {
             throw std::runtime_error(
                 "You must call init_hw_device before calling create_hw_frames");
         }
-        auto hw_frames_ref = av_hwframe_ctx_alloc(m_hw_device_ctx->raw());
+        auto hw_frames_ref = av_hwframe_ctx_alloc(raw()->hw_device_ctx);
         if(hw_frames_ref == nullptr) {
             throw std::runtime_error("av_hwframe_ctx_alloc failed");
         }

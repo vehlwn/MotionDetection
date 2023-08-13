@@ -16,7 +16,6 @@ ffmpeg_adapters = library(
     'detail/ScopedAvSAmplesBuffer.hpp',
     'detail/ScopedDecoderContext.hpp',
     'detail/ScopedEncoderContext.hpp',
-    'detail/ScopedHwDeviceCtx.hpp',
     'detail/SwrResampler.hpp',
     'detail/SwsPixelConverter.hpp',
     'InputDevice.cpp',
