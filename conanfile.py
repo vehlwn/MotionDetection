@@ -7,8 +7,7 @@ class MotionDetectionConan(ConanFile):
     settings = "os", "arch", "compiler", "build_type"
 
     def requirements(self):
-        self.requires("drogon/1.8.3")
-        self.requires("openssl/1.1.1t", force=True)
+        self.requires("drogon/1.8.4")
         self.requires("boost/1.82.0")
 
     def generate(self):
