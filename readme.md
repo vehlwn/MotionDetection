@@ -36,5 +36,6 @@ $ conan build . --output-folder build --build=missing -s build_type=Release --pr
 # Alternative with conan in venv:
 $ python -m venv venv
 $ ./venv/bin/pip install -r requirements.txt
+$ ./venv/bin/conan profile detect
 $ ./venv/bin/conan build . --output-folder build --build=missing -s build_type=Release --profile profile-gcc.ini
 ```
