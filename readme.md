@@ -31,12 +31,10 @@ $ meson setup --buildtype release -D use_subproj_drogon=true
 $ meson compile
 
 # Alternative with conan:
-$ conan build . --output-folder build --build=missing -s build_type=Release
+$ conan build . --output-folder build --build=missing -s build_type=Release --profile profile-gcc.ini
 
 # Alternative with conan in venv:
 $ python -m venv venv
 $ ./venv/bin/pip install -r requirements.txt
-$ ./venv/bin/conan profile detect
-# Modify generated ~/.conan2/profiles/default as you need.
-$ ./venv/bin/conan build . --output-folder build --build=missing -s build_type=Release
+$ ./venv/bin/conan build . --output-folder build --build=missing -s build_type=Release --profile profile-gcc.ini
 ```
