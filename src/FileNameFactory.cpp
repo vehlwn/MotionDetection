@@ -24,7 +24,7 @@ std::string get_date_component(const boost::posix_time::ptime& ptime)
 
 std::string get_time_component(const boost::posix_time::ptime& ptime)
 {
-    return format_ptime(ptime, "%H.%M.%s");
+    return format_ptime(ptime, "%H.%M.%S");
 }
 
 } // namespace
