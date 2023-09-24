@@ -389,11 +389,6 @@ OutputFile open_output_file(
                 // video time_base can be set to whatever is handy and supported
                 // by encoder
                 encoder_context.set_time_base(av_inv_q(decoder_context.framerate()));
-                // https://support.google.com/youtube/answer/1722171?hl=en
-                encoder_context.set_max_b_frames(2);
-                encoder_context.set_gop_size(
-                    static_cast<int>(av_q2d(decoder_context.framerate()) / 2.0));
-                encoder_options.set_str("flags", "+cgop");
                 if(const auto& video_bitrate
                    = settings->output_files.video_bitrate) {
                     encoder_options.set_str("b", video_bitrate->data());
