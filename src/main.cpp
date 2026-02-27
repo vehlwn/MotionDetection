@@ -6,8 +6,8 @@
 #include <boost/log/attributes/named_scope.hpp>
 #include <boost/log/trivial.hpp>
 #include <boost/range/algorithm/transform.hpp>
-#include <drogon/HttpAppFramework.h>
-#include <drogon/plugins/AccessLogger.h>
+#include <drogon/drogon.h>
+
 
 #include "Api.hpp"
 #include "ApplicationSettings.hpp"

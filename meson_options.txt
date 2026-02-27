@@ -4,15 +4,3 @@ option(
   value: false,
   description: 'Build unit tests'
 )
-option(
-  'use_conan_boost',
-  type: 'boolean',
-  value: false,
-  description: 'Use conan compatible boost modules naming style'
-)
-option(
-  'use_subproj_drogon',
-  type: 'boolean',
-  value: false,
-  description: 'Build drogon as subproject'
-)

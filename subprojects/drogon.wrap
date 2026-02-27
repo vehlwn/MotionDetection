@@ -1,8 +1,0 @@
-[wrap-git]
-url = https://github.com/drogonframework/drogon
-revision = master
-depth = 1
-clone-recursive = true
-
-[provide]
-dependency_names = drogon
