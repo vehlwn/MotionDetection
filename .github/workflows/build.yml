@@ -41,7 +41,8 @@ jobs:
           --build missing \
           --settings build_type=Release \
           --settings compiler.cppstd=23 \
-          --conf tools.system.package_manager:mode=install
+          --conf tools.system.package_manager:mode=install \
+          --conf tools.system.package_manager:sudo=true
 
       - name: Meson setup
         run: cd build && meson setup --native-file conan_meson_native.ini -D build_testing=true ..
