@@ -14,9 +14,9 @@ jobs:
 
       - name: Install system packages
         run: |
-          apt update
-          apt upgrade --yes
-          apt install --yes meson python3-venv
+          sudo apt update
+          sudo apt upgrade --yes
+          sudo apt install --yes meson python3-venv
 
       - name: Install conan
         run: pip3 install conan==2.26.0
