@@ -9,6 +9,9 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+      - name: id
+        run: id
+
       - name: Install system packages
         run: |
           apt update
