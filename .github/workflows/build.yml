@@ -1,0 +1,50 @@
+name: Check compilation
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install system packages
+        run: |
+          apt update
+          apt upgrade --yes
+          apt install --yes meson python3-venv
+
+      - name: Install conan
+        run: pip3 install conan==2.26.0
+
+      - name: Checkout the code
+        uses: actions/checkout@v6
+
+      - name: Cache
+        uses: actions/cache@v5
+        with:
+          path: |
+            ~/.conan2
+          key: ${{ runner.os }}-conan-${{ hashFiles('conanfile.txt') }}
+
+      - name: Create conan profile
+        run: conan profile detect
+
+      - name: Build conan packages
+        run: |
+          conan install . \
+          --output-folder build \
+          --build missing \
+          --settings build_type=Release \
+          --settings compiler.cppstd=23 \
+          --conf tools.system.package_manager:mode=install
+
+      - name: Meson setup
+        run: cd build && meson setup --native-file conan_meson_native.ini -D build_testing=true ..
+
+      - name: Meson compile
+        run: meson compile -C build
+
+      - name: Run tests
+        run: meson test -C build
