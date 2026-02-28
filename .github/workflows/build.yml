@@ -50,4 +50,4 @@ jobs:
         run: meson test -C build
 
       - name: Run clang-tidy
-        run: ninja clang-tidy
+        run: ninja -C build clang-tidy
