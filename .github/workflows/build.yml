@@ -12,8 +12,7 @@ jobs:
       - name: Install system packages
         run: |
           sudo apt update
-          sudo apt upgrade --yes
-          sudo apt install --yes meson python3-venv
+          sudo apt install meson python3-venv
 
       - name: Install conan
         run: pip3 install conan==2.26.0
@@ -29,7 +28,7 @@ jobs:
           key: ${{ runner.os }}-conan-${{ hashFiles('conanfile.txt') }}
 
       - name: Create conan profile
-        run: conan profile detect
+        run: conan profile detect --force
 
       - name: Build conan packages
         run: |
