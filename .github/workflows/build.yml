@@ -9,9 +9,6 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: id
-        run: id
-
       - name: Install system packages
         run: |
           sudo apt update
@@ -52,3 +49,6 @@ jobs:
 
       - name: Run tests
         run: meson test -C build
+
+      - name: Run clang-tidy
+        run: ninja clang-tidy

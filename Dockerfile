@@ -3,6 +3,7 @@ FROM ubuntu:24.04 AS builder
 RUN apt update \
     && apt upgrade --yes \
     && apt install --yes \
+        clang-tidy \
         cmake \
         g++ \
         gcc \
@@ -26,11 +27,11 @@ RUN ./venv/bin/conan install . \
     --settings compiler.cppstd=23 \
     --conf tools.system.package_manager:mode=install
 
-COPY meson.build meson_options.txt app.ini drogon.json .
+COPY meson.build meson_options.txt app.ini drogon.json .clang-tidy .
 COPY meson meson
 COPY src src
 RUN cat build/conan_meson_native.ini
 RUN cd build && meson setup --native-file conan_meson_native.ini -D build_testing=true ..
 RUN meson compile -C build
 RUN meson test -C build
-RUN ls -lah build/src
+RUN ninja -C build clang-tidy
