@@ -25,7 +25,7 @@ jobs:
         with:
           path: |
             ~/.conan2
-          key: ${{ runner.os }}-conan-${{ hashFiles('conanfile.txt') }}
+          key: ${{ runner.os }}-conan-${{ hashFiles('conan.lock') }}
 
       - name: Create conan profile
         run: conan profile detect --force
