@@ -7,35 +7,13 @@ be written to a specieied folder.
 For the description of configuration options see [app.ini](app.ini).
 
 Dependencies:
-- [Meson](https://mesonbuild.com/) to build project;
-- [OpenCV](https://github.com/opencv/opencv) >= 4.6.0 for background subtractor
-  algorithms;
-- [Drogon](https://github.com/drogonframework/drogon) for web server;
-- [Boost](https://www.boost.org/) >= 1.78.0 for logging, ranges ang alrogithms;
-- [FFmpeg](https://ffmpeg.org/doxygen/trunk/index.html) >= 5.1 for reading
-  input files and writing output files.
+- [Conan](https://github.com/conan-io/conan) 2.0+ to build project.
 
 ## Build
 
 ```bash
-$ mkdir build && cd build
-$ meson setup --buildtype release
+$ conan install . --output-folder=build --build=missing
+$ cd build
+$ meson setup --native-file conan_meson_native.ini -D build_testing=true ..
 $ meson compile
-$ meson install
-# Or install to alternative location:
-$ meson setup --reconfigure --prefix install
-$ meson install
-
-# Alternative with drogon from subproject:
-$ meson setup --buildtype release -D use_subproj_drogon=true
-$ meson compile
-
-# Alternative with conan:
-$ conan build . --output-folder build --build=missing -s build_type=Release --profile profile-gcc.ini
-
-# Alternative with conan in venv:
-$ python -m venv venv
-$ ./venv/bin/pip install -r requirements.txt
-$ ./venv/bin/conan profile detect
-$ ./venv/bin/conan build . --output-folder build --build=missing -s build_type=Release --profile profile-gcc.ini
 ```
